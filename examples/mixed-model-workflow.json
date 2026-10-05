@@ -1,6 +1,6 @@
 {
-  "last_node_id": 6,
-  "last_link_id": 5,
+  "last_node_id": 7,
+  "last_link_id": 6,
   "nodes": [
     {
       "id": 1,
@@ -29,6 +29,11 @@
         },
         {
           "name": "task_3",
+          "type": "CANVASPRO_TASKS",
+          "link": 6
+        },
+        {
+          "name": "task_4",
           "type": "CANVASPRO_TASKS",
           "link": null
         }
@@ -59,7 +64,7 @@
         "Node name for S&R": "CanvasProBatchExecute"
       },
       "widgets_values": [
-        "optimized-001",
+        "mixed-001",
         3,
         false,
         600,
@@ -187,8 +192,60 @@
         "Node name for S&R": "CanvasProPromptTask"
       },
       "widgets_values": [
-        "gpt-image-2",
+        "T香蕉2",
         "主体：橙色小猫\n构图：侧面\n背景：白色",
+        2,
+        "pixels",
+        "1024x1024",
+        "1:1",
+        "",
+        "1K",
+        "",
+        false
+      ]
+    },
+    {
+      "id": 7,
+      "type": "CanvasProPromptTask",
+      "pos": [
+        0,
+        1050
+      ],
+      "size": [
+        420,
+        480
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image_1",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks",
+          "type": "CANVASPRO_TASKS",
+          "links": [
+            6
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProPromptTask"
+      },
+      "widgets_values": [
+        "s-gpt-image-2.5-flare",
+        "主体：白色机械键盘\n构图：斜侧视角\n背景：深灰色",
         2,
         "pixels",
         "1024x1024",
@@ -224,6 +281,14 @@
       4,
       0,
       "IMAGE"
+    ],
+    [
+      6,
+      7,
+      0,
+      1,
+      2,
+      "CANVASPRO_TASKS"
     ]
   ],
   "groups": [],

@@ -56,7 +56,26 @@ def submit_batch(store, client, job_key, model, prompts, size="", quality="", im
         fingerprint = hashlib.sha256(json.dumps({"model": model, "items": [
             {**item, "files": [hashlib.sha256(b).hexdigest() for b in item["files"]]}
             for item in task_items]}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-    batch, created = store.create(job_key, fingerprint, client.base, model, len(prompts))
+    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress)
+
+
+def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda: None, progress=lambda n, total: None):
+    if not items or len(items) > 256:
+        raise ValueError("Batch requires 1-256 tasks")
+    if not 1 <= concurrency <= 8:
+        raise ValueError("Concurrency must be 1-8")
+    requests = [build_request(item["model"], item["prompt"], item["size"], item["quality"],
+        item["image_size"], item["files"], item["urls"]) for item in items]
+    models = [item["model"] for item in items]
+    model = models[0] if len(set(models)) == 1 else "mixed"
+    fingerprint = hashlib.sha256(json.dumps({"items": [
+        {**item, "files": [hashlib.sha256(b).hexdigest() for b in item["files"]]}
+        for item in items]}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models)
+
+
+def submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models=None):
+    batch, created = store.create(job_key, fingerprint, client.base, model, len(requests), models)
     if not created:
         return batch  # Never replay a saved submit, including unknown/prepared records.
 
@@ -71,7 +90,7 @@ def submit_batch(store, client, job_key, model, prompts, size="", quality="", im
             store.update(batch, index, status="submit_unknown", detail=str(error))
         except Exception:
             store.update(batch, index, status="submit_unknown", detail="submit_local_error_outcome_unknown")
-    run_parallel(list(range(len(prompts))), worker, concurrency, interrupt, progress)
+    run_parallel(list(range(len(requests))), worker, concurrency, interrupt, progress)
     return batch
 
 
@@ -90,7 +109,7 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
         interval = max(0.2, poll_interval)
         while not cancel.is_set() and time.monotonic() < deadline:
             try:
-                body = client.query(query_path(meta["model"], task["task_id"]), cancel, deadline)
+                body = client.query(query_path(task["model"], task["task_id"]), cancel, deadline)
                 if body.get("task_id") != task["task_id"]:
                     raise ClientError("query_task_id_mismatch")
                 status = body["status"]
@@ -123,4 +142,4 @@ def report(store, batch):
     for t in tasks:
         counts[t["status"]] = counts.get(t["status"], 0) + 1
     return json.dumps({"batch_id": batch, "counts": counts, "items": [
-        {"index": t["position"], "status": t["status"], "detail": t["detail"]} for t in tasks]}, ensure_ascii=False)
+        {"index": t["position"], "model": t["model"], "status": t["status"], "detail": t["detail"]} for t in tasks]}, ensure_ascii=False)

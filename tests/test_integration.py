@@ -170,6 +170,67 @@ class Integration(unittest.TestCase):
             self.assertIn("wait_timeout_query_again",info)
         self.assertEqual(len(self.service.posts),4)
 
+    def test_mixed_batch_execute_and_process_resume(self):
+        bundles = [nodes.PromptTask().execute(model, "完整提示词\n第二行" + str(i))[0]
+            for i,model in enumerate(["gpt-image-2", "T香蕉2", "s-gpt-image-2.5-flare"])]
+        with patch.object(nodes,"runtime",return_value=(self.store,self.client)), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            result = nodes.BatchExecute().execute(bundles[0], "mixed-batch",3,wait_seconds=5,
+                task_2=bundles[1], task_3=bundles[2])
+            images, info, handle = result["result"]
+            self.assertEqual(len(images),3)
+            self.assertEqual(json.loads(info)["download"]["output_indices"],[0,1,2])
+            batch = self.store.resolve(handle)
+            saved = self.store.read(batch)[1]
+            for t in saved:
+                from canvaspro.protocol import query_path
+                self.assertIn(query_path(t["model"],t["task_id"]),self.service.gets)
+            nodes.BatchExecute().execute(bundles[0], "mixed-batch",8,wait_seconds=0,task_2=bundles[1],task_3=bundles[2])
+            with self.assertRaises(ValueError):
+                nodes.BatchExecute().execute(bundles[0],"mixed-batch",3,wait_seconds=0,task_2=bundles[2],task_3=bundles[1])
+        self.assertEqual(len(self.service.posts),3)
+        self.assertGreaterEqual(self.service.peak,2)
+        script = "import sys; sys.path.insert(0,sys.argv[1]); import test_integration; from canvaspro.store import Store; from canvaspro.client import Client; from canvaspro.batch import query_batch; from pathlib import Path; s=Store(Path(sys.argv[2])); b=s.by_key('mixed-batch'); query_batch(s,Client(sys.argv[3],'fake-secret',1),b,0,.2,3); assert len({t['model'] for t in s.read(b)[1]})==3; print('mixed resume passed')"
+        resumed = subprocess.run([sys.executable,"-c",script,str(ROOT/'tests'),str(self.root),self.service.base],capture_output=True,text=True,timeout=30)
+        self.assertEqual(resumed.returncode,0,resumed.stderr)
+        self.assertEqual(len(self.service.posts),3)
+
+    def test_mixed_preflight_all_tasks_before_post(self):
+        good = nodes.PromptTask().execute("gpt-image-2","valid")[0]
+        bad = [{**good[0], "model":"T香蕉2", "size":"1024x1024"}]
+        with patch.object(nodes,"runtime",return_value=(self.store,self.client)), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            with self.assertRaises(ValueError):
+                nodes.BatchExecute().execute(good,"invalid-mixed",task_2=bad)
+            with self.assertRaises(ValueError):
+                nodes.BatchExecute().execute(good*257,"too-many")
+        self.assertEqual(self.service.posts,[])
+
+    def test_legacy_database_migration(self):
+        import sqlite3
+        legacy = self.root / "legacy"
+        legacy.mkdir()
+        with sqlite3.connect(legacy / "tasks.sqlite3") as db:
+            db.executescript("CREATE TABLE batches (id TEXT PRIMARY KEY,job_key TEXT UNIQUE,fingerprint TEXT,base TEXT,model TEXT,created REAL); CREATE TABLE tasks (batch TEXT,position INTEGER,status TEXT,task_id TEXT,detail TEXT,urls TEXT DEFAULT '[]',PRIMARY KEY(batch,position));")
+            db.execute("INSERT INTO batches VALUES ('old','old-key','fp',?,'T香蕉2',0)",(self.service.base,))
+            db.execute("INSERT INTO tasks VALUES ('old',0,'queued','existing','','[]')")
+        db.close()
+        migrated = Store(legacy)
+        self.assertEqual(migrated.by_key("old-key"),"old")
+        self.assertEqual(migrated.read("old")[1][0]["model"],"T香蕉2")
+        self.assertEqual(Store(legacy).handle("old"),migrated.handle("old"))
+
+    def test_batch_status_events(self):
+        from types import SimpleNamespace
+        events=[]
+        fake = SimpleNamespace(PromptServer=SimpleNamespace(instance=SimpleNamespace(send_sync=lambda name,data:events.append((name,data)))))
+        task = nodes.PromptTask().execute("gpt-image-2","status")[0]
+        with patch.dict(sys.modules, {"server":fake}), patch.object(nodes,"runtime",return_value=(self.store,self.client)), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            result = nodes.BatchExecute().execute(task,"events",wait_seconds=5,unique_id="99")
+        self.assertEqual(len(result["result"][0]),1)
+        self.assertEqual(events[-1][0],"canvaspro.batch_status")
+        self.assertEqual(events[-1][1]["node_id"],"99")
+        self.assertEqual(events[-1][1]["counts"]["succeeded"],1)
+        self.assertNotIn("fake-secret",json.dumps(events))
+
     def tearDown(self):
         self.service.shutdown()
         self.service.server_close()

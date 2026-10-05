@@ -12,12 +12,14 @@ comfy_root = Path(sys.argv[1]).resolve()
 sys.argv = ["comfy_load_check", "--cpu"]
 sys.path.insert(0, str(comfy_root))
 os.chdir(comfy_root)
+import comfy.options
+comfy.options.enable_args_parsing()
 import nodes
 
 async def main():
     assert await nodes.load_custom_node(str(plugin))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
-    assert len(names) == 10, names
+    assert len(names) == 11, names
     for name in names:
         cls = nodes.NODE_CLASS_MAPPINGS[name]
         inputs = cls.INPUT_TYPES()
@@ -26,7 +28,11 @@ async def main():
         assert len(cls.RETURN_TYPES) == len(cls.RETURN_NAMES)
     print("REAL COMFYUI LOADER PASSED:", ", ".join(names))
     import execution
-    prompt = json.loads((plugin / "examples/batch-api.json").read_text(encoding="utf-8"))
+    for example in (plugin / "examples").glob("*api.json"):
+        example_prompt = json.loads(example.read_text(encoding="utf-8"))
+        valid, error, _, errors = await execution.validate_prompt("canvaspro-check", example_prompt, None)
+        assert valid, (example.name, error, errors)
+    prompt = json.loads((plugin / "examples/optimized-api.json").read_text(encoding="utf-8"))
     valid, error, outputs, errors = await execution.validate_prompt("canvaspro-check", prompt, None)
     assert valid, (error, errors)
     sys.path.insert(0, str(plugin / "tests"))
@@ -42,8 +48,10 @@ async def main():
                     nodes.NODE_CLASS_MAPPINGS[name](), {k: [v] for k, v in values.items()})
                 assert not subgraph and not pending
                 return output
-            submitted = await invoke(prompt["1"]["class_type"], prompt["1"]["inputs"])
-            fetched = await invoke("CanvasProWaitFetch", {**prompt["2"]["inputs"], "tasks_json": submitted[0][0], "wait_seconds": 5})
+            first = await invoke("CanvasProPromptTask", prompt["5"]["inputs"])
+            second = await invoke("CanvasProPromptTask", {**prompt["6"]["inputs"], "model":"T香蕉2"})
+            fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],
+                "job_key":"real-mixed", "concurrency":3, "advanced":False, "wait_seconds":5})
             assert len(fetched[0]) == 2
             assert fetched[0][0].shape != fetched[0][1].shape
             import folder_paths

@@ -1,6 +1,7 @@
 import hashlib
 import io
 import json
+import time
 import numpy as np
 import torch
 from PIL import Image, ImageOps
@@ -8,7 +9,7 @@ from .config import settings
 from .client import Client, ClientError
 from .store import Store
 from .protocol import MODELS, family
-from .batch import submit_batch, query_batch, run_parallel, report
+from .batch import submit_batch, submit_tasks, query_batch, run_parallel, report
 
 
 def runtime(timeout=30):
@@ -142,10 +143,11 @@ class PromptTask(ModelSubmit):
         schema = ModelSubmit.INPUT_TYPES()
         schema["required"] = {"model": schema["required"]["model"],
             "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "One complete task; all line breaks are preserved."})}
+        schema["optional"]["advanced"] = ("BOOLEAN", {"default": False})
         return schema
 
     def execute(self, model, prompt, reference_count=2, size_mode="pixels", pixel_size="1024x1024",
-                aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", **images):
+                aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", advanced=False, **images):
         maximum = {"kr": 16, "hc": 15, "gemini": 14}[family(model)]
         if not 1 <= reference_count <= maximum:
             raise ValueError("Reference count exceeds model limit")
@@ -309,6 +311,68 @@ class WaitFetch(Fetch):
         return {"ui": {"text": [info]}, "result": (images, info)}
 
 
+class BatchExecute(Fetch):
+    RETURN_TYPES = ("IMAGE", "STRING", "STRING")
+    RETURN_NAMES = ("images", "report", "tasks_json")
+    OUTPUT_IS_LIST = (True, False, False)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "task_1": ("CANVASPRO_TASKS",),
+            "job_key": ("STRING", {"default": "batch-001", "tooltip": "Same name resumes saved tasks. Use a new name to submit changed tasks."}),
+            "concurrency": ("INT", {"default": 3, "min": 1, "max": 8}),
+            "advanced": ("BOOLEAN", {"default": False})},
+            "optional": {"wait_seconds": ("INT", {"default": 600, "min": 0, "max": 86400}),
+                "request_timeout": ("INT", {"default": 30, "min": 1, "max": 120}),
+                **{f"task_{i}": ("CANVASPRO_TASKS",) for i in range(2, 257)}},
+            "hidden": {"unique_id": "UNIQUE_ID"}}
+
+    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, **ports):
+        items = list(task_1)
+        for i in range(2, 257):
+            if ports.get(f"task_{i}") is not None:
+                items.extend(ports[f"task_{i}"])
+        store, client = runtime(request_timeout)
+        phase = "提交"
+        last_sent, last_check = None, 0.0
+        def publish():
+            nonlocal last_sent, last_check
+            if unique_id is None or time.monotonic() - last_check < 0.5:
+                return
+            last_check = time.monotonic()
+            try:
+                saved = store.by_key(job_key)
+            except ValueError:
+                return
+            counts = json.loads(report(store, saved))["counts"]
+            payload = {"node_id": str(unique_id), "phase": phase, "counts": counts}
+            if payload == last_sent:
+                return
+            try:
+                from server import PromptServer
+                PromptServer.instance.send_sync("canvaspro.batch_status", payload)
+                last_sent = payload
+            except (ImportError, AttributeError, RuntimeError):
+                pass
+        def check():
+            interrupt()
+            publish()
+        batch = submit_tasks(store, client, job_key, items, concurrency, check, progress())
+        phase, last_check = "等待", 0.0
+        publish()
+        query_batch(store, client, batch, wait_seconds, 2.0, concurrency, check, progress())
+        phase, last_check = "下载", 0.0
+        publish()
+        handle = store.handle(batch)
+        fetched = Fetch().execute(handle, concurrency, request_timeout)
+        phase, last_check = "本轮结束", 0.0
+        publish()
+        images, download_report = fetched["result"]
+        info = json.dumps({"query": json.loads(report(store, batch)), "download": json.loads(download_report)}, ensure_ascii=False)
+        return {"ui": {"text": [info]}, "result": (images, info, handle)}
+
+
 class Restore:
     CATEGORY = "CanvasPro"
     FUNCTION = "execute"
@@ -366,3 +430,6 @@ NODE_DISPLAY_NAME_MAPPINGS.update(CanvasProPromptTask="CanvasPro · 独立任务
 
 NODE_CLASS_MAPPINGS["CanvasProWaitFetch"] = WaitFetch
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProWaitFetch"] = "CanvasPro · 等待并获取图片"
+
+NODE_CLASS_MAPPINGS["CanvasProBatchExecute"] = BatchExecute
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProBatchExecute"] = "CanvasPro · 批量执行"

@@ -1,2 +1,5 @@
-17 integration tests passed in 19.761 seconds.
-Local mock HTTP only; paid requests: 0.
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 27.474s
+
+OK

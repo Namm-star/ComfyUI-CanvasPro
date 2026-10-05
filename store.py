@@ -20,6 +20,10 @@ class Store:
               batch TEXT, position INTEGER, status TEXT, task_id TEXT, detail TEXT,
               urls TEXT DEFAULT '[]', PRIMARY KEY(batch, position));
             """)
+            db.execute("BEGIN IMMEDIATE")
+            columns = {row[1] for row in db.execute("PRAGMA table_info(tasks)")}
+            if "model" not in columns:
+                db.execute("ALTER TABLE tasks ADD COLUMN model TEXT")
 
     @contextmanager
     def connect(self):
@@ -31,9 +35,11 @@ class Store:
         finally:
             db.close()
 
-    def create(self, job_key, fingerprint, base, model, count):
+    def create(self, job_key, fingerprint, base, model, count, models=None):
         if not job_key.strip() or len(job_key) > 128:
             raise ValueError("job_key must have 1-128 characters")
+        if models is not None and len(models) != count:
+            raise ValueError("Task model count mismatch")
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             old = db.execute("SELECT * FROM batches WHERE job_key=?", (job_key,)).fetchone()
@@ -43,7 +49,7 @@ class Store:
                 return old["id"], False
             batch = str(uuid.uuid4())
             db.execute("INSERT INTO batches VALUES (?,?,?,?,?,?)", (batch, job_key, fingerprint, base, model, time.time()))
-            db.executemany("INSERT INTO tasks(batch,position,status,detail) VALUES (?,?,'prepared','')", [(batch, i) for i in range(count)])
+            db.executemany("INSERT INTO tasks(batch,position,status,detail,model) VALUES (?,?,'prepared','',?)", [(batch, i, models[i] if models is not None else model) for i in range(count)])
         return batch, True
 
     def claim(self, batch, index):
@@ -66,6 +72,7 @@ class Store:
                 raise ValueError("Unknown batch: restore local database or import existing IDs")
             tasks = [dict(r) for r in db.execute("SELECT * FROM tasks WHERE batch=? ORDER BY position", (batch,))]
         for t in tasks:
+            t["model"] = t["model"] or meta["model"]
             t["urls"] = json.loads(t["urls"])
             if t["status"] == "sending":
                 t["status"] = "submit_unknown"
@@ -81,7 +88,7 @@ class Store:
     def handle(self, batch):
         meta, tasks = self.read(batch)
         return json.dumps({"schema": 1, "batch_id": batch, "model": meta["model"],
-            "tasks": [{k: t[k] for k in ("position", "task_id", "status", "detail")} for t in tasks]}, ensure_ascii=False)
+            "tasks": [{k: t[k] for k in ("position", "model", "task_id", "status", "detail")} for t in tasks]}, ensure_ascii=False)
 
     def resolve(self, handle):
         value = json.loads(handle)

@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-canvaspro"
-version = "0.4.0"
+version = "0.5.0"
 description = "CanvasPro native asynchronous image batch nodes for ComfyUI"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
