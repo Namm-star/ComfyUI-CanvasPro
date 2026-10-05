@@ -1,0 +1,83 @@
+{
+  "1": {
+    "class_type": "CanvasProSubmitTasks",
+    "inputs": {
+      "tasks": [
+        "7",
+        0
+      ],
+      "job_key": "independent-001",
+      "concurrency": 2,
+      "request_timeout": 30
+    }
+  },
+  "2": {
+    "class_type": "CanvasProBatchWait",
+    "inputs": {
+      "tasks_json": [
+        "1",
+        0
+      ],
+      "wait_seconds": 600,
+      "poll_interval": 2.0,
+      "concurrency": 2,
+      "request_timeout": 30
+    }
+  },
+  "3": {
+    "class_type": "CanvasProBatchFetch",
+    "inputs": {
+      "tasks_json": [
+        "2",
+        0
+      ],
+      "concurrency": 2,
+      "request_timeout": 30
+    }
+  },
+  "4": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "3",
+        0
+      ],
+      "filename_prefix": "CanvasPro"
+    }
+  },
+  "5": {
+    "class_type": "CanvasProPromptTask",
+    "inputs": {
+      "model": "gpt-image-2",
+      "prompt": "主体：蓝色小鸟\n构图：居中\n背景：白色",
+      "reference_count": 2,
+      "size_mode": "pixels",
+      "pixel_size": "1024x1024",
+      "quality": ""
+    }
+  },
+  "6": {
+    "class_type": "CanvasProPromptTask",
+    "inputs": {
+      "model": "gpt-image-2",
+      "prompt": "主体：橙色小猫\n构图：侧面\n背景：白色",
+      "reference_count": 2,
+      "size_mode": "pixels",
+      "pixel_size": "1024x1024",
+      "quality": ""
+    }
+  },
+  "7": {
+    "class_type": "CanvasProMergeTasks",
+    "inputs": {
+      "tasks_a": [
+        "5",
+        0
+      ],
+      "tasks_b": [
+        "6",
+        0
+      ]
+    }
+  }
+}

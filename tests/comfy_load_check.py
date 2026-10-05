@@ -17,7 +17,7 @@ import nodes
 async def main():
     assert await nodes.load_custom_node(str(plugin))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
-    assert len(names) == 6, names
+    assert len(names) == 9, names
     for name in names:
         cls = nodes.NODE_CLASS_MAPPINGS[name]
         inputs = cls.INPUT_TYPES()

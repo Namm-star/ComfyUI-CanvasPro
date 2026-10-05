@@ -1,8 +1,8 @@
-✔ URL references must be cleared before switching to Banana (0.7774ms)
-✔ model parameters, quality choices and reference port ceilings (1.1102ms)
-✔ changing model or count never silently disconnects a linked image (0.1526ms)
-✔ reload restores saved selection, count, links and widget values (0.1711ms)
-✔ incompatible connected parameter blocks model switch (0.1241ms)
+✔ URL references must be cleared before switching to Banana (0.7699ms)
+✔ model parameters, quality choices and reference port ceilings (1.0023ms)
+✔ changing model or count never silently disconnects a linked image (0.145ms)
+✔ reload restores saved selection, count, links and widget values (0.1685ms)
+✔ incompatible connected parameter blocks model switch (0.1164ms)
 ℹ tests 5
 ℹ suites 0
 ℹ pass 5
@@ -10,4 +10,4 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 56.7854
+ℹ duration_ms 49.6239

@@ -1,0 +1,370 @@
+{
+  "last_node_id": 7,
+  "last_link_id": 6,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CanvasProSubmitTasks",
+      "pos": [
+        850,
+        100
+      ],
+      "size": [
+        320,
+        180
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tasks",
+          "type": "CANVASPRO_TASKS",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProModelBatchSubmit"
+      },
+      "widgets_values": [
+        "independent-001",
+        2,
+        30
+      ]
+    },
+    {
+      "id": 2,
+      "type": "CanvasProBatchWait",
+      "pos": [
+        1230,
+        100
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProBatchWait"
+      },
+      "widgets_values": [
+        600,
+        2.0,
+        2,
+        30
+      ]
+    },
+    {
+      "id": 3,
+      "type": "CanvasProBatchFetch",
+      "pos": [
+        1610,
+        100
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "download_report",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProBatchFetch"
+      },
+      "widgets_values": [
+        2,
+        30
+      ]
+    },
+    {
+      "id": 4,
+      "type": "SaveImage",
+      "pos": [
+        1990,
+        100
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "CanvasPro"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "CanvasProPromptTask",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        420,
+        480
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image_1",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks",
+          "type": "CANVASPRO_TASKS",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProPromptTask"
+      },
+      "widgets_values": [
+        "gpt-image-2",
+        "主体：蓝色小鸟\n构图：居中\n背景：白色",
+        2,
+        "pixels",
+        "1024x1024",
+        "1:1",
+        "",
+        "1K",
+        ""
+      ]
+    },
+    {
+      "id": 6,
+      "type": "CanvasProPromptTask",
+      "pos": [
+        0,
+        550
+      ],
+      "size": [
+        420,
+        480
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image_1",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks",
+          "type": "CANVASPRO_TASKS",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProPromptTask"
+      },
+      "widgets_values": [
+        "gpt-image-2",
+        "主体：橙色小猫\n构图：侧面\n背景：白色",
+        2,
+        "pixels",
+        "1024x1024",
+        "1:1",
+        "",
+        "1K",
+        ""
+      ]
+    },
+    {
+      "id": 7,
+      "type": "CanvasProMergeTasks",
+      "pos": [
+        530,
+        250
+      ],
+      "size": [
+        260,
+        100
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tasks_a",
+          "type": "CANVASPRO_TASKS",
+          "link": 4
+        },
+        {
+          "name": "tasks_b",
+          "type": "CANVASPRO_TASKS",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks",
+          "type": "CANVASPRO_TASKS",
+          "links": [
+            6
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProMergeTasks"
+      },
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      3,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      5,
+      0,
+      7,
+      0,
+      "CANVASPRO_TASKS"
+    ],
+    [
+      5,
+      6,
+      0,
+      7,
+      1,
+      "CANVASPRO_TASKS"
+    ],
+    [
+      6,
+      7,
+      0,
+      1,
+      0,
+      "CANVASPRO_TASKS"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

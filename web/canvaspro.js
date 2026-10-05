@@ -4,7 +4,7 @@ import { installModelUI, restoreModelUI } from "./model_ui.mjs";
 app.registerExtension({
     name: "CanvasPro.ModelInputs",
     async beforeRegisterNodeDef(nodeType, nodeData) {
-        if (nodeData.name !== "CanvasProModelBatchSubmit") return;
+        if (!["CanvasProModelBatchSubmit", "CanvasProPromptTask"].includes(nodeData.name)) return;
         const created = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = created?.apply(this, args);

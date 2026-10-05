@@ -132,6 +132,83 @@ class ModelSubmit(Submit):
         return {"ui": {"text": [report(store, batch)]}, "result": (store.handle(batch), report(store, batch))}
 
 
+class PromptTask(ModelSubmit):
+    OUTPUT_NODE = False
+    RETURN_TYPES = ("CANVASPRO_TASKS",)
+    RETURN_NAMES = ("tasks",)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        schema = ModelSubmit.INPUT_TYPES()
+        schema["required"] = {"model": schema["required"]["model"],
+            "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "One complete task; all line breaks are preserved."})}
+        return schema
+
+    def execute(self, model, prompt, reference_count=2, size_mode="pixels", pixel_size="1024x1024",
+                aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", **images):
+        maximum = {"kr": 16, "hc": 15, "gemini": 14}[family(model)]
+        if not 1 <= reference_count <= maximum:
+            raise ValueError("Reference count exceeds model limit")
+        files = []
+        for i in range(1, 17):
+            image = images.get(f"image_{i}")
+            if image is not None:
+                if i > reference_count:
+                    raise ValueError("Connected image exceeds active reference count")
+                files.extend(encode_images(image))
+        f = family(model)
+        if f == "gemini":
+            size, quality = aspect_ratio, ""
+        elif f == "hc" or size_mode == "pixels":
+            size, image_size = pixel_size, ""
+        elif size_mode == "ratio":
+            size = aspect_ratio
+        elif size_mode == "auto":
+            size, image_size = "auto", ""
+        else:
+            raise ValueError("Invalid size mode")
+        item = dict(model=model, prompt=prompt, size=size, quality=quality, image_size=image_size,
+                    files=files, urls=[s.strip() for s in reference_urls.splitlines() if s.strip()])
+        from .protocol import build_request
+        build_request(model, prompt, size, quality, image_size, files, item["urls"])
+        return ([item],)
+
+
+class MergeTasks:
+    CATEGORY = "CanvasPro"
+    FUNCTION = "execute"
+    RETURN_TYPES = ("CANVASPRO_TASKS",)
+    RETURN_NAMES = ("tasks",)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"tasks_a": ("CANVASPRO_TASKS",), "tasks_b": ("CANVASPRO_TASKS",)}}
+
+    def execute(self, tasks_a, tasks_b):
+        items = tasks_a + tasks_b
+        if len(items) > 256:
+            raise ValueError("Batch supports at most 256 tasks")
+        if len({item["model"] for item in items}) != 1:
+            raise ValueError("Use separate submission nodes for different models")
+        return (items,)
+
+
+class SubmitTasks(Submit):
+    @classmethod
+    def INPUT_TYPES(cls):
+        common = Submit.INPUT_TYPES()["required"]
+        return {"required": {"tasks": ("CANVASPRO_TASKS",), **{k: common[k]
+            for k in ("job_key", "concurrency", "request_timeout")}}}
+
+    def execute(self, tasks, job_key, concurrency, request_timeout):
+        if not tasks or len(tasks) > 256 or len({item["model"] for item in tasks}) != 1:
+            raise ValueError("Expected 1-256 tasks using the same model")
+        store, client = runtime(request_timeout)
+        batch = submit_batch(store, client, job_key, tasks[0]["model"], [item["prompt"] for item in tasks],
+            concurrency=concurrency, interrupt=interrupt, progress=progress(), task_items=tasks)
+        return {"ui": {"text": [report(store, batch)]}, "result": (store.handle(batch), report(store, batch))}
+
+
 class Wait:
     CATEGORY = "CanvasPro"
     FUNCTION = "execute"
@@ -264,3 +341,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {"CanvasProBatchSubmit": "CanvasPro · 批量提交
     "CanvasProBatchWait": "CanvasPro · 批量查询 / 等待", "CanvasProBatchFetch": "CanvasPro · 批量获取图片",
     "CanvasProRestoreBatch": "CanvasPro · 恢复本地批次", "CanvasProImportTasks": "CanvasPro · 导入已有任务号",
     "CanvasProModelBatchSubmit": "CanvasPro · 模型自适应 / 多图批量提交"}
+
+NODE_CLASS_MAPPINGS.update(CanvasProPromptTask=PromptTask, CanvasProMergeTasks=MergeTasks, CanvasProSubmitTasks=SubmitTasks)
+NODE_DISPLAY_NAME_MAPPINGS.update(CanvasProPromptTask="CanvasPro · 独立任务 / 完整提示词",
+    CanvasProMergeTasks="CanvasPro · 合并任务", CanvasProSubmitTasks="CanvasPro · 任务并发提交 (新批次收费)")

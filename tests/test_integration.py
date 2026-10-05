@@ -130,6 +130,28 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_independent_multiline_tasks(self):
+        a = nodes.PromptTask().execute("gpt-image-2", "主体：键盘\n构图：俯拍\n保留文字", image_1=torch.zeros(1,7,11,3))[0]
+        b = nodes.PromptTask().execute("gpt-image-2", "主体：小猫\n背景：纯白", image_1=torch.ones(1,13,5,3))[0]
+        tasks = nodes.MergeTasks().execute(a,b)[0]
+        with patch.object(nodes, "runtime", return_value=(self.store,self.client)), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            result = nodes.SubmitTasks().execute(tasks,"independent",2,1)
+            self.assertEqual(result,nodes.SubmitTasks().execute(tasks,"independent",2,1))
+            changed = [{**a[0], "prompt":"changed"}, b[0]]
+            with self.assertRaises(ValueError):
+                nodes.SubmitTasks().execute(changed,"independent",2,1)
+        bodies = {body["prompt"]:body for _,body in self.service.posts}
+        self.assertEqual(set(bodies),{a[0]["prompt"],b[0]["prompt"]})
+        self.assertEqual(Image.open(io.BytesIO(bodies[a[0]["prompt"]]["uploads"][0])).size,(11,7))
+        self.assertEqual(Image.open(io.BytesIO(bodies[b[0]["prompt"]]["uploads"][0])).size,(5,13))
+        invalid = [{**a[0],"quality":"invalid"}, b[0]]
+        with self.assertRaises(ValueError):
+            submit_batch(self.store,self.client,"invalid","gpt-image-2",[x["prompt"] for x in invalid],task_items=invalid)
+        self.assertEqual(len(self.service.posts),2)
+        banana = nodes.PromptTask().execute("T香蕉2","test")[0]
+        with self.assertRaises(ValueError):
+            nodes.MergeTasks().execute(a,banana)
+
     def tearDown(self):
         self.service.shutdown()
         self.service.server_close()

@@ -29,7 +29,7 @@ def run_parallel(items, worker, concurrency, interrupt=lambda: None, progress=la
 
 
 def submit_batch(store, client, job_key, model, prompts, size="", quality="", image_size="",
-                 files=(), urls=(), reference_mode="shared", concurrency=3, interrupt=lambda: None, progress=lambda n, total: None):
+                 files=(), urls=(), reference_mode="shared", concurrency=3, interrupt=lambda: None, progress=lambda n, total: None, task_items=None):
     if not prompts or len(prompts) > 256:
         raise ValueError("Batch requires 1-256 prompts")
     if reference_mode not in ("shared", "paired"):
@@ -48,6 +48,14 @@ def submit_batch(store, client, job_key, model, prompts, size="", quality="", im
     fingerprint = hashlib.sha256(json.dumps({"model": model, "prompts": prompts, "size": size,
         "quality": quality, "image_size": image_size, "files": [hashlib.sha256(b).hexdigest() for b in files],
         "urls": urls, "reference_mode": reference_mode}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    if task_items is not None:
+        if len(task_items) != len(prompts):
+            raise ValueError("Task count mismatch")
+        requests = [build_request(model, item["prompt"], item["size"], item["quality"],
+            item["image_size"], item["files"], item["urls"]) for item in task_items]
+        fingerprint = hashlib.sha256(json.dumps({"model": model, "items": [
+            {**item, "files": [hashlib.sha256(b).hexdigest() for b in item["files"]]}
+            for item in task_items]}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     batch, created = store.create(job_key, fingerprint, client.base, model, len(prompts))
     if not created:
         return batch  # Never replay a saved submit, including unknown/prepared records.
