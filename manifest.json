@@ -1,0 +1,32 @@
+{
+  "version": "0.1.0",
+  "files": {
+    ".gitattributes": "d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c",
+    ".gitignore": "4fdcfb78312a39c616d8fc654b28a8dd43b59238f65d116863a152328ede23fd",
+    "__init__.py": "a3d8961f4af0d1e07789cbf6108dc314b90e930a03e716df5492ba1fe8b4f2eb",
+    "batch.py": "05f24acc62a42d249e5b37f4ecc9bbda610e51d66837ab12fade0939875d3f5f",
+    "capabilities.json": "f546b8f41140c753dec26d5115cd16fecec1d61830bbd1b360a577ac8045f66a",
+    "client.py": "716f30f73257b4ee9d12f6afd58a4b40a1232b0df027a2ae0823ee8efd155816",
+    "config.py": "bcf7fad06a70b307bdd04f99da9e7da4ee9273518f5e1d8d461e3025bb622f3e",
+    "configure-key.ps1": "e1c58aab8463a393a4f3c743f706f00b66071eb0d084656720dfe9d381a1aaa9",
+    "docs/comfy-check.txt": "f81842c122e06b656cc0504c75f4c1afb2afc68a8f0194894c9276eafacf9d5e",
+    "docs/DEVELOPMENT.md": "bf71c4784f9c9a15688e6b161d838eae0cd41b85c43ff5630b74377c21632656",
+    "docs/PROTOCOL.md": "ba4ecbe90f015d2c2c1526fb6d6d80ceb7b028a11d55a81dc764a5c392390ec7",
+    "docs/test-results.txt": "384ce5856d727ff3d8277f287e5f200fb46c8775a6b10b5b9aa46c3089382561",
+    "examples/batch-api.json": "8bfe37c685890d70071531267fb01fae4852dc2092c630e3de0c272cf3a5d76c",
+    "examples/batch-workflow.json": "00277104405939189d1825541d3cd94e8780821bc96d1794d5afba25e1792f6c",
+    "examples/resume-api.json": "215c4e45e90a26c59bb6a73dcf69206608654a1b21a3967bfa0ad9d973820f3e",
+    "examples/resume-workflow.json": "b122976d277390673d3e4f382da42298a0820bf81bd5890b5c8f86ac77a7a3af",
+    "LICENSE": "a69c32d649c7156b6f1d6fc8fd0f6935e163d6711df909b77e5384d4e328c5cb",
+    "nodes.py": "0ed4370321e9c629930ba793cb38553296fcf26d38ad086438f8b740dbede38e",
+    "protocol.py": "815090d1e263db7ab2771546ff9f6bb719870943a55d8c74a4e754d3f428f8e9",
+    "pyproject.toml": "97ae4f30b2f4f598e137623d1df8880257faa81da31a4a8078f738f8e6447419",
+    "README.md": "cd372a67540b8b411beca70dea48253d324a93be2355b74b6f322c1024a86313",
+    "requirements.txt": "a183ad2ba4d28ee646efa91c9745ad490bebcf9780debc86ede85f4795b2dba4",
+    "store.py": "6a858855d4c77daeb39a5f3f808b4e19f47d2a8968439783992c6ee3982efc9f",
+    "tests/comfy_load_check.py": "152b24906de436fdac2f0f3cfb9e238ef0d92b359d2a535ce8d5e6c1ecc12447",
+    "tests/mock_service.py": "641b2a46916045e5e6b55332ffa7e7601197025063685d32bc45963d3cef858a",
+    "tests/test_integration.py": "c0761246c22acb9732ded0b00c98e0361f6c1e1de5c2b9b5d6259641fc5587ee",
+    "THIRD_PARTY_NOTICES.md": "e932892a1a045b11af8f60edbf841797b0b5b4d5eb34758fd62c4003aa6fd68a"
+  }
+}

@@ -1,0 +1,335 @@
+"""No production credentials. Real loopback HTTP, SQLite, Pillow and torch."""
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import sys
+import tempfile
+import threading
+import time
+import unittest
+import subprocess
+from unittest.mock import patch
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from email.parser import BytesParser
+from email.policy import default
+
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location("canvaspro", ROOT / "__init__.py", submodule_search_locations=[str(ROOT)])
+plugin = importlib.util.module_from_spec(spec)
+sys.modules["canvaspro"] = plugin
+spec.loader.exec_module(plugin)
+from canvaspro.client import Client, origin
+from canvaspro.store import Store
+from canvaspro.batch import submit_batch, query_batch
+from canvaspro.protocol import build_request, MODELS
+from canvaspro import nodes
+from PIL import Image
+import torch
+
+
+class Service(ThreadingHTTPServer):
+    daemon_threads = True
+    def __init__(self):
+        super().__init__(("127.0.0.1", 0), Handler)
+        self.base = f"http://127.0.0.1:{self.server_port}"
+        self.lock = threading.Lock()
+        self.tasks, self.posts, self.gets, self.auth = {}, [], [], []
+        self.active, self.peak, self.download_active, self.download_peak = 0, 0, 0, 0
+
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+    def respond(self, code, body, content_type="application/json"):
+        blob = json.dumps(body).encode() if isinstance(body, dict) else body
+        self.send_response(code)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(blob)))
+        self.end_headers()
+        try:
+            self.wfile.write(blob)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            pass
+    def do_POST(self):
+        s = self.server
+        blob = self.rfile.read(int(self.headers["Content-Length"]))
+        if self.headers["Content-Type"].startswith("multipart/"):
+            msg = BytesParser(policy=default).parsebytes(("Content-Type: " + self.headers["Content-Type"] + "\r\nMIME-Version: 1.0\r\n\r\n").encode() + blob)
+            parts = [(p.get_param("name", header="content-disposition"), p.get_filename(), p.get_payload(decode=True)) for p in msg.iter_parts()]
+            body = {name: value.decode() for name, filename, value in parts if not filename}
+            body["upload_fields"] = [name for name, filename, value in parts if filename]
+            body["uploads"] = [value for name, filename, value in parts if filename]
+        else:
+            body = json.loads(blob)
+        prompt = body.get("prompt") or body["contents"][0]["parts"][0]["text"]
+        with s.lock:
+            task_id = str(len(s.posts))
+            s.posts.append((self.path, body))
+            s.active += 1
+            s.peak = max(s.peak, s.active)
+            s.tasks[task_id] = {"prompt": prompt, "queries": 0}
+        try:
+            time.sleep(1.3 if prompt == "submit-timeout" else 0.06)
+            if prompt == "bad-submit":
+                self.respond(503, {"error": "Bearer fake-secret"})
+            elif prompt == "missing-id":
+                self.respond(200, {"status": "queued"})
+            else:
+                self.respond(200, {"task_id": task_id, "status": "queued"})
+        finally:
+            with s.lock:
+                s.active -= 1
+    def do_GET(self):
+        s = self.server
+        s.auth.append((self.path, self.headers.get("Authorization")))
+        if self.path.startswith("/image/"):
+            with s.lock:
+                s.download_active += 1
+                s.download_peak = max(s.download_peak, s.download_active)
+            try:
+                time.sleep(0.04)
+                index = int(self.path.split("/")[-1])
+                image = Image.new("RGB", (16+index, 12+index), (index, 100, 200))
+                b = io.BytesIO()
+                image.save(b, format="PNG")
+                self.respond(200, b.getvalue(), "image/png")
+            finally:
+                with s.lock:
+                    s.download_active -= 1
+            return
+        task_id = self.path.split("/")[-1]
+        with s.lock:
+            s.gets.append(self.path)
+            t = s.tasks[task_id]
+            t["queries"] += 1
+        if t["prompt"] == "query-retry" and t["queries"] < 2:
+            self.respond(503, {})
+            return
+        if t["prompt"] == "always-pending":
+            status = "processing"
+        elif t["queries"] == 1:
+            status = "queued"
+        else:
+            status = "failed" if t["prompt"] == "fail" else "succeeded"
+        body = {"task_id": task_id, "status": status}
+        if status == "succeeded":
+            body["data"] = [{"url": s.base + "/image/" + task_id}]
+        if status == "failed":
+            body["error"] = {"message": "fake-secret (must not persist)"}
+        self.respond(200, body)
+
+
+class Integration(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.service = Service()
+        self.thread = threading.Thread(target=self.service.serve_forever, daemon=True)
+        self.thread.start()
+        self.store = Store(self.root)
+        self.client = Client(self.service.base, "fake-secret", 1)
+    def tearDown(self):
+        self.service.shutdown()
+        self.service.server_close()
+        self.thread.join()
+        self.tmp.cleanup()
+    def submit(self, prompts, **kwargs):
+        return submit_batch(self.store, self.client, "batch", "gpt-image-2", prompts, **kwargs)
+
+    def test_order_partial_failure_concurrency_restart_and_no_replay(self):
+        batch = self.submit(["a", "fail", "b", "c", "d"], concurrency=2)
+        self.assertEqual(self.service.gets, [])
+        self.assertEqual(len(self.service.posts), 5)
+        self.assertLessEqual(self.service.peak, 2)
+        restarted = Store(self.root)
+        self.assertEqual(batch, submit_batch(restarted, self.client, "batch", "gpt-image-2", ["a", "fail", "b", "c", "d"]))
+        self.assertEqual(len(self.service.posts), 5)
+        query_batch(restarted, self.client, batch, 5, .2, 2)
+        _, tasks = restarted.read(batch)
+        self.assertEqual([t["position"] for t in tasks], list(range(5)))
+        self.assertEqual([t["status"] for t in tasks], ["succeeded", "failed", "succeeded", "succeeded", "succeeded"])
+        self.assertNotIn("fake-secret", restarted.handle(batch))
+        self.assertNotIn(b"fake-secret", restarted.path.read_bytes())
+
+    def test_submit_timeout_http_failure_and_missing_id_not_retried(self):
+        batch = self.submit(["submit-timeout", "bad-submit", "missing-id"], concurrency=2)
+        self.assertEqual(len(self.service.posts), 3)
+        self.assertTrue(all(t["status"] == "submit_unknown" for t in self.store.read(batch)[1]))
+        self.submit(["submit-timeout", "bad-submit", "missing-id"])
+        query_batch(self.store, self.client, batch, 1, .2, 2)
+        self.assertEqual(len(self.service.posts), 3)
+        self.assertEqual(self.service.gets, [])
+
+    def test_new_process_restores_without_post(self):
+        batch = self.submit(["a", "b"])
+        script = """
+import sys
+sys.path.insert(0, sys.argv[1])
+from test_integration import Store, Client, submit_batch, query_batch
+from pathlib import Path
+store = Store(Path(sys.argv[2]))
+client = Client(sys.argv[3], 'fake-secret', 1)
+batch = submit_batch(store, client, 'batch', 'gpt-image-2', ['a', 'b'])
+query_batch(store, client, batch, 5, .2, 2)
+assert all(t['status'] == 'succeeded' for t in store.read(batch)[1])
+print(batch)
+"""
+        result = subprocess.run([sys.executable, "-c", script, str(ROOT / "tests"), str(self.root), self.client.base], capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), batch)
+        self.assertEqual(len(self.service.posts), 2)
+
+    def test_preflight_and_job_key_conflict(self):
+        with self.assertRaises(ValueError):
+            self.submit(["ok", ""], concurrency=2)
+        self.assertEqual(self.service.posts, [])
+        self.submit(["ok"])
+        with self.assertRaises(ValueError):
+            self.submit(["different"])
+        self.assertEqual(len(self.service.posts), 1)
+
+    def test_query_timeout_and_get_retry(self):
+        batch = self.submit(["always-pending", "query-retry"])
+        query_batch(self.store, self.client, batch, 2, .2, 2)
+        tasks = self.store.read(batch)[1]
+        self.assertEqual(tasks[0]["detail"], "wait_timeout_query_again")
+        self.assertEqual(tasks[1]["status"], "succeeded")
+        self.assertEqual(len(self.service.posts), 2)
+        query_batch(self.store, self.client, batch, 0, .2, 2)
+        self.assertEqual(len(self.service.posts), 2)
+
+    def test_crash_sending_and_prepared_records_never_replayed(self):
+        batch, _ = self.store.create("batch", "fingerprint", self.client.base, "gpt-image-2", 2)
+        self.store.claim(batch, 0)
+        restarted = Store(self.root)
+        self.assertEqual(restarted.read(batch)[1][0]["status"], "submit_unknown")
+        self.assertEqual(restarted.create("batch", "fingerprint", self.client.base, "gpt-image-2", 2), (batch, False))
+        self.assertEqual(self.service.posts, [])
+
+    def test_cancel_wait_preserves_task(self):
+        batch = self.submit(["always-pending"])
+        start = time.monotonic()
+        def interrupt():
+            if time.monotonic() - start > .4:
+                raise InterruptedError("user cancelled")
+        with self.assertRaises(InterruptedError):
+            query_batch(self.store, self.client, batch, 30, .2, 1, interrupt=interrupt)
+        task = self.store.read(batch)[1][0]
+        self.assertEqual(task["detail"], "wait_cancelled")
+        self.assertTrue(task["task_id"])
+        self.assertEqual(len(self.service.posts), 1)
+
+    def test_all_models_native_paths_and_upload_fields(self):
+        b = io.BytesIO()
+        Image.new("RGB", (4, 4)).save(b, format="PNG")
+        files = [b.getvalue(), b.getvalue()]
+        for index, model in enumerate(MODELS):
+            submit_batch(self.store, self.client, str(index), model, ["edit"], files=files)
+        paths = [p for p, _ in self.service.posts]
+        self.assertEqual(paths, ["/kr/v1/images/edits", "/kr/gemini/v1/images/generations", "/kr/gemini/v1/images/generations"] + ["/hc/v1/images/edits/upload"]*3)
+        self.assertEqual(self.service.posts[0][1]["upload_fields"], ["image[]"]*2)
+        self.assertEqual(self.service.posts[3][1]["upload_fields"], ["image"]*2)
+        self.assertEqual(self.service.posts[3][1]["uploads"], files)
+        body = self.service.posts[1][1]
+        self.assertEqual(len(body["contents"][0]["parts"]), 3)
+        self.assertNotIn("size", body)
+
+    def test_url_edit_is_multipart_and_hc_is_json(self):
+        submit_batch(self.store, self.client, "kr", "gpt-image-2", ["edit"], urls=["https://example.com/a.png"])
+        self.assertEqual(self.service.posts[0][1]["image_url"], "https://example.com/a.png")
+        submit_batch(self.store, self.client, "hc", "s-gpt-image-2", ["edit"], urls=["https://example.com/a.png"])
+        self.assertEqual(self.service.posts[1][0], "/hc/v1/images/edits")
+        self.assertEqual(self.service.posts[1][1]["image"], "https://example.com/a.png")
+
+    def test_nodes_real_images_order_partial_success_and_import(self):
+        old_env = dict(os.environ)
+        old_interrupt, old_progress = nodes.interrupt, nodes.progress
+        try:
+            os.environ.update(CANVASPRO_DATA_DIR=str(self.root), CANVASPRO_API_KEY="fake-secret", CANVASPRO_BASE_URL=self.client.base, CANVASPRO_ALLOW_LOCAL_TEST="1")
+            nodes.interrupt = lambda: None
+            nodes.progress = lambda: lambda n, t: None
+            submitted = nodes.Submit().execute("node", "s-gpt-image-2", "a\nfail\nb\nc", "", "", "", "paired", 2, 1, torch.zeros((4, 8, 8, 3)))
+            handle = submitted["result"][0]
+            waited = nodes.Wait().execute(handle, 5, .2, 2, 1)["result"][0]
+            fetched = nodes.Fetch().execute(waited, 2, 1)["result"]
+            self.assertEqual(len(fetched[0]), 3)
+            indices = json.loads(fetched[1])["output_indices"]
+            self.assertEqual(indices, [0, 2, 3])
+            self.assertTrue(all(t.ndim == 4 and t.shape[0] == 1 for t in fetched[0]))
+            self.assertEqual(len({tuple(t.shape) for t in fetched[0]}), 3)
+            self.assertLessEqual(self.service.download_peak, 2)
+            restored = nodes.Restore().execute("node")[0]
+            self.assertEqual(json.loads(restored)["batch_id"], json.loads(handle)["batch_id"])
+            ids = "\n".join(t["task_id"] for t in self.store.read(json.loads(handle)["batch_id"])[1])
+            imported = nodes.ImportTasks().execute("s-gpt-image-2", ids)[0]
+            self.assertEqual(len(json.loads(imported)["tasks"]), 4)
+            self.assertEqual(len(self.service.posts), 4)
+            self.assertTrue(all(auth == "Bearer fake-secret" for path, auth in self.service.auth))
+        finally:
+            os.environ.clear()
+            os.environ.update(old_env)
+            nodes.interrupt, nodes.progress = old_interrupt, old_progress
+
+    def test_parameter_limits(self):
+        bad = [dict(model="s-gpt-image-2", prompt="p", size="1:1"),
+               dict(model="s-gpt-image-2", prompt="p", size="2880x2880"),
+               dict(model="T香蕉2", prompt="p", quality="high"),
+               dict(model="gpt-image-2", prompt="p", files=[b"a"]*17),
+               dict(model="gpt-image-2", prompt="😀"*2001),
+               dict(model="gpt-image-2", prompt="p", urls=["http://localhost/a"])]
+        for args in bad:
+            with self.assertRaises(ValueError):
+                build_request(**args)
+
+    def test_simultaneous_same_job_has_one_submit(self):
+        results = []
+        def call():
+            results.append(self.submit(["a", "b"], concurrency=2))
+        threads = [threading.Thread(target=call) for _ in range(4)]
+        for t in threads: t.start()
+        for t in threads: t.join()
+        self.assertEqual(len(set(results)), 1)
+        self.assertEqual(len(self.service.posts), 2)
+
+    def test_download_auth_removed_on_cross_origin_redirect(self):
+        class Response:
+            def __init__(self, status, headers):
+                self.status_code, self.headers = status, headers
+            def __enter__(self): return self
+            def __exit__(self, *args): self.close()
+            def close(self): pass
+            def iter_content(self, size): return iter([b"image"])
+        responses = [Response(302, {"Location": "https://cdn.example.com/image.png"}), Response(200, {})]
+        calls = []
+        def get(url, **kwargs):
+            calls.append((url, kwargs["headers"]))
+            return responses.pop(0)
+        with patch("canvaspro.client.requests.get", get):
+            self.assertEqual(self.client.download("/protected/image"), b"image")
+        self.assertEqual(calls[0][1], {"Authorization": "Bearer fake-secret"})
+        self.assertEqual(calls[1][1], {})
+
+    def test_download_failure_preserves_other_images(self):
+        old_env = dict(os.environ)
+        old_interrupt, old_progress = nodes.interrupt, nodes.progress
+        try:
+            os.environ.update(CANVASPRO_DATA_DIR=str(self.root), CANVASPRO_API_KEY="fake-secret", CANVASPRO_BASE_URL=self.client.base, CANVASPRO_ALLOW_LOCAL_TEST="1")
+            nodes.interrupt = lambda: None
+            nodes.progress = lambda: lambda n, t: None
+            batch = self.submit(["a", "b"])
+            query_batch(self.store, self.client, batch, 5, .2, 2)
+            self.store.update(batch, 0, urls=["http://untrusted.example.com/a"])
+            images, info = nodes.Fetch().execute(self.store.handle(batch), 2, 1)["result"]
+            self.assertEqual(len(images), 1)
+            self.assertEqual(json.loads(info)["output_indices"], [1])
+            self.assertEqual(len(self.service.posts), 2)
+        finally:
+            os.environ.clear()
+            os.environ.update(old_env)
+            nodes.interrupt, nodes.progress = old_interrupt, old_progress
+
+
+if __name__ == "__main__":
+    unittest.main()

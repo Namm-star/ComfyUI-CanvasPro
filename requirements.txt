@@ -1,0 +1,5 @@
+# Normally already present in ComfyUI. Install only missing dependencies.
+requests>=2.28
+Pillow>=9
+numpy>=1.23
+# torch is supplied by ComfyUI; do not install/upgrade it here.

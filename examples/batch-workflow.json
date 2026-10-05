@@ -1,0 +1,218 @@
+{
+  "last_node_id": 4,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CanvasProBatchSubmit",
+      "pos": [
+        0,
+        100
+      ],
+      "size": [
+        350,
+        470
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "reference_urls",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "reference_urls"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProBatchSubmit"
+      },
+      "widgets_values": [
+        "example-001",
+        "gpt-image-2",
+        "一只蓝色小鸟，白色背景\n一只橙色小猫，白色背景",
+        "1024x1024",
+        "",
+        "",
+        "shared",
+        2,
+        30,
+        ""
+      ]
+    },
+    {
+      "id": 2,
+      "type": "CanvasProBatchWait",
+      "pos": [
+        380,
+        100
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProBatchWait"
+      },
+      "widgets_values": [
+        600,
+        2.0,
+        2,
+        30
+      ]
+    },
+    {
+      "id": 3,
+      "type": "CanvasProBatchFetch",
+      "pos": [
+        760,
+        100
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "download_report",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProBatchFetch"
+      },
+      "widgets_values": [
+        2,
+        30
+      ]
+    },
+    {
+      "id": 4,
+      "type": "SaveImage",
+      "pos": [
+        1140,
+        100
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "CanvasPro"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      3,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

@@ -1,0 +1,19 @@
+test_all_models_native_paths_and_upload_fields (test_integration.Integration.test_all_models_native_paths_and_upload_fields) ... ok
+test_cancel_wait_preserves_task (test_integration.Integration.test_cancel_wait_preserves_task) ... ok
+test_crash_sending_and_prepared_records_never_replayed (test_integration.Integration.test_crash_sending_and_prepared_records_never_replayed) ... ok
+test_download_auth_removed_on_cross_origin_redirect (test_integration.Integration.test_download_auth_removed_on_cross_origin_redirect) ... ok
+test_download_failure_preserves_other_images (test_integration.Integration.test_download_failure_preserves_other_images) ... ok
+test_new_process_restores_without_post (test_integration.Integration.test_new_process_restores_without_post) ... ok
+test_nodes_real_images_order_partial_success_and_import (test_integration.Integration.test_nodes_real_images_order_partial_success_and_import) ... ok
+test_order_partial_failure_concurrency_restart_and_no_replay (test_integration.Integration.test_order_partial_failure_concurrency_restart_and_no_replay) ... ok
+test_parameter_limits (test_integration.Integration.test_parameter_limits) ... ok
+test_preflight_and_job_key_conflict (test_integration.Integration.test_preflight_and_job_key_conflict) ... ok
+test_query_timeout_and_get_retry (test_integration.Integration.test_query_timeout_and_get_retry) ... ok
+test_simultaneous_same_job_has_one_submit (test_integration.Integration.test_simultaneous_same_job_has_one_submit) ... ok
+test_submit_timeout_http_failure_and_missing_id_not_retried (test_integration.Integration.test_submit_timeout_http_failure_and_missing_id_not_retried) ... ok
+test_url_edit_is_multipart_and_hc_is_json (test_integration.Integration.test_url_edit_is_multipart_and_hc_is_json) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 14.361s
+
+OK

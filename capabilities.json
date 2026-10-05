@@ -1,0 +1,4158 @@
+{
+  "images": {
+    "models": [
+      {
+        "endpoint_types": [
+          "openai",
+          "image-generation-async",
+          "image-task-query"
+        ],
+        "model": "T香蕉2"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "image-generation-async",
+          "image-task-query"
+        ],
+        "model": "T香蕉pro"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "kr-image-task-query",
+          "image-edit-async-url",
+          "image-edit-async-file",
+          "kr-image-generation-async"
+        ],
+        "model": "gpt-image-2"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "hc-image-generation-async",
+          "hc-image-edit-async-url",
+          "hc-image-task-query",
+          "hc-image-edit-async-upload"
+        ],
+        "model": "s-gpt-image-2.5-sunburst"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "hc-image-generation-async",
+          "hc-image-edit-async-url",
+          "hc-image-task-query",
+          "hc-image-edit-async-upload"
+        ],
+        "model": "s-gpt-image-2.5-flare"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "hc-image-edit-async-url",
+          "hc-image-task-query",
+          "hc-image-edit-async-upload",
+          "hc-image-generation-async"
+        ],
+        "model": "s-gpt-image-2"
+      }
+    ],
+    "implemented": true
+  },
+  "public_model_count": 104,
+  "hc_video": {
+    "models": [
+      "官转doubao-seedance-2.0",
+      "官转doubao-seedance-2.0-mini",
+      "官转doubao-seedance-2.0-fast",
+      "官转doubao-seedance-2.5"
+    ],
+    "implemented": false
+  },
+  "text": {
+    "models": [
+      {
+        "endpoint_types": [
+          "openai",
+          "openai-response"
+        ],
+        "model": "gpt-6.1-sol"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "openai-response"
+        ],
+        "model": "gpt-5.6-sol"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "openai-response"
+        ],
+        "model": "gpt-6-astra"
+      },
+      {
+        "endpoint_types": [
+          "openai",
+          "openai-response"
+        ],
+        "model": "gpt-6-sol"
+      }
+    ],
+    "implemented": false
+  },
+  "schema": 1,
+  "native_sha256": "0abb0b5b32b0d22657d678d8bfa98af1535a7d059864b45b3336191464408fc7",
+  "endpoints": {
+    "hc-cn-seedance-query": {
+      "path": "/hc-cn/v1/video/tasks/{task_id}",
+      "method": "GET"
+    },
+    "hc-cn-seedance-submit": {
+      "path": "/hc-cn/v1/video/tasks",
+      "method": "POST"
+    },
+    "hc-image-edit-async-upload": {
+      "path": "/hc/v1/images/edits/upload",
+      "method": "POST"
+    },
+    "hc-image-edit-async-url": {
+      "path": "/hc/v1/images/edits",
+      "method": "POST"
+    },
+    "hc-image-generation-async": {
+      "path": "/hc/v1/images/generations",
+      "method": "POST"
+    },
+    "hc-image-task-query": {
+      "path": "/hc/v1/images/tasks/{task_id}",
+      "method": "GET"
+    },
+    "image-edit-async-file": {
+      "path": "/kr/v1/images/edits",
+      "method": "POST"
+    },
+    "image-edit-async-url": {
+      "path": "/kr/v1/images/edits",
+      "method": "POST"
+    },
+    "image-generation-async": {
+      "path": "/kr/gemini/v1/images/generations",
+      "method": "POST"
+    },
+    "image-task-query": {
+      "path": "/kr/gemini/v1/images/tasks/{task_id}",
+      "method": "GET"
+    },
+    "kr-image-generation-async": {
+      "path": "/kr/v1/images/generations",
+      "method": "POST"
+    },
+    "kr-image-task-query": {
+      "path": "/kr/v1/images/tasks/{task_id}",
+      "method": "GET"
+    },
+    "openai": {
+      "path": "/v1/chat/completions",
+      "method": "POST"
+    },
+    "openai-response": {
+      "path": "/v1/responses",
+      "method": "POST"
+    },
+    "suanli-seedance-query": {
+      "path": "/suanli/v1/videos/{task_id}",
+      "method": "GET"
+    },
+    "suanli-seedance-submit": {
+      "path": "/suanli/v1/videos",
+      "method": "POST"
+    }
+  },
+  "source_archive_sha256": "de9f4bf5283ea4e98bb540ebef137fb032a29c0047e7849ebfea19d6955fa703",
+  "checked_date": "2026-10-05",
+  "source_urls": [
+    "https://api.canvasproai.com/api/pricing",
+    "https://api.canvasproai.com/source/",
+    "https://api.canvasproai.com/client/seedance/catalog.json"
+  ],
+  "suanli_video": {
+    "plugin_version": "0.3.1",
+    "catalog_version": "20261001-0b2147c4d8a9",
+    "models": [
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(933满血不卡脸1080P)",
+        "variants": [
+          {
+            "resolution": "1080p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(933满血不卡脸480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(933满血不卡脸5/10/115秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              5,
+              10,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(933满血不卡脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(933原生不卡脸5-15秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(933原生不卡脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(933原生满血720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(9图3音频12秒不卡脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              12
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(9图3音频15秒不卡脸480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "002系列/sd2.0(9图3音频不卡脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "002系列/sd2.5(10-10-10/4-30秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 10,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "002系列/sd2.5(10图30秒30秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 10,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "002系列/sd2.5(30-0-10原生过人脸480p)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "002系列/sd2.5(30-0-10原生过人脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "002系列/sd2.5(30-10-10，满血高质量480p)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "002系列/sd2.5(30-10-10原生过人脸满血720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "002系列/sd2.5(9图30秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "003系列/sd2.0(9-0-3/480P/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              12
+            ],
+            "source": "720P的选择12S",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          },
+          {
+            "resolution": "480p",
+            "seconds": [
+              15
+            ],
+            "source": "480P的选择15S",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "003系列/sd2.0(9-3-3/15秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              5,
+              10,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "003系列/sd2.0(9-3-3/4-15秒原生不卡脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              5,
+              10,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "003系列/sd2.0(不卡脸903/720P12秒/480P15秒)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              12
+            ],
+            "source": "720P支持12秒",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          },
+          {
+            "resolution": "480p",
+            "seconds": [
+              15
+            ],
+            "source": "480P支持15秒",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "003系列/sd2.0(官转不卡脸9-0-3/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "003系列/sd2.0(卡脸933/15秒/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "003系列/sd2.0mini(9-0-3/不卡脸高并发480P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              12
+            ],
+            "source": "720P/12S",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          },
+          {
+            "resolution": "480p",
+            "seconds": [
+              15
+            ],
+            "source": "480P/15S",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(30-0-0/30秒稳定720P卡脸)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(30-10-10/4-30秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              10,
+              15,
+              20,
+              25,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(9-0-0/30秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(9-0-0/5-30秒/不卡脸超高并发720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              10,
+              15,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(9-0-0/卡脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              10,
+              15,
+              20,
+              25,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(不卡脸30-10-10/5-30秒/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(不卡脸5-30秒/30-10-10/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(官转不卡脸30-10-10/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "003系列/sd2.5(卡脸9图30秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "004系列/sd2.0(933/4-15秒支持过人脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ],
+            "referenceTotalMax": 15
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "004系列/sd2.0(933/480p最多15秒/720p最多12秒)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "source": "480p最多15秒",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          },
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "source": "720p最多12秒",
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "004系列/sd2.0(933过人脸4-15秒)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "004系列/sd2.0(官渠903原生过真人速度快720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "004系列/sd2.0(fast903固定15秒720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "004系列/sd2.5-Pro(全参4-30秒/480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "004系列/sd2.5-Pro(全参4-30秒/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "004系列/sd2.5(30-0-10卡脸4-30秒/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "004系列/sd2.5(30图4-30秒480P/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ],
+            "audioMimes": [
+              "audio/mpeg"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "004系列/sd2.5(全参30-10-10支持过人脸4-30秒/720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "004系列/sd2.5(全参过人脸720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(满血全参不排队1080P)",
+        "variants": [
+          {
+            "resolution": "1080p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(满血全参不排队480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(满血全参不排队4K)",
+        "variants": [
+          {
+            "resolution": "4k",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(满血全参不排队720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(fast全参不排队480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(fast全参不排队720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(mini全参不排队480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官方直连sd2.0(mini全参不排队720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "官方直连sd2.5(满血全参不排队1080P)",
+        "variants": [
+          {
+            "resolution": "1080p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "官方直连sd2.5(满血全参不排队480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "官方直连sd2.5(满血全参不排队720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官转稳定-sd2-1080p(933满血卡脸)",
+        "variants": [
+          {
+            "resolution": "1080p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官转稳定-sd2-480p(933满血卡脸)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官转稳定-sd2-4k(933满血卡脸4K)",
+        "variants": [
+          {
+            "resolution": "4k",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官转稳定-sd2-720p(933满血卡脸)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "官转稳定-sd2.5-1080p(30-10-10/4-30秒卡真人无限并发速度极快)",
+        "variants": [
+          {
+            "resolution": "1080p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "官转稳定-sd2.5-480p(30-10-10/4-30秒卡真人无限并发速度极快)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "官转稳定-sd2.5-720p(30-10-10/4-30秒卡真人无限并发速度极快)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官转稳定sd2.0(933原生过真人480P)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "官转稳定sd2.0(933原生过真人720P)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(不卡脸mini933-12s)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              12
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(官转专线满血原生过脸-933-720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(官转专线原生过脸fast-933-720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(满血内置过脸-900-720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(满血原生过脸-933-480p)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(满血原生过脸-933-720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(原生过脸mini-930-480p)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(原生过脸mini2-930-480p)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(mini内置过脸930/720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "全能sd2.0(mini原生过脸933/720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "热门稳定SD2.5-720p(30-10-10不卡脸/4-30秒)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "特价/sd-2.5",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 10,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "特价稳定sd2.5-720p-ch1(9图30秒小几率卡脸内置彩绘过脸)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 0,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "other",
+        "model": "特价稳定sdquan-2-miao(930不排队不卡脸满血)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "推荐稳定sd2.0vip720p(933不卡脸不排队满血)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "优惠sd2.5(30图卡真人30秒/720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "优质sd2.0vip4k(9-3-3不排队速度极快不卡脸4K满血)",
+        "variants": [
+          {
+            "resolution": "4k",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "专享sd2.0(fast933/4-15秒/720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 3,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ],
+            "audioMimes": [
+              "audio/mpeg"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "专享sd2.5(30图10音/4-30秒/720p)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ],
+            "audioMimes": [
+              "audio/mpeg"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "sd2-福利(8点-20点可用/4-3-1不卡脸不排队)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 4,
+              "videos": 1,
+              "audios": 3
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "sd2-vip720p(900不排队云端彩绘过脸)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.0",
+        "model": "SD2.0-720P(9图不卡脸不排队云端过彩铅)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 9,
+              "videos": 0,
+              "audios": 0
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "SD2.5-1080p(30-10-10不卡脸/4-30秒)",
+        "variants": [
+          {
+            "resolution": "1080p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "SD2.5-480p(30-10-10不卡脸4-30秒)",
+        "variants": [
+          {
+            "resolution": "480p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "sd2.5-720p-ch3(30-10-10不卡脸/4-30秒无限并发)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 10,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "videos",
+              "images+videos",
+              "audios+images",
+              "audios+images+videos"
+            ]
+          }
+        ]
+      },
+      {
+        "family": "2.5",
+        "model": "sd2.5-cf-720p(30图10音不卡脸4-30秒超分模型)",
+        "variants": [
+          {
+            "resolution": "720p",
+            "seconds": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ],
+            "aspectRatios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "maxReferences": {
+              "images": 30,
+              "videos": 0,
+              "audios": 10
+            },
+            "generateAudio": false,
+            "referenceCombinations": [
+              "none",
+              "images",
+              "audios+images"
+            ]
+          }
+        ]
+      }
+    ],
+    "plugin_sha256": "0b2147c4d8a9722663b53d88d6fc6805bd754750399d4339e24b5537c8afa04a",
+    "implemented": false
+  }
+}

@@ -1,0 +1,10 @@
+WARNING:root:WARNING: You need pytorch with cu130 or higher to use optimized CUDA operations.
+WARNING WARNING WARNING
+If you are on nvidia 20 series and above it is required that you update your pytorch to cu130 or higher.
+
+F:\ComfyUI\ComfyUI\python\Lib\site-packages\pydantic\_internal\_fields.py:132: UserWarning: Field "model_url" in Model has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+REAL COMFYUI LOADER PASSED: CanvasProBatchSubmit, CanvasProBatchWait, CanvasProBatchFetch, CanvasProRestoreBatch, CanvasProImportTasks
+REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (2 differently sized images)
