@@ -152,6 +152,24 @@ class Integration(unittest.TestCase):
         with self.assertRaises(ValueError):
             nodes.MergeTasks().execute(a,banana)
 
+    def test_combined_wait_fetch_and_resume(self):
+        batch = self.submit(["a", "fail", "b"])
+        with patch.object(nodes, "runtime", return_value=(self.store,self.client)), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            result = nodes.WaitFetch().execute(self.store.handle(batch), 5)
+            images, info = result["result"]
+            self.assertEqual(len(images),2)
+            self.assertNotEqual(images[0].shape,images[1].shape)
+            self.assertEqual(json.loads(info)["download"]["output_indices"],[0,2])
+            again = nodes.WaitFetch().execute(self.store.handle(batch),0)
+            self.assertEqual(len(again["result"][0]),2)
+        self.assertEqual(len(self.service.posts),3)
+        pending = submit_batch(self.store,self.client,"pending-combined","gpt-image-2",["always-pending"])
+        with patch.object(nodes, "runtime", return_value=(self.store,self.client)), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            images, info = nodes.WaitFetch().execute(self.store.handle(pending),1)["result"]
+            self.assertEqual(images,[])
+            self.assertIn("wait_timeout_query_again",info)
+        self.assertEqual(len(self.service.posts),4)
+
     def tearDown(self):
         self.service.shutdown()
         self.service.server_close()

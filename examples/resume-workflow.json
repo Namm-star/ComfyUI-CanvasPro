@@ -42,14 +42,14 @@
     },
     {
       "id": 2,
-      "type": "CanvasProBatchWait",
+      "type": "CanvasProWaitFetch",
       "pos": [
         380,
         100
       ],
       "size": [
-        330,
-        220
+        320,
+        150
       ],
       "flags": {},
       "order": 1,
@@ -63,10 +63,10 @@
       ],
       "outputs": [
         {
-          "name": "tasks_json",
-          "type": "STRING",
+          "name": "images",
+          "type": "IMAGE",
           "links": [
-            2
+            3
           ],
           "slot_index": 0
         },
@@ -78,58 +78,10 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "CanvasProBatchWait"
+        "Node name for S&R": "CanvasProWaitFetch"
       },
       "widgets_values": [
-        600,
-        2.0,
-        2,
-        30
-      ]
-    },
-    {
-      "id": 3,
-      "type": "CanvasProBatchFetch",
-      "pos": [
-        760,
-        100
-      ],
-      "size": [
-        330,
-        220
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "tasks_json",
-          "type": "STRING",
-          "link": 2
-        }
-      ],
-      "outputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "links": [
-            3
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "download_report",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "CanvasProBatchFetch"
-      },
-      "widgets_values": [
-        2,
-        30
+        600
       ]
     },
     {
@@ -172,16 +124,8 @@
       "STRING"
     ],
     [
+      3,
       2,
-      2,
-      0,
-      3,
-      0,
-      "STRING"
-    ],
-    [
-      3,
-      3,
       0,
       4,
       0,

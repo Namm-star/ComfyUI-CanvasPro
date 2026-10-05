@@ -18,34 +18,20 @@
     }
   },
   "2": {
-    "class_type": "CanvasProBatchWait",
+    "class_type": "CanvasProWaitFetch",
     "inputs": {
       "tasks_json": [
         "1",
         0
       ],
-      "wait_seconds": 600,
-      "poll_interval": 2.0,
-      "concurrency": 2,
-      "request_timeout": 30
-    }
-  },
-  "3": {
-    "class_type": "CanvasProBatchFetch",
-    "inputs": {
-      "tasks_json": [
-        "2",
-        0
-      ],
-      "concurrency": 2,
-      "request_timeout": 30
+      "wait_seconds": 600
     }
   },
   "4": {
     "class_type": "SaveImage",
     "inputs": {
       "images": [
-        "3",
+        "2",
         0
       ],
       "filename_prefix": "CanvasPro"

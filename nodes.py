@@ -291,6 +291,24 @@ class Fetch:
         return {"ui": {"text": [info]}, "result": (images, info)}
 
 
+class WaitFetch(Fetch):
+    RETURN_NAMES = ("images", "report")
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"tasks_json": ("STRING", {"forceInput": True}),
+            "wait_seconds": ("INT", {"default": 600, "min": 0, "max": 86400,
+                "tooltip": "Maximum wait in seconds. Run again to continue querying the same tasks; no resubmission."})}}
+
+    def execute(self, tasks_json, wait_seconds=600):
+        waited = Wait().execute(tasks_json, wait_seconds, 2.0, 3, 30)
+        handle, query_report = waited["result"]
+        fetched = Fetch().execute(handle, 3, 30)
+        images, download_report = fetched["result"]
+        info = json.dumps({"query": json.loads(query_report), "download": json.loads(download_report)}, ensure_ascii=False)
+        return {"ui": {"text": [info]}, "result": (images, info)}
+
+
 class Restore:
     CATEGORY = "CanvasPro"
     FUNCTION = "execute"
@@ -345,3 +363,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {"CanvasProBatchSubmit": "CanvasPro · 批量提交
 NODE_CLASS_MAPPINGS.update(CanvasProPromptTask=PromptTask, CanvasProMergeTasks=MergeTasks, CanvasProSubmitTasks=SubmitTasks)
 NODE_DISPLAY_NAME_MAPPINGS.update(CanvasProPromptTask="CanvasPro · 独立任务 / 完整提示词",
     CanvasProMergeTasks="CanvasPro · 合并任务", CanvasProSubmitTasks="CanvasPro · 任务并发提交 (新批次收费)")
+
+NODE_CLASS_MAPPINGS["CanvasProWaitFetch"] = WaitFetch
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProWaitFetch"] = "CanvasPro · 等待并获取图片"
