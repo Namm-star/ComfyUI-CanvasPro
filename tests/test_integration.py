@@ -283,6 +283,32 @@ print(batch)
             with self.assertRaises(ValueError):
                 build_request(**args)
 
+    def test_multiport_preserves_dimensions_and_model_parameter_mapping(self):
+        old_env = dict(os.environ)
+        old_interrupt, old_progress = nodes.interrupt, nodes.progress
+        try:
+            os.environ.update(CANVASPRO_DATA_DIR=str(self.root), CANVASPRO_API_KEY="fake-secret", CANVASPRO_BASE_URL=self.client.base, CANVASPRO_ALLOW_LOCAL_TEST="1")
+            nodes.interrupt = lambda: None
+            nodes.progress = lambda: lambda n,t: None
+            submit = nodes.ModelSubmit()
+            images = {"image_1": torch.zeros((1,7,11,3)), "image_2": torch.zeros((1,13,5,3))}
+            for i,model in enumerate(["gpt-image-2","T香蕉2","s-gpt-image-2.5-flare"]):
+                submit.execute(str(i),model,"edit","shared",2,1,quality="high",image_size="2K",aspect_ratio="16:9",**images)
+            self.assertEqual([Image.open(io.BytesIO(b)).size for b in self.service.posts[0][1]["uploads"]],[(11,7),(5,13)])
+            self.assertNotIn("image_size",self.service.posts[0][1])
+            banana=self.service.posts[1][1]
+            self.assertEqual(banana["generationConfig"]["imageConfig"],{"aspectRatio":"16:9","imageSize":"2K"})
+            self.assertNotIn("quality",banana)
+            self.assertNotIn("image_size",self.service.posts[2][1])
+            with self.assertRaises(ValueError):
+                submit.execute("overflow","T香蕉2","edit","shared",2,1,reference_count=15)
+            with self.assertRaises(ValueError):
+                submit.execute("hidden","gpt-image-2","edit","shared",2,1,image_3=images["image_1"])
+            self.assertEqual(len(self.service.posts),3)
+        finally:
+            os.environ.clear(); os.environ.update(old_env)
+            nodes.interrupt,nodes.progress=old_interrupt,old_progress
+
     def test_simultaneous_same_job_has_one_submit(self):
         results = []
         def call():

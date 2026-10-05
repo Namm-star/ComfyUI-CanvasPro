@@ -1,4 +1,20 @@
-# ComfyUI CanvasPro 0.1.0
+# ComfyUI CanvasPro 0.2.0
+
+0.2.0 新增 **CanvasPro · 模型自适应 / 多图批量提交**。推荐新工作流使用此节点，旧“批量提交”节点保持原输入与兼容性。
+
+## 多图与随模型变化的参数
+
+新节点默认提供 `image_1`、`image_2` 两个图片端口。调整 `reference_count` 会增加/减少端口；每个端口直接接一个“加载图像”，不同尺寸无需合并成批次，不会因合并被缩放。端口也接受 IMAGE 批次，按端口编号及批次内部顺序展开；所有图片实际数量仍受每个任务的模型上限限制。
+
+- `gpt-image-2`：最多16个端口。`size_mode=pixels` 显示 `pixel_size`；`ratio` 显示 `aspect_ratio`、`image_size`；`auto` 不显示尺寸填写控件。质量只提供 auto/low/medium/high 或留空。
+- `T香蕉2/pro`：最多14个端口，显示比例 `aspect_ratio` 和分辨率 `image_size`，隐藏质量、像素尺寸及URL输入。
+- `s-gpt-image`：最多15个端口，显示 `pixel_size` 和对应质量选项；flare/sunburst 增加 xhigh/max，隐藏 `image_size`。
+- 模型切换或减少数量若会删除已连接图片/参数，操作会被拒绝，原连线保留；先断开不兼容输入再切换。已有URL内容须先清空才能切换香蕉，避免藏起无法使用的输入。
+- `shared`：每条提示词使用所有参考图；一条提示词对应一个多图编辑任务。`paired`：按展开后的图片顺序与提示词一一对应。
+
+导入 `examples/multi-edit-workflow.json`，在两个“加载图像”中分别选人物图和服装图，即可查看多图编辑连线。选择模型后参数界面随之更新；查询、下载、保存节点共用。使用一个全新 `job_key` 创建新任务，沿用标识会恢复原批次。
+
+更新后须重启 ComfyUI，并刷新浏览器页面以加载前端扩展；新建上述自适应节点。旧节点不会自动转换，以免破坏已有参数/连线。
 
 独立 ComfyUI 自定义节点，通过本站 Key 调用 [CanvasPro API](https://api.canvasproai.com)。首版提供六款异步图片模型的文生图、编辑/参考图、客户端批量提交、批量查询与图片获取。2026-10-05 已通过本地 HTTP 模拟服务和真实 ComfyUI 加载/列表执行验证，**未使用真实 Key、未发付费请求**。
 
@@ -25,7 +41,7 @@ git clone https://github.com/Namm-star/ComfyUI-CanvasPro.git
 
 1. 解压发布 ZIP，把整个 `ComfyUI-CanvasPro` 文件夹放进**实际 ComfyUI 源码目录**的 `custom_nodes`。
 2. 使用启动 ComfyUI 的同一个 Python 检查 `import requests, PIL, numpy, torch`。通常这些包已有；只有缺依赖时才使用该 Python 执行 `-m pip install -r custom_nodes/ComfyUI-CanvasPro/requirements.txt`。不要升级或重装整套 ComfyUI，也不要用系统 Python 替代运行环境。
-3. 配置 Key，然后重新启动 ComfyUI。搜索 `CanvasPro`，应出现五个节点。
+3. 配置 Key，然后重新启动 ComfyUI。搜索 `CanvasPro`，应出现六个节点。
 
 本机找到的实际源码目录是 `F:\ComfyUI\ComfyUI\ComfyUI`，Python 是 `F:\ComfyUI\ComfyUI\python\python.exe`；外层 `F:\ComfyUI\ComfyUI` 是启动器目录。交付时未复制插件到现有安装，也未改其配置。其他机器请核对自己的路径。
 
@@ -46,10 +62,10 @@ Linux/macOS 默认 Key 文件为 `~/.config/CanvasProComfyUI/key.txt`，请限�
 `批量提交 → 批量查询/等待 → 批量获取图片 → SaveImage`
 
 - `prompts`：每个非空行一个提示词；需要多行提示词时填 JSON 字符串数组，例如 `["第一行\n第二行", "另一个提示词"]`。每批 1–256 项，每项独立提交、`n=1`。
-- `job_key`：本地批次标识。**同一个标识、同一组输入永远返回原批次，不重新 POST**；改动输入但沿用标识会报错。需要新的收费批次时明确换一个标识。示例默认 `example-001`，不要误认为反复点击会重新出图。这是本地防重复机制，不是服务端幂等保证。
-- `images`：可连接 ComfyUI IMAGE 批次，转成 PNG 后上传。`shared` 将全部图片作为每个提示词的共同参考；`paired` 按顺序将每张图分配给对应提示词，数量必须相等。`reference_urls` 支持 KR/HC 的公网 HTTPS URL，每行一个，不与 IMAGE 同时使用。香蕉使用 IMAGE 的 inlineData。
+- `job_key`：本地批次标识。**同一个标识、同一组输入永远返回原批次，不重新 POST**；改动输入但沿用标识会报错。需要新的收费批次时明确换一个标识。示例默认 `example-002`，不要误认为反复点击会重新出图。这是本地防重复机制，不是服务端幂等保证。
+- 旧通用节点的 `images`（新自适应节点使用 `image_1` 等独立端口）：可连接 ComfyUI IMAGE 批次，转成 PNG 后上传。`shared` 将全部图片作为每个提示词的共同参考；`paired` 按顺序将每张图分配给对应提示词，数量必须相等。`reference_urls` 支持 KR/HC 的公网 HTTPS URL，每行一个，不与 IMAGE 同时使用。香蕉使用 IMAGE 的 inlineData。
 - `concurrency`：每个节点 1–8，默认 3；只限制本节点，不是整个 ComfyUI 的全局并发限额。
-- `size/quality/image_size`：留空省略。香蕉的 `size` 填比例，`image_size` 填 1K/2K/4K，`quality` 留空。HC 的 `size` 填像素尺寸，`image_size` 留空。无效组合在任何提交前整批拒绝，详见 [协议记录](docs/PROTOCOL.md)。
+- 旧通用节点的 `size/quality/image_size`：留空省略。香蕉的 `size` 填比例，`image_size` 填 1K/2K/4K，`quality` 留空。HC 的 `size` 填像素尺寸，`image_size` 留空。无效组合在任何提交前整批拒绝，详见 [协议记录](docs/PROTOCOL.md)。
 - `wait_seconds=0`：每个已知任务查询一次；大于零时按同一任务号轮询，间隔退避至 15 秒。等待超时只记录状态，不再次生成。
 - 获取节点只下载 `succeeded` 项。输出是 **IMAGE 列表**，每项 `[1,H,W,3]`，不同尺寸保持原样；接 `SaveImage` 会逐项保存。成功图片按输入顺序排列；`download_report.output_indices` 对应原提示词索引，失败不会用空白图顶替。全部失败时输出空列表并给出报告，下游图片节点不会执行有效保存。
 
@@ -82,6 +98,6 @@ Linux/macOS 默认 Key 文件为 `~/.config/CanvasProComfyUI/key.txt`，请限�
 
 图片：`gpt-image-2`、`T香蕉2`、`T香蕉pro`、`s-gpt-image-2`、`s-gpt-image-2.5-flare`、`s-gpt-image-2.5-sunburst`。模型/参数来自当前公开目录和现行协议资料，不动态猜测新型号。
 
-视频与文本能力已记录在 `capabilities.json` 和协议文档，**首版未实现视频/文本执行节点**。后续可复用持久化意图、并发与只查询机制，但需独立响应解析、视频鉴权下载/媒体输出和逐型号能力校验。没有真实付费端到端验收，没有浏览器 UI 目视验证；实际模型权限、上游可用性、组合参数和最终图片尺寸由服务端决定。
+视频与文本能力已记录在 `capabilities.json` 和协议文档，**首版未实现视频/文本执行节点**。后续可复用持久化意图、并发与只查询机制，但需独立响应解析、视频鉴权下载/媒体输出和逐型号能力校验。没有真实付费端到端验收，0.2.0 已核对模型切换和端口增加的实际界面；实际模型权限、上游可用性、组合参数和最终图片尺寸由服务端决定。
 
 参考 [ComfyUI-GrsAI](https://github.com/31702160136/ComfyUI-GrsAI) 的节点拆分和并发反馈思路；本插件协议与实现独立编写，不使用 GrsAI 的 `/v1/api/result`。其 MIT 许可与原作者声明见 `THIRD_PARTY_NOTICES.md`，不包含原仓库 `.env`、价格或推广内容。

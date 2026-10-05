@@ -77,6 +77,61 @@ class Submit:
         return {"ui": {"text": [report(store, batch)]}, "result": (store.handle(batch), report(store, batch))}
 
 
+class ModelSubmit(Submit):
+    """Model-aware UI, separate image tensors; old Submit remains compatible."""
+    @classmethod
+    def INPUT_TYPES(cls):
+        common = Submit.INPUT_TYPES()["required"]
+        required = {k: common[k] for k in ("job_key", "model", "prompts", "reference_mode", "concurrency", "request_timeout")}
+        optional = {
+            "reference_count": ("INT", {"default": 2, "min": 1, "max": 16}),
+            "size_mode": (["pixels", "ratio", "auto"],),
+            "pixel_size": ("STRING", {"default": "1024x1024"}),
+            "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9"],),
+            "quality": (["", "auto", "low", "medium", "high", "xhigh", "max"],),
+            "image_size": (["1K", "2K", "4K"],),
+            "reference_urls": ("STRING", {"multiline": True, "default": ""})}
+        optional.update({f"image_{i}": ("IMAGE",) for i in range(1, 17)})
+        return {"required": required, "optional": optional}
+
+    def execute(self, job_key, model, prompts, reference_mode, concurrency, request_timeout,
+                reference_count=2, size_mode="pixels", pixel_size="1024x1024", aspect_ratio="1:1",
+                quality="", image_size="1K", reference_urls="", **images):
+        f = family(model)
+        maximum = {"kr": 16, "hc": 15, "gemini": 14}[f]
+        if not 1 <= reference_count <= maximum:
+            raise ValueError(f"Selected model supports at most {maximum} reference ports")
+        files = []
+        for i in range(1, 17):
+            image = images.get(f"image_{i}")
+            if image is not None:
+                if i > reference_count:
+                    raise ValueError("Connected image exceeds active reference_count/model limit")
+                files.extend(encode_images(image))
+        if f == "gemini":
+            if reference_urls.strip():
+                raise ValueError("Banana requires image ports; URL references unsupported")
+            size, quality, image_size = aspect_ratio, "", image_size
+        elif f == "hc":
+            size, image_size = pixel_size, ""
+        elif size_mode == "pixels":
+            size, image_size = pixel_size, ""
+        elif size_mode == "ratio":
+            size = aspect_ratio
+        elif size_mode == "auto":
+            size, image_size = "auto", ""
+        else:
+            raise ValueError("Invalid size mode")
+        values = json.loads(prompts) if prompts.lstrip().startswith("[") else [s.strip() for s in prompts.splitlines() if s.strip()]
+        if not isinstance(values, list) or any(not isinstance(s, str) for s in values):
+            raise ValueError("Prompts must be a string array or nonempty lines")
+        store, client = runtime(request_timeout)
+        batch = submit_batch(store, client, job_key, model, values, size, quality, image_size,
+            files, [s.strip() for s in reference_urls.splitlines() if s.strip()], reference_mode,
+            concurrency, interrupt, progress())
+        return {"ui": {"text": [report(store, batch)]}, "result": (store.handle(batch), report(store, batch))}
+
+
 class Wait:
     CATEGORY = "CanvasPro"
     FUNCTION = "execute"
@@ -203,7 +258,9 @@ class ImportTasks:
 
 
 NODE_CLASS_MAPPINGS = {"CanvasProBatchSubmit": Submit, "CanvasProBatchWait": Wait,
-    "CanvasProBatchFetch": Fetch, "CanvasProRestoreBatch": Restore, "CanvasProImportTasks": ImportTasks}
+    "CanvasProBatchFetch": Fetch, "CanvasProRestoreBatch": Restore, "CanvasProImportTasks": ImportTasks,
+    "CanvasProModelBatchSubmit": ModelSubmit}
 NODE_DISPLAY_NAME_MAPPINGS = {"CanvasProBatchSubmit": "CanvasPro · 批量提交 (新批次收费)",
     "CanvasProBatchWait": "CanvasPro · 批量查询 / 等待", "CanvasProBatchFetch": "CanvasPro · 批量获取图片",
-    "CanvasProRestoreBatch": "CanvasPro · 恢复本地批次", "CanvasProImportTasks": "CanvasPro · 导入已有任务号"}
+    "CanvasProRestoreBatch": "CanvasPro · 恢复本地批次", "CanvasProImportTasks": "CanvasPro · 导入已有任务号",
+    "CanvasProModelBatchSubmit": "CanvasPro · 模型自适应 / 多图批量提交"}

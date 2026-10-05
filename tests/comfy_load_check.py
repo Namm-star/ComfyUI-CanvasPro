@@ -17,7 +17,7 @@ import nodes
 async def main():
     assert await nodes.load_custom_node(str(plugin))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
-    assert len(names) == 5, names
+    assert len(names) == 6, names
     for name in names:
         cls = nodes.NODE_CLASS_MAPPINGS[name]
         inputs = cls.INPUT_TYPES()
@@ -42,7 +42,7 @@ async def main():
                     nodes.NODE_CLASS_MAPPINGS[name](), {k: [v] for k, v in values.items()})
                 assert not subgraph and not pending
                 return output
-            submitted = await invoke("CanvasProBatchSubmit", prompt["1"]["inputs"])
+            submitted = await invoke(prompt["1"]["class_type"], prompt["1"]["inputs"])
             waited = await invoke("CanvasProBatchWait", {**prompt["2"]["inputs"], "tasks_json": submitted[0][0], "poll_interval": .2, "wait_seconds": 5})
             fetched = await invoke("CanvasProBatchFetch", {**prompt["3"]["inputs"], "tasks_json": waited[0][0]})
             assert len(fetched[0]) == 2

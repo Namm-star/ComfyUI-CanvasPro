@@ -1,22 +1,33 @@
 {
-  "last_node_id": 4,
-  "last_link_id": 3,
+  "last_node_id": 6,
+  "last_link_id": 5,
   "nodes": [
     {
       "id": 1,
-      "type": "CanvasProRestoreBatch",
+      "type": "CanvasProModelBatchSubmit",
       "pos": [
         0,
         100
       ],
       "size": [
-        330,
-        110
+        350,
+        470
       ],
       "flags": {},
       "order": 0,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "image_1",
+          "type": "IMAGE",
+          "link": 4
+        },
+        {
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": 5
+        }
+      ],
       "outputs": [
         {
           "name": "tasks_json",
@@ -34,10 +45,22 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "CanvasProRestoreBatch"
+        "Node name for S&R": "CanvasProModelBatchSubmit"
       },
       "widgets_values": [
-        "example-002"
+        "multi-edit-001",
+        "gpt-image-2",
+        "让图1中的人物穿上图2的服装，保持人物面部特征",
+        "shared",
+        2,
+        30,
+        2,
+        "pixels",
+        "1024x1024",
+        "1:1",
+        "",
+        "1K",
+        ""
       ]
     },
     {
@@ -160,6 +183,84 @@
       "widgets_values": [
         "CanvasPro"
       ]
+    },
+    {
+      "id": 5,
+      "type": "LoadImage",
+      "pos": [
+        -370,
+        100
+      ],
+      "size": [
+        300,
+        270
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "reference-1.png",
+        "image"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "LoadImage",
+      "pos": [
+        -370,
+        420
+      ],
+      "size": [
+        300,
+        270
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "reference-2.png",
+        "image"
+      ]
     }
   ],
   "links": [
@@ -185,6 +286,22 @@
       0,
       4,
       0,
+      "IMAGE"
+    ],
+    [
+      4,
+      5,
+      0,
+      1,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      6,
+      0,
+      1,
+      1,
       "IMAGE"
     ]
   ],

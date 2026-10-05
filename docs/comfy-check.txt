@@ -6,5 +6,5 @@ F:\ComfyUI\ComfyUI\python\Lib\site-packages\pydantic\_internal\_fields.py:132: U
 
 You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
   warnings.warn(
-REAL COMFYUI LOADER PASSED: CanvasProBatchSubmit, CanvasProBatchWait, CanvasProBatchFetch, CanvasProRestoreBatch, CanvasProImportTasks
+REAL COMFYUI LOADER PASSED: CanvasProBatchSubmit, CanvasProBatchWait, CanvasProBatchFetch, CanvasProRestoreBatch, CanvasProImportTasks, CanvasProModelBatchSubmit
 REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (2 differently sized images)

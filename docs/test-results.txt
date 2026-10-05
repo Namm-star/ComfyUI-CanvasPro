@@ -3,6 +3,7 @@ test_cancel_wait_preserves_task (test_integration.Integration.test_cancel_wait_p
 test_crash_sending_and_prepared_records_never_replayed (test_integration.Integration.test_crash_sending_and_prepared_records_never_replayed) ... ok
 test_download_auth_removed_on_cross_origin_redirect (test_integration.Integration.test_download_auth_removed_on_cross_origin_redirect) ... ok
 test_download_failure_preserves_other_images (test_integration.Integration.test_download_failure_preserves_other_images) ... ok
+test_multiport_preserves_dimensions_and_model_parameter_mapping (test_integration.Integration.test_multiport_preserves_dimensions_and_model_parameter_mapping) ... ok
 test_new_process_restores_without_post (test_integration.Integration.test_new_process_restores_without_post) ... ok
 test_nodes_real_images_order_partial_success_and_import (test_integration.Integration.test_nodes_real_images_order_partial_success_and_import) ... ok
 test_order_partial_failure_concurrency_restart_and_no_replay (test_integration.Integration.test_order_partial_failure_concurrency_restart_and_no_replay) ... ok
@@ -14,6 +15,6 @@ test_submit_timeout_http_failure_and_missing_id_not_retried (test_integration.In
 test_url_edit_is_multipart_and_hc_is_json (test_integration.Integration.test_url_edit_is_multipart_and_hc_is_json) ... ok
 
 ----------------------------------------------------------------------
-Ran 14 tests in 14.361s
+Ran 15 tests in 15.243s
 
 OK

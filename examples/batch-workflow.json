@@ -4,7 +4,7 @@
   "nodes": [
     {
       "id": 1,
-      "type": "CanvasProBatchSubmit",
+      "type": "CanvasProModelBatchSubmit",
       "pos": [
         0,
         100
@@ -18,17 +18,14 @@
       "mode": 0,
       "inputs": [
         {
-          "name": "images",
+          "name": "image_1",
           "type": "IMAGE",
           "link": null
         },
         {
-          "name": "reference_urls",
-          "type": "STRING",
-          "link": null,
-          "widget": {
-            "name": "reference_urls"
-          }
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": null
         }
       ],
       "outputs": [
@@ -48,18 +45,21 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "CanvasProBatchSubmit"
+        "Node name for S&R": "CanvasProModelBatchSubmit"
       },
       "widgets_values": [
-        "example-001",
+        "example-002",
         "gpt-image-2",
         "一只蓝色小鸟，白色背景\n一只橙色小猫，白色背景",
-        "1024x1024",
-        "",
-        "",
         "shared",
         2,
         30,
+        2,
+        "pixels",
+        "1024x1024",
+        "1:1",
+        "",
+        "1K",
         ""
       ]
     },
