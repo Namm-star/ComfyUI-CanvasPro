@@ -1,4 +1,4 @@
-"""Server-local settings: credentials are never node inputs."""
+"""Node credentials override optional server-local settings."""
 import os
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -20,18 +20,18 @@ def data_dir():
     return root
 
 
-def settings():
+def settings(api_key=""):
     base = os.environ.get("CANVASPRO_BASE_URL", DEFAULT_BASE).rstrip("/")
     u = urlsplit(base)
     mock = os.environ.get("CANVASPRO_ALLOW_LOCAL_TEST") == "1"
     if base != DEFAULT_BASE and not (mock and u.scheme == "http" and u.hostname == "127.0.0.1" and u.path == ""):
         raise ValueError("Only CanvasPro HTTPS or explicitly enabled loopback test service is allowed")
-    key = os.environ.get("CANVASPRO_API_KEY", "").strip()
+    key = api_key.strip() or os.environ.get("CANVASPRO_API_KEY", "").strip()
     if not key:
         private_root = Path(os.environ.get("LOCALAPPDATA", Path.home() / ".config")) / "CanvasProComfyUI"
         path = Path(os.environ.get("CANVASPRO_KEY_FILE", str(private_root / "key.txt")))
         if path.exists():
             key = path.read_text(encoding="utf-8").strip()
     if not key or any(c.isspace() for c in key):
-        raise ValueError("Configure CANVASPRO_API_KEY or server-local CanvasProComfyUI/key.txt; never put Key in workflow")
+        raise ValueError("Enter API Key on the batch node or configure CANVASPRO_API_KEY")
     return base, key

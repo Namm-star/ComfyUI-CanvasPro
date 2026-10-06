@@ -12,8 +12,8 @@ from .protocol import MODELS, family
 from .batch import submit_batch, submit_tasks, query_batch, run_parallel, report
 
 
-def runtime(timeout=30):
-    base, key = settings()
+def runtime(timeout=30, api_key=""):
+    base, key = settings(api_key)
     return Store(), Client(base, key, timeout)
 
 
@@ -255,8 +255,8 @@ class Fetch:
     def IS_CHANGED(cls, **kwargs):
         return float("nan")
 
-    def execute(self, tasks_json, concurrency, request_timeout):
-        store, client = runtime(request_timeout)
+    def execute(self, tasks_json, concurrency, request_timeout, api_key=""):
+        store, client = runtime(request_timeout, api_key) if api_key else runtime(request_timeout)
         batch = store.resolve(tasks_json)
         meta, tasks = store.read(batch)
         if meta["base"] != client.base:
@@ -325,15 +325,16 @@ class BatchExecute(Fetch):
             "advanced": ("BOOLEAN", {"default": False})},
             "optional": {"wait_seconds": ("INT", {"default": 600, "min": 0, "max": 86400}),
                 "request_timeout": ("INT", {"default": 30, "min": 1, "max": 120}),
+                "api_key": ("STRING", {"default": "", "multiline": False, "tooltip": "Enter your CanvasPro API Key here. Saved workflows may contain it; remove before sharing."}),
                 **{f"task_{i}": ("CANVASPRO_TASKS",) for i in range(2, 257)}},
             "hidden": {"unique_id": "UNIQUE_ID"}}
 
-    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, **ports):
+    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, api_key="", **ports):
         items = list(task_1)
         for i in range(2, 257):
             if ports.get(f"task_{i}") is not None:
                 items.extend(ports[f"task_{i}"])
-        store, client = runtime(request_timeout)
+        store, client = runtime(request_timeout, api_key) if api_key else runtime(request_timeout)
         phase = "提交"
         last_sent, last_check = None, 0.0
         def publish():
@@ -365,7 +366,7 @@ class BatchExecute(Fetch):
         phase, last_check = "下载", 0.0
         publish()
         handle = store.handle(batch)
-        fetched = Fetch().execute(handle, concurrency, request_timeout)
+        fetched = Fetch().execute(handle, concurrency, request_timeout, api_key)
         phase, last_check = "本轮结束", 0.0
         publish()
         images, download_report = fetched["result"]

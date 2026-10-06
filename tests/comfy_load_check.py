@@ -23,7 +23,7 @@ async def main():
     for name in names:
         cls = nodes.NODE_CLASS_MAPPINGS[name]
         inputs = cls.INPUT_TYPES()
-        assert "api_key" not in inputs.get("required", {})
+        assert "api_key" not in inputs.get("required", {})  # optional direct entry on batch node
         assert hasattr(cls, cls.FUNCTION)
         assert len(cls.RETURN_TYPES) == len(cls.RETURN_NAMES)
     print("REAL COMFYUI LOADER PASSED:", ", ".join(names))

@@ -231,6 +231,20 @@ class Integration(unittest.TestCase):
         self.assertEqual(events[-1][1]["counts"]["succeeded"],1)
         self.assertNotIn("fake-secret",json.dumps(events))
 
+    def test_direct_node_key_without_server_configuration(self):
+        task = nodes.PromptTask().execute("gpt-image-2","direct key")[0]
+        env = dict(CANVASPRO_API_KEY="",CANVASPRO_KEY_FILE=str(self.root/"absent-key"),CANVASPRO_DATA_DIR=str(self.root),CANVASPRO_BASE_URL=self.service.base,CANVASPRO_ALLOW_LOCAL_TEST="1")
+        with patch.dict(os.environ,env), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            images, info, handle = nodes.BatchExecute().execute(task,"direct-key",wait_seconds=5,api_key="fake-secret")["result"]
+            self.assertEqual(len(images),1)
+            self.assertTrue(all(auth=="Bearer fake-secret" for _,auth in self.service.auth))
+            self.assertNotIn("fake-secret",info+handle)
+            self.assertNotIn(b"fake-secret",(self.root/"tasks.sqlite3").read_bytes())
+            from canvaspro.config import settings
+            with patch.dict(os.environ,{"CANVASPRO_API_KEY":"other-key"}):
+                self.assertEqual(settings("fake-secret")[1],"fake-secret")
+            with self.assertRaises(ValueError): settings("bad key")
+
     def tearDown(self):
         self.service.shutdown()
         self.service.server_close()

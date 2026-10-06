@@ -17,6 +17,26 @@ app.registerExtension({
         const created = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = created?.apply(this,args);
+            if (batch) {
+                const old = this.widgets?.find(w => w.name === "api_key");
+                if (old && this.addDOMWidget && typeof document !== "undefined") {
+                    const index = this.widgets.indexOf(old);
+                    const input = document.createElement("input");
+                    input.type = "password";
+                    input.placeholder = "填写 CanvasPro API Key";
+                    input.autocomplete = "off";
+                    input.style.cssText = "width:100%;box-sizing:border-box;background:#222;color:#ddd;border:1px solid #555;padding:6px";
+                    input.value = old.value || "";
+                    const key = this.addDOMWidget("api_key", "STRING", input, {
+                        getValue: () => input.value,
+                        setValue: value => { input.value = value || ""; },
+                    });
+                    key.value = input.value;
+                    key.computeSize = width => [width,32];
+                    this.widgets.splice(this.widgets.indexOf(key),1);
+                    this.widgets.splice(index,1,key);
+                }
+            }
             if (!batch) installModelUI(this,notify);
             if (task || batch) {
                 const advanced = this.widgets?.find(w => w.name === "advanced");

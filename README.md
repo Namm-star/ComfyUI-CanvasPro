@@ -1,4 +1,4 @@
-# ComfyUI CanvasPro 0.5.1
+# ComfyUI CanvasPro 0.6.0
 
 **独立任务 → 批量执行 → 保存图像**。支持完整多行提示词、混合模型、自动增加任务及参考图入口。每批最多 256 个任务，提交并发数 1～8；重复运行同一批次不会重新提交收费。
 
@@ -47,15 +47,11 @@ git clone https://github.com/Namm-star/ComfyUI-CanvasPro.git
 
 本机找到的实际源码目录是 `F:\ComfyUI\ComfyUI\ComfyUI`，Python 是 `F:\ComfyUI\ComfyUI\python\python.exe`；外层 `F:\ComfyUI\ComfyUI` 是启动器目录。交付时未复制插件到现有安装，也未改其配置。其他机器请核对自己的路径。
 
-## 申请与配置本站 Key
+## API Key
 
-1. 登录 [本站 Key 页面](https://api.canvasproai.com/keys)，创建你自己的 Key，确认额度、分组和目标模型权限。API 与 CanvasPro 使用统一账号、共享钱包。这里使用的是本站 Key。
-2. Windows 推荐运行插件内 `configure-key.ps1`，交互输入时隐藏 Key。脚本把它保存到 `%LOCALAPPDATA%\CanvasProComfyUI\key.txt`，先设置当前 Windows 用户专属文件 ACL。ComfyUI 须以同一 Windows 用户运行；执行前可审阅脚本。
-3. 也可在 ComfyUI **服务端进程**的环境中配置 `CANVASPRO_API_KEY`，或用 `CANVASPRO_KEY_FILE` 指向受保护的纯文本文件。环境变量优先于文件。不要把 Key 放进命令行、工作流、提示词、截图、Git 或聊天。
+直接在「批量执行」节点的 `api_key` 中填写本站 Key，输入遮蔽显示，无需运行配置脚本。节点 Key 优先；留空时仍可使用原有环境变量/Key 文件配置。
 
-Linux/macOS 默认 Key 文件为 `~/.config/CanvasProComfyUI/key.txt`，请限制目录为 `700`、文件为 `600`。数据目录可用 `CANVASPRO_DATA_DIR` 显式指定；Key 与批次数据分开存放。默认根地址已预设为 `https://api.canvasproai.com`，不会统一追加 `/v1`。
-
-本地文件配置用于你信任的 ComfyUI 服务端。共享/公网 ComfyUI 实例中的用户可能使用服务端同一 Key，首版不提供多用户密钥隔离；请使用独立服务进程和受保护数据目录。
+`job_key` 是批次名称，例如 `batch-001`，不要填 Key。工作流保存、API 请求和生成图片元数据可能包含节点中的 Key；分享工作流或图片前清除 Key。可选的服务端 Key 配置仍支持原有 `configure-key.ps1`。
 
 ## 恢复已有任务
 
@@ -73,7 +69,7 @@ node --test tests/*.test.mjs
 & 'F:/ComfyUI/ComfyUI/python/python.exe' tests/comfy_load_check.py 'F:/ComfyUI/ComfyUI/ComfyUI'
 ```
 
-21 项本地模拟 HTTP 集成测试、10 项前端逻辑测试通过；真实 ComfyUI 已验证混合模型节点执行、API 示例及不同尺寸图片保存。示例连线和类型已检查。未使用生产 Key，未发送付费请求。
+22 项本地模拟 HTTP 集成测试、10 项前端逻辑测试通过；真实 ComfyUI 已验证混合模型节点执行、API 示例及不同尺寸图片保存。示例连线和类型已检查。未使用生产 Key，未发送付费请求。
 
 支持图片模型：`gpt-image-2`、`T香蕉2`、`T香蕉pro`、`s-gpt-image-2`、`s-gpt-image-2.5-flare`、`s-gpt-image-2.5-sunburst`。详细参数见 [协议记录](docs/PROTOCOL.md)。视频和文本执行节点尚未实现。
 
