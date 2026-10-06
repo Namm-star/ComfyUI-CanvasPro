@@ -14,7 +14,7 @@
         230
       ],
       "flags": {},
-      "order": 0,
+      "order": 2,
       "mode": 0,
       "inputs": [
         {
@@ -107,7 +107,7 @@
         480
       ],
       "flags": {},
-      "order": 0,
+      "order": 1,
       "mode": 0,
       "inputs": [
         {
@@ -159,7 +159,7 @@
         480
       ],
       "flags": {},
-      "order": 0,
+      "order": 1,
       "mode": 0,
       "inputs": [
         {
@@ -228,6 +228,9 @@
   ],
   "groups": [],
   "config": {},
-  "extra": {},
+  "extra": {
+    "canvaspro_version": "0.5.1",
+    "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
+  },
   "version": 0.4
 }

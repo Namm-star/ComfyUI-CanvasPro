@@ -1,52 +1,24 @@
-## 0.5.0：直接连接任务，混合模型一键执行
+# ComfyUI CanvasPro 0.5.1
 
-推荐导入 `examples/optimized-workflow.json`；混合模型示例见 `examples/mixed-model-workflow.json`。
+**独立任务 → 批量执行 → 保存图像**。支持完整多行提示词、混合模型、自动增加任务及参考图入口。每批最多 256 个任务，提交并发数 1～8；重复运行同一批次不会重新提交收费。
 
-**独立任务 → 批量执行 → 保存图像**。不再需要合并任务或单独等待/取图节点。每个任务保留完整多行提示词、独立模型参数与参考图。接满任务入口会自动出现下一入口，最多 256 个任务。图片入口同样自动增加，按模型上限停止。GPT Image、香蕉和 HC 可以一起执行，按各自模型协议提交和查询。
+## 最新示例工作流
 
-批量执行默认显示批次名称 `job_key`、并发数（1～8）与高级设置开关。高级设置可调整等待时间（默认 600 秒）和请求超时（默认 30 秒）；任务的质量和 URL 参考图也放在高级设置里，香蕉不显示不支持的字段。尺寸按模型显示。
+旧示例已删除，当前只保留以下三个界面工作流：
 
-同一批次名称和相同内容再次运行会继续查询已有任务，不会重复提交；修改提示词、模型、尺寸、参考图或任务顺序后，需使用新的批次名称。执行时节点标题显示当前阶段和排队/处理中/成功/失败数量；报告包含每个任务的模型、状态和图片对应索引。可将 `tasks_json` 接到原有等待取图节点，或用恢复批次节点继续处理结果。
+- [普通多任务](examples/optimized-workflow.json)：多个独立任务直接连接批量执行，无需合并节点。
+- [混合模型](examples/mixed-model-workflow.json)：GPT Image、香蕉、HC 三个任务一起执行。
+- [多图编辑](examples/multi-edit-workflow.json)：两张参考图连接一个完整提示词任务，再连接批量执行；先选择自己的图片。
 
-旧工作流与旧数据库兼容；旧的合并节点仍只支持相同模型，新流程直接连接「批量执行」即可混用模型。任务按端口编号排序；一个入口也能连接旧合并节点输出的多任务列表。
+下载对应 JSON 后拖入 ComfyUI。已安装用户先更新插件、重启 ComfyUI，再刷新浏览器。更多说明见 [示例目录](examples/README.md)。`optimized-api.json` 是 API 格式，界面导入请使用 `*-workflow.json`。
 
-## 0.4.0：等待与取图合并
+## 使用
 
-提交节点 → **等待并获取图片** → 保存图像。所有示例已改为这条简化流程。
+每个「独立任务 / 完整提示词」节点只写一条完整提示词，换行会保留。任务节点自行选择模型和尺寸；参考图入口接满后自动增加，按模型上限停止。多个任务分别连接「批量执行」的 `task_1`、`task_2` 等入口；接满后自动出现下一入口。任务及图片按端口编号排序。
 
-新节点只需设置 `wait_seconds`（默认 600 秒）。轮询从 2 秒开始并自动退避，查询/下载并发为 3，请求超时为 30 秒。失败任务会跳过并记录在报告中；超时后再次运行会继续查询原任务，成功图片按任务顺序输出并保留各自尺寸。也可接「恢复本地批次」来继续获取结果。
+批量执行完成提交、等待和下载，输出图片直接连接保存图像。默认显示批次名称 `job_key`、并发数和高级设置开关。高级设置可调整等待时间（默认 600 秒）、请求超时（默认 30 秒）；任务质量和 URL 参考图也放在高级设置中。香蕉只显示比例与 1K/2K/4K 等支持的参数。GPT Image 最多 16 张参考图、香蕉最多 14 张、HC 最多 15 张；不同尺寸参考图不合并缩放。
 
-原来的查询、取图节点仍保留，已有工作流可以继续使用。
-
-## 0.3.0：复杂提示词独立任务
-
-推荐导入 `examples/independent-tasks-workflow.json`。
-
-每个「独立任务 / 完整提示词」节点写一条完整提示词，保留所有换行；各自选择模型、参数和参考图。「合并任务」按 A、B 顺序拼接，可串联以添加更多任务，然后连接「任务并发提交」→「等待并获取图片」→「保存图像」。单任务也可以直接连接提交节点。
-
-任务节点的图片端口数量和参数随模型变化。每条任务可使用不同的参考图与尺寸/质量；同一批次使用同一模型，不同模型请使用各自的提交节点。`concurrency` 只控制同时发送的请求数量，与提示词换行无关。独立任务和合并节点不会发送付费请求。旧的按行批量节点仍兼容原工作流。
-
-再次运行相同 `job_key` 恢复原批次；修改提示词/参考图/参数后要提交新任务，使用新的 `job_key`。
-
-# ComfyUI CanvasPro 0.2.0
-
-0.2.0 新增 **CanvasPro · 模型自适应 / 多图批量提交**。推荐新工作流使用此节点，旧“批量提交”节点保持原输入与兼容性。
-
-## 多图与随模型变化的参数
-
-新节点默认提供 `image_1`、`image_2` 两个图片端口。调整 `reference_count` 会增加/减少端口；每个端口直接接一个“加载图像”，不同尺寸无需合并成批次，不会因合并被缩放。端口也接受 IMAGE 批次，按端口编号及批次内部顺序展开；所有图片实际数量仍受每个任务的模型上限限制。
-
-- `gpt-image-2`：最多16个端口。`size_mode=pixels` 显示 `pixel_size`；`ratio` 显示 `aspect_ratio`、`image_size`；`auto` 不显示尺寸填写控件。质量只提供 auto/low/medium/high 或留空。
-- `T香蕉2/pro`：最多14个端口，显示比例 `aspect_ratio` 和分辨率 `image_size`，隐藏质量、像素尺寸及URL输入。
-- `s-gpt-image`：最多15个端口，显示 `pixel_size` 和对应质量选项；flare/sunburst 增加 xhigh/max，隐藏 `image_size`。
-- 模型切换或减少数量若会删除已连接图片/参数，操作会被拒绝，原连线保留；先断开不兼容输入再切换。已有URL内容须先清空才能切换香蕉，避免藏起无法使用的输入。
-- `shared`：每条提示词使用所有参考图；一条提示词对应一个多图编辑任务。`paired`：按展开后的图片顺序与提示词一一对应。
-
-导入 `examples/multi-edit-workflow.json`，在两个“加载图像”中分别选人物图和服装图，即可查看多图编辑连线。选择模型后参数界面随之更新；查询、下载、保存节点共用。使用一个全新 `job_key` 创建新任务，沿用标识会恢复原批次。
-
-更新后须重启 ComfyUI，并刷新浏览器页面以加载前端扩展；新建上述自适应节点。旧节点不会自动转换，以免破坏已有参数/连线。
-
-独立 ComfyUI 自定义节点，通过本站 Key 调用 [CanvasPro API](https://api.canvasproai.com)。首版提供六款异步图片模型的文生图、编辑/参考图、客户端批量提交、批量查询与图片获取。2026-10-05 已通过本地 HTTP 模拟服务和真实 ComfyUI 加载/列表执行验证，**未使用真实 Key、未发付费请求**。
+同一个 `job_key` 和相同内容再次运行会继续原任务；改动提示词、模型、参数、参考图或任务顺序后需要新的批次名称。任务名称冲突会在提交前报错。执行标题显示阶段及排队/处理中/成功/失败数量，报告提供模型和图片对应索引。失败任务不生成占位图片，成功图片保留各自尺寸。
 
 ## 安装
 
@@ -71,7 +43,7 @@ git clone https://github.com/Namm-star/ComfyUI-CanvasPro.git
 
 1. 解压发布 ZIP，把整个 `ComfyUI-CanvasPro` 文件夹放进**实际 ComfyUI 源码目录**的 `custom_nodes`。
 2. 使用启动 ComfyUI 的同一个 Python 检查 `import requests, PIL, numpy, torch`。通常这些包已有；只有缺依赖时才使用该 Python 执行 `-m pip install -r custom_nodes/ComfyUI-CanvasPro/requirements.txt`。不要升级或重装整套 ComfyUI，也不要用系统 Python 替代运行环境。
-3. 配置 Key，然后重新启动 ComfyUI。搜索 `CanvasPro`，应出现六个节点。
+3. 配置 Key，然后重新启动 ComfyUI。搜索 `CanvasPro`，应出现 11 个节点。
 
 本机找到的实际源码目录是 `F:\ComfyUI\ComfyUI\ComfyUI`，Python 是 `F:\ComfyUI\ComfyUI\python\python.exe`；外层 `F:\ComfyUI\ComfyUI` 是启动器目录。交付时未复制插件到现有安装，也未改其配置。其他机器请核对自己的路径。
 
@@ -85,49 +57,24 @@ Linux/macOS 默认 Key 文件为 `~/.config/CanvasProComfyUI/key.txt`，请限�
 
 本地文件配置用于你信任的 ComfyUI 服务端。共享/公网 ComfyUI 实例中的用户可能使用服务端同一 Key，首版不提供多用户密钥隔离；请使用独立服务进程和受保护数据目录。
 
-## 工作流
+## 恢复已有任务
 
-把 `examples/batch-workflow.json` 拖入 ComfyUI：
+批次保存在 ComfyUI 用户目录的 `canvaspro/tasks.sqlite3`（可用 `CANVASPRO_DATA_DIR` 指定），不保存 Key、提示词或原参考图。数据库可能含临时结果 URL，请保存在自己的本地目录。
 
-`批量提交 → 批量查询/等待 → 批量获取图片 → SaveImage`
+重启或等待超时后，保持原批次名称及内容再次运行即可继续查询，不会重发提交。也可手动连接「恢复本地批次」→「等待并获取图片」→「保存图像」。这些兼容节点仍保留，但不再提供旧流程示例。
 
-- `prompts`：每个非空行一个提示词；需要多行提示词时填 JSON 字符串数组，例如 `["第一行\n第二行", "另一个提示词"]`。每批 1–256 项，每项独立提交、`n=1`。
-- `job_key`：本地批次标识。**同一个标识、同一组输入永远返回原批次，不重新 POST**；改动输入但沿用标识会报错。需要新的收费批次时明确换一个标识。示例默认 `example-002`，不要误认为反复点击会重新出图。这是本地防重复机制，不是服务端幂等保证。
-- 旧通用节点的 `images`（新自适应节点使用 `image_1` 等独立端口）：可连接 ComfyUI IMAGE 批次，转成 PNG 后上传。`shared` 将全部图片作为每个提示词的共同参考；`paired` 按顺序将每张图分配给对应提示词，数量必须相等。`reference_urls` 支持 KR/HC 的公网 HTTPS URL，每行一个，不与 IMAGE 同时使用。香蕉使用 IMAGE 的 inlineData。
-- `concurrency`：每个节点 1–8，默认 3；只限制本节点，不是整个 ComfyUI 的全局并发限额。
-- 旧通用节点的 `size/quality/image_size`：留空省略。香蕉的 `size` 填比例，`image_size` 填 1K/2K/4K，`quality` 留空。HC 的 `size` 填像素尺寸，`image_size` 留空。无效组合在任何提交前整批拒绝，详见 [协议记录](docs/PROTOCOL.md)。
-- `wait_seconds=0`：每个已知任务查询一次；大于零时按同一任务号轮询，间隔退避至 15 秒。等待超时只记录状态，不再次生成。
-- 获取节点只下载 `succeeded` 项。输出是 **IMAGE 列表**，每项 `[1,H,W,3]`，不同尺寸保持原样；接 `SaveImage` 会逐项保存。成功图片按输入顺序排列；`download_report.output_indices` 对应原提示词索引，失败不会用空白图顶替。全部失败时输出空列表并给出报告，下游图片节点不会执行有效保存。
-
-### 重启、分阶段运行、已有任务
-
-批次保存在 ComfyUI 用户数据目录的 `canvaspro/tasks.sqlite3`；无 ComfyUI 环境时回退到 `%LOCALAPPDATA%\CanvasProComfyUI`（非 Windows：`~/.local/share/CanvasProComfyUI`）。保存内容包括批次标识、输入摘要、任务号、状态和结果 URL，不保存 Key、提示词或原参考图片。结果 URL 可能含临时签名，数据库应保存在受保护的本地目录，不要分享。
-
-- 使用 `examples/resume-workflow.json`，填原 `job_key`，即可在重启后继续查询及下载。
-- 只要提交节点存在，就会在运行时检查本地记录；同标识不会因 ComfyUI 缓存变化重复生成。可以先只执行提交节点，稍后用恢复工作流获取结果。
-- 迁移数据库时保存整个文件；任务 JSON 是不含秘密的本地引用及状态快照，查询时以数据库为准。没有数据库时，用“导入已有任务号”节点，选择正确模型，每行填一个原任务号；它不会提交新任务。
-- 超时、网络错误、非成功 HTTP、缺少任务号均保守标为 `submit_unknown`。到本站任务/账单核对，找到原任务号后导入继续查询。不要直接换标识重发未知提交。
-- 进程在 POST 前已写入 `sending` 意图；重启读取时视作未知。取消提交过程中尚未开始的项可能保持 `prepared`，沿用原批次也不会自动补发。
-- 使用 ComfyUI 停止/中断取消客户端等待。已提交的服务端任务仍可能运行或计费，取消等待不等于取消服务端任务或退款。已进行的 HTTP 最多等待当前请求超时后退出；下载中的请求与 GET 重试也受请求超时约束。
-- 下载链接过期/下载失败时先重跑查询节点刷新 URL，再运行获取节点。查询/下载可重试；**POST 没有自动重试**。报告只保留本地错误码，避免服务端错误体回显 Key 或私有链接。
+提交结果不确定会记录为 `submit_unknown`，不自动重试 POST；先核对本站任务记录，找到任务号后用「导入已有任务号」继续查询。取消客户端等待不会取消已提交的服务端任务。旧工作流与旧批次数据库保持兼容。
 
 ## 验证
 
-使用已有 ComfyUI Python，从插件目录运行：
-
 ```powershell
 & 'F:/ComfyUI/ComfyUI/python/python.exe' -m unittest discover -s tests -v
+node --test tests/*.test.mjs
 & 'F:/ComfyUI/ComfyUI/python/python.exe' tests/comfy_load_check.py 'F:/ComfyUI/ComfyUI/ComfyUI'
 ```
 
-集成测试使用临时数据库、假 Key、真实 loopback HTTP、真实 Pillow/torch。加载检查在独立进程调用现有 ComfyUI 的 `load_custom_node`、`validate_prompt`、`get_output_data` 与 `SaveImage`，不安装进现有 `custom_nodes`。详见 [开发记录](docs/DEVELOPMENT.md)。`batch-api.json`/`resume-api.json` 是 API 格式，UI 导入请用 `*-workflow.json`。
+21 项本地模拟 HTTP 集成测试、10 项前端逻辑测试通过；真实 ComfyUI 已验证混合模型节点执行、API 示例及不同尺寸图片保存。示例连线和类型已检查。未使用生产 Key，未发送付费请求。
 
-手动模拟可运行 `tests/mock_service.py`，它打印随机 loopback 地址；在独立测试 ComfyUI 进程设置 `CANVASPRO_ALLOW_LOCAL_TEST=1`、`CANVASPRO_BASE_URL` 为该地址、`CANVASPRO_API_KEY=fake-secret`、`CANVASPRO_DATA_DIR` 为临时目录。不要为测试启动覆盖生产服务；退出后移除这些测试环境变量。模拟提示词 `fail` 产生任务失败，`always-pending` 模拟超时。
+支持图片模型：`gpt-image-2`、`T香蕉2`、`T香蕉pro`、`s-gpt-image-2`、`s-gpt-image-2.5-flare`、`s-gpt-image-2.5-sunburst`。详细参数见 [协议记录](docs/PROTOCOL.md)。视频和文本执行节点尚未实现。
 
-## 首版范围
-
-图片：`gpt-image-2`、`T香蕉2`、`T香蕉pro`、`s-gpt-image-2`、`s-gpt-image-2.5-flare`、`s-gpt-image-2.5-sunburst`。模型/参数来自当前公开目录和现行协议资料，不动态猜测新型号。
-
-视频与文本能力已记录在 `capabilities.json` 和协议文档，**首版未实现视频/文本执行节点**。后续可复用持久化意图、并发与只查询机制，但需独立响应解析、视频鉴权下载/媒体输出和逐型号能力校验。没有真实付费端到端验收，0.2.0 已核对模型切换和端口增加的实际界面；实际模型权限、上游可用性、组合参数和最终图片尺寸由服务端决定。
-
-参考 [ComfyUI-GrsAI](https://github.com/31702160136/ComfyUI-GrsAI) 的节点拆分和并发反馈思路；本插件协议与实现独立编写，不使用 GrsAI 的 `/v1/api/result`。其 MIT 许可与原作者声明见 `THIRD_PARTY_NOTICES.md`，不包含原仓库 `.env`、价格或推广内容。
+参考项目及许可见 [第三方声明](THIRD_PARTY_NOTICES.md)。
