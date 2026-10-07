@@ -52,3 +52,14 @@ export function autoImageCount(node) {
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
     find(node,"reference_count").value = Math.min(max,highest+1);
 }
+
+
+export function migrateTaskDimensions(values) {
+    if (!Array.isArray(values)) return values;
+    const match = /^(\d+)x(\d+)$/.exec(String(values[4] || ""));
+    if (!match || ![10,12].includes(values.length)) return values;
+    const migrated = [...values];
+    migrated.splice(4,1);
+    if (values.length === 10) migrated.push(Number(match[1]),Number(match[2]));
+    return migrated;
+}

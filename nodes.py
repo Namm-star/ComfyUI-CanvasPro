@@ -141,6 +141,7 @@ class PromptTask(ModelSubmit):
     @classmethod
     def INPUT_TYPES(cls):
         schema = ModelSubmit.INPUT_TYPES()
+        schema["optional"].pop("pixel_size")
         schema["required"] = {"model": schema["required"]["model"],
             "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "One complete task; all line breaks are preserved."})}
         schema["optional"]["advanced"] = ("BOOLEAN", {"default": False})

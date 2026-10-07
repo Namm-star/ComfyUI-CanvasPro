@@ -33,9 +33,6 @@ test("registered task hooks grow ports, preserve load links and keep advanced hi
     widget(n,"model").value="T香蕉2"; widget(n,"model").callback("T香蕉2"); assert.equal(widget(n,"quality").hidden,true);
     n.onConfigure(); await Promise.resolve(); assert.equal(n.inputs.find(i=>i.name==="image_2").link,55);
     widget(n,"model").value="gpt-image-2"; widget(n,"model").callback("gpt-image-2");
-    widget(n,"pixel_size").value="1536x1024";
-    n.onConfigure({widgets_values:Array(10).fill(null)});
-    assert.equal(widget(n,"width").value,1536);assert.equal(widget(n,"height").value,1024);
     assert.equal(widget(n,"pixel_size").hidden,true);assert.equal(widget(n,"width").hidden,false);
 });
 

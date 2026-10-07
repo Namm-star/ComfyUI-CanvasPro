@@ -246,6 +246,7 @@ class Integration(unittest.TestCase):
             with self.assertRaises(ValueError): settings("bad key")
 
     def test_separate_width_height_and_legacy_size(self):
+        self.assertNotIn("pixel_size",nodes.PromptTask.INPUT_TYPES()["optional"])
         for w,h in [(1024,1024),(2048,2048),(3840,2160),(2160,3840)]:
             item=nodes.PromptTask().execute("gpt-image-2","size",width=w,height=h)[0][0]
             self.assertEqual(item["size"],f"{w}x{h}")

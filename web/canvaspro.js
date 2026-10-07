@@ -1,7 +1,7 @@
 import { app } from "/scripts/app.js";
 import { api } from "/scripts/api.js";
 import { installModelUI, restoreModelUI, syncModelUI } from "./model_ui.mjs";
-import { syncTaskPorts, syncTaskAdvanced, autoImageCount } from "./batch_ui.mjs";
+import { syncTaskPorts, syncTaskAdvanced, autoImageCount, migrateTaskDimensions } from "./batch_ui.mjs";
 
 app.registerExtension({
     name: "CanvasPro.ModelInputs",
@@ -54,14 +54,14 @@ app.registerExtension({
         };
         const configure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
-            const result = configure?.apply(this,args);
-            if (task && args[0]?.widgets_values?.length < 12) {
-                const legacy=this.widgets.find(w=>w.name==="pixel_size")?.value;
-                const match=/^(\d+)x(\d+)$/.exec(legacy || "");
-                if (match) for (const [name,value] of [["width",Number(match[1])],["height",Number(match[2])]]) {
-                    const widget=this.widgets.find(w=>w.name===name); if(widget) widget.value=value;
+            if (task && args[0]?.widgets_values) {
+                const values = migrateTaskDimensions(args[0].widgets_values);
+                if (values !== args[0].widgets_values) {
+                    args[0].widgets_values = values;
+                    for (let i=0;i<values.length;i++) if(this.widgets[i]) this.widgets[i].value=values[i];
                 }
             }
+            const result = configure?.apply(this,args);
             if (!batch) restoreModelUI(this,notify);
             refresh(this);
             return result;
