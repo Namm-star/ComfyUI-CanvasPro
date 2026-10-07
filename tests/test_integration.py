@@ -259,6 +259,29 @@ class Integration(unittest.TestCase):
         with self.assertRaises(ValueError):
             nodes.PromptTask().execute("gpt-image-2","invalid",width=1024)
 
+    def test_batch_seed_resumes_or_creates_new_paid_batch(self):
+        task = nodes.PromptTask().execute("gpt-image-2", "seed test")[0]
+        changed = nodes.PromptTask().execute("gpt-image-2", "changed prompt")[0]
+        env = dict(CANVASPRO_API_KEY="fake-secret", CANVASPRO_DATA_DIR=str(self.root),
+            CANVASPRO_BASE_URL=self.service.base, CANVASPRO_ALLOW_LOCAL_TEST="1")
+        with patch.dict(os.environ, env), patch.object(nodes, "interrupt"), patch.object(nodes, "progress", return_value=lambda n,t:None):
+            run = nodes.BatchExecute().execute
+            first = run(task, "seed-batch", seed=123, wait_seconds=5)["result"]
+            resumed = run(task, "seed-batch", seed=123, wait_seconds=5)["result"]
+            self.assertEqual(first[2], resumed[2])
+            self.assertEqual(len(self.service.posts), 1)
+            with self.assertRaisesRegex(ValueError, "seed"):
+                run(changed, "seed-batch", seed=123, wait_seconds=5)
+            self.assertEqual(len(self.service.posts), 1)
+            second = run(changed, "seed-batch", seed=124, wait_seconds=5)["result"]
+            self.assertNotEqual(first[2], second[2])
+            self.assertEqual(len(self.service.posts), 2)
+            self.assertEqual(json.loads(second[1])["effective_job_key"], "seed-batch::seed=124")
+            self.assertNotIn("seed", self.service.posts[0][1])
+            for bad in [-1, 9007199254740992, 1.5, True]:
+                with self.assertRaises(ValueError): run(task, "invalid", seed=bad)
+            self.assertEqual(len(self.service.posts), 2)
+
     def tearDown(self):
         self.service.shutdown()
         self.service.server_close()

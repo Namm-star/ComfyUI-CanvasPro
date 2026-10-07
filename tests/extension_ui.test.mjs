@@ -50,12 +50,13 @@ test("batch key uses password DOM widget and retains parameter positions",async(
     globalThis.document={createElement(){return {value:"",style:{}};}};
     class Batch extends Task {
         onNodeCreated(){} onConfigure(){} onConnectionsChange(){}
-        constructor(){super();this.inputs=[{name:"task_1",type:"CANVASPRO_TASKS",link:null}];this.widgets=[['job_key','batch'],['concurrency',3],['advanced',false],['wait_seconds',600],['request_timeout',30],['api_key','test-key']].map(([name,value])=>({name,value,type:'text',options:{}}));}
+        constructor(){super();this.inputs=[{name:"task_1",type:"CANVASPRO_TASKS",link:null}];this.widgets=[['job_key','batch'],['concurrency',3],['advanced',false],['wait_seconds',600],['request_timeout',30],['api_key','test-key'],['seed',123],['control_after_generate','randomize']].map(([name,value])=>({name,value,type:'text',options:{}}));}
         addDOMWidget(name,type,input,options){const w={name,type,inputEl:input};Object.defineProperty(w,'value',{get:options.getValue,set:options.setValue});this.widgets.push(w);return w;}
     }
     await extension.beforeRegisterNodeDef(Batch,{name:"CanvasProBatchExecute"});
     const n=new Batch();n.onNodeCreated();await Promise.resolve();
     const key=widget(n,'api_key');assert.equal(key.inputEl.type,'password');assert.equal(key.value,'test-key');
     key.value='changed-key';assert.equal(key.inputEl.value,'changed-key');assert.equal(n.widgets[3].name,'wait_seconds');assert.equal(n.widgets[5].name,'api_key');
+    assert.equal(n.widgets[6].name,'seed');assert.equal(n.widgets[6].value,123);assert.equal(n.widgets[7].value,'randomize');
     delete globalThis.document;
 });

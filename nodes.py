@@ -328,16 +328,22 @@ class BatchExecute(Fetch):
     def INPUT_TYPES(cls):
         return {"required": {
             "task_1": ("CANVASPRO_TASKS",),
-            "job_key": ("STRING", {"default": "batch-001", "tooltip": "Same name resumes saved tasks. Use a new name to submit changed tasks."}),
+            "job_key": ("STRING", {"default": "batch-001", "tooltip": "批次名称。名称 + seed 标识同一批任务；修改任务后更换 seed。"}),
             "concurrency": ("INT", {"default": 3, "min": 1, "max": 8}),
             "advanced": ("BOOLEAN", {"default": False})},
             "optional": {"wait_seconds": ("INT", {"default": 600, "min": 0, "max": 86400}),
                 "request_timeout": ("INT", {"default": 30, "min": 1, "max": 120}),
                 "api_key": ("STRING", {"default": "", "multiline": False, "tooltip": "Enter your CanvasPro API Key here. Saved workflows may contain it; remove before sharing."}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 9007199254740991, "control_after_generate": True, "tooltip": "批次种子：fixed 保持同一批次，randomize 每次生成新批次（正常计费）；也可 increment/decrement。仅用于区分批次，不是模型的图像随机种子。"}),
                 **{f"task_{i}": ("CANVASPRO_TASKS",) for i in range(2, 257)}},
             "hidden": {"unique_id": "UNIQUE_ID"}}
 
-    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, api_key="", **ports):
+    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, api_key="", seed=None, **ports):
+        original_job_key = job_key
+        if seed is not None:
+            if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed <= 9007199254740991:
+                raise ValueError("批次 seed 必须是 0 到 9007199254740991 之间的整数")
+            job_key = f"{job_key}::seed={seed}"
         items = list(task_1)
         for i in range(2, 257):
             if ports.get(f"task_{i}") is not None:
@@ -367,7 +373,12 @@ class BatchExecute(Fetch):
         def check():
             interrupt()
             publish()
-        batch = submit_tasks(store, client, job_key, items, concurrency, check, progress())
+        try:
+            batch = submit_tasks(store, client, job_key, items, concurrency, check, progress())
+        except ValueError as error:
+            if "job_key already belongs to different inputs" in str(error):
+                raise ValueError("该批次名称和 seed 已用于其他输入。请修改 seed，或将生成后控制设为 randomize 后修改 seed，再运行以创建新批次。") from None
+            raise
         phase, last_check = "等待", 0.0
         publish()
         query_batch(store, client, batch, wait_seconds, 2.0, concurrency, check, progress())
@@ -378,7 +389,8 @@ class BatchExecute(Fetch):
         phase, last_check = "本轮结束", 0.0
         publish()
         images, download_report = fetched["result"]
-        info = json.dumps({"query": json.loads(report(store, batch)), "download": json.loads(download_report)}, ensure_ascii=False)
+        info = json.dumps({"job_key": original_job_key, "seed": seed, "effective_job_key": job_key,
+            "query": json.loads(report(store, batch)), "download": json.loads(download_report)}, ensure_ascii=False)
         return {"ui": {"text": [info]}, "result": (images, info, handle)}
 
 

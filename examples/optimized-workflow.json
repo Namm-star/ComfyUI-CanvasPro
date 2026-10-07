@@ -1,5 +1,5 @@
 {
-  "last_node_id": 9,
+  "last_node_id": 10,
   "last_link_id": 7,
   "nodes": [
     {
@@ -11,7 +11,7 @@
       ],
       "size": [
         330,
-        230
+        290
       ],
       "flags": {},
       "order": 2,
@@ -68,7 +68,9 @@
         false,
         600,
         30,
-        ""
+        "",
+        100003,
+        "randomize"
       ]
     },
     {
@@ -301,6 +303,32 @@
         "Node name for S&R": "PreviewAny"
       },
       "widgets_values": []
+    },
+    {
+      "id": 10,
+      "type": "Note",
+      "title": "批次随机种子 · 使用说明",
+      "pos": [
+        1390,
+        710
+      ],
+      "size": [
+        700,
+        300
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "text": "批次 seed 使用说明：\n• seed 可手动填写；生成后控制可选 fixed / randomize / increment / decrement。\n• randomize：每次排队后更换下一次使用的种子，新种子创建新批次并正常计费。\n• fixed：名称、种子、输入均相同，恢复已有任务，不重复提交。\n• 修改提示词、模型、尺寸或参考图后，换一个 seed；新种子也可用于再次生成相同提示词。\n• 恢复旧批次时，请从 report 查看当时的 seed 并改回 fixed；不要使用排队后显示的新随机值。\n• 此 seed 仅区分批次，不传给图像模型，不保证相同画面。"
+      },
+      "widgets_values": [
+        "批次 seed 使用说明：\n• seed 可手动填写；生成后控制可选 fixed / randomize / increment / decrement。\n• randomize：每次排队后更换下一次使用的种子，新种子创建新批次并正常计费。\n• fixed：名称、种子、输入均相同，恢复已有任务，不重复提交。\n• 修改提示词、模型、尺寸或参考图后，换一个 seed；新种子也可用于再次生成相同提示词。\n• 恢复旧批次时，请从 report 查看当时的 seed 并改回 fixed；不要使用排队后显示的新随机值。\n• 此 seed 仅区分批次，不传给图像模型，不保证相同画面。"
+      ],
+      "color": "#234",
+      "bgcolor": "#345"
     }
   ],
   "links": [
@@ -348,7 +376,7 @@
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.7.5",
+    "canvaspro_version": "0.8.0",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4
