@@ -1,5 +1,5 @@
 {
-  "last_node_id": 11,
+  "last_node_id": 12,
   "last_link_id": 8,
   "nodes": [
     {
@@ -384,6 +384,32 @@
       },
       "widgets_values": [
         "批次 seed 使用说明：\n• seed 可手动填写；生成后控制可选 fixed / randomize / increment / decrement。\n• randomize：每次排队后更换下一次使用的种子，新种子创建新批次并正常计费。\n• fixed：名称、种子、输入均相同，恢复已有任务，不重复提交。\n• 修改提示词、模型、尺寸或参考图后，换一个 seed；新种子也可用于再次生成相同提示词。\n• 恢复旧批次时，请从 report 查看当时的 seed 并改回 fixed；不要使用排队后显示的新随机值。\n• 此 seed 仅区分批次，不传给图像模型，不保证相同画面。"
+      ],
+      "color": "#234",
+      "bgcolor": "#345"
+    },
+    {
+      "id": 12,
+      "type": "Note",
+      "title": "API Key · 申请与填写",
+      "pos": [
+        550,
+        -60
+      ],
+      "size": [
+        390,
+        220
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "text": "CanvasPro API Key 申请地址：\nhttps://api.canvasproai.com/\n\n申请后，将 API Key 填入「CanvasPro · 批量执行」节点的 api_key 输入框。\n输入时以密码形式隐藏；示例中的 Key 留空，请填写自己的 Key。"
+      },
+      "widgets_values": [
+        "CanvasPro API Key 申请地址：\nhttps://api.canvasproai.com/\n\n申请后，将 API Key 填入「CanvasPro · 批量执行」节点的 api_key 输入框。\n输入时以密码形式隐藏；示例中的 Key 留空，请填写自己的 Key。"
       ],
       "color": "#234",
       "bgcolor": "#345"

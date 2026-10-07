@@ -12,7 +12,7 @@
 
 `optimized-api.json` 用于 ComfyUI API，不用于拖入界面。需要恢复结果时，原批次名称和内容保持不变再运行即可；新收费批次使用新的 `job_key`。端口名称决定任务/参考图顺序。多图示例按图1人物、图2服装编写提示词。
 
-直接在「批量执行」节点 api_key 填写 Key；示例中的 Key 为空。
+API Key 申请地址：[https://api.canvasproai.com/](https://api.canvasproai.com/)。直接在「批量执行」节点 api_key 填写 Key；示例中的 Key 为空。每个界面示例均在批量执行节点旁放置申请与填写说明注释。
 
 每个工作流右侧有尺寸速查 Note 节点，不参与执行。
 
