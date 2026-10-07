@@ -33,7 +33,9 @@
       "reference_count": 2,
       "size_mode": "pixels",
       "pixel_size": "1024x1024",
-      "quality": ""
+      "quality": "",
+      "width": 1024,
+      "height": 1024
     }
   },
   "6": {
@@ -44,7 +46,9 @@
       "reference_count": 2,
       "size_mode": "pixels",
       "pixel_size": "1024x1024",
-      "quality": ""
+      "quality": "",
+      "width": 1024,
+      "height": 1024
     }
   }
 }

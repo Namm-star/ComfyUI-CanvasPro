@@ -144,10 +144,17 @@ class PromptTask(ModelSubmit):
         schema["required"] = {"model": schema["required"]["model"],
             "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "One complete task; all line breaks are preserved."})}
         schema["optional"]["advanced"] = ("BOOLEAN", {"default": False})
+        note = "像素模式：1K 正方形填 1024×1024；2K 正方形填 2048×2048；4K 横图可填 3840×2160，竖图填 2160×3840。GPT 宽高须为16倍数、单边≤3840、总像素≤8294400；不能填4096×4096。比例模式可直接选1K/2K/4K。"
+        schema["optional"]["width"] = ("INT", {"default": 1024, "min": 1, "max": 32768, "tooltip": "宽度（像素）。" + note})
+        schema["optional"]["height"] = ("INT", {"default": 1024, "min": 1, "max": 32768, "tooltip": "高度（像素）。" + note})
         return schema
 
     def execute(self, model, prompt, reference_count=2, size_mode="pixels", pixel_size="1024x1024",
-                aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", advanced=False, **images):
+                aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", advanced=False, width=None, height=None, **images):
+        if width is not None or height is not None:
+            if width is None or height is None or type(width) is not int or type(height) is not int:
+                raise ValueError("Width and height must both be integer pixel values")
+            pixel_size = f"{width}x{height}"
         maximum = {"kr": 16, "hc": 15, "gemini": 14}[family(model)]
         if not 1 <= reference_count <= maximum:
             raise ValueError("Reference count exceeds model limit")

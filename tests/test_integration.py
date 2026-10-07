@@ -245,6 +245,19 @@ class Integration(unittest.TestCase):
                 self.assertEqual(settings("fake-secret")[1],"fake-secret")
             with self.assertRaises(ValueError): settings("bad key")
 
+    def test_separate_width_height_and_legacy_size(self):
+        for w,h in [(1024,1024),(2048,2048),(3840,2160),(2160,3840)]:
+            item=nodes.PromptTask().execute("gpt-image-2","size",width=w,height=h)[0][0]
+            self.assertEqual(item["size"],f"{w}x{h}")
+        legacy=nodes.PromptTask().execute("gpt-image-2","old",pixel_size="1536x1024")[0][0]
+        self.assertEqual(legacy["size"],"1536x1024")
+        ratio=nodes.PromptTask().execute("gpt-image-2","ratio",size_mode="ratio",aspect_ratio="16:9",image_size="4K",width=1024,height=1024)[0][0]
+        self.assertEqual((ratio["size"],ratio["image_size"]),("16:9","4K"))
+        with self.assertRaises(ValueError):
+            nodes.PromptTask().execute("gpt-image-2","invalid",width=4096,height=4096)
+        with self.assertRaises(ValueError):
+            nodes.PromptTask().execute("gpt-image-2","invalid",width=1024)
+
     def tearDown(self):
         self.service.shutdown()
         self.service.server_close()

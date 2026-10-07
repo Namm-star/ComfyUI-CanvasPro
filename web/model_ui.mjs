@@ -6,7 +6,7 @@ export function modelPolicy(model, mode = "pixels") {
         visible: new Set([
             "reference_count",
             ...(!banana && !hc ? ["size_mode"] : []),
-            ...(hc || (!banana && mode === "pixels") ? ["pixel_size"] : []),
+            ...(hc || (!banana && mode === "pixels") ? ["pixel_size", "width", "height"] : []),
             ...(banana || (!hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
             ...(!banana ? ["quality", "reference_urls"] : []),
         ]),
@@ -14,7 +14,7 @@ export function modelPolicy(model, mode = "pixels") {
     };
 }
 
-const parameters = ["size_mode", "pixel_size", "aspect_ratio", "quality", "image_size", "reference_urls"];
+const parameters = ["size_mode", "pixel_size", "width", "height", "aspect_ratio", "quality", "image_size", "reference_urls"];
 const widget = (node, name) => node.widgets?.find(w => w.name === name);
 
 export function syncModelUI(node, notify = () => {}, restoring = false) {

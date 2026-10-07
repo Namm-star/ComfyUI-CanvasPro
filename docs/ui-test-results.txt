@@ -1,14 +1,14 @@
-✔ task ports grow beyond two and preserve sparse saved links (1.0334ms)
-✔ port ceiling and disconnect pruning never remove linked ports (1.4833ms)
-✔ advanced fields preserve values and follow model capability (0.1429ms)
-✔ image ports add a spare and stop at model limit (0.1722ms)
-✔ registered task hooks grow ports, preserve load links and keep advanced hidden (1.9ms)
-✔ batch key uses password DOM widget and retains parameter positions (0.3602ms)
-✔ URL references must be cleared before switching to Banana (0.8215ms)
-✔ model parameters, quality choices and reference port ceilings (1.3841ms)
-✔ changing model or count never silently disconnects a linked image (0.252ms)
-✔ reload restores saved selection, count, links and widget values (0.1995ms)
-✔ incompatible connected parameter blocks model switch (0.1152ms)
+✔ task ports grow beyond two and preserve sparse saved links (0.9615ms)
+✔ port ceiling and disconnect pruning never remove linked ports (2.1157ms)
+✔ advanced fields preserve values and follow model capability (0.2067ms)
+✔ image ports add a spare and stop at model limit (0.1656ms)
+✔ registered task hooks grow ports, preserve load links and keep advanced hidden (1.6062ms)
+✔ batch key uses password DOM widget and retains parameter positions (0.3965ms)
+✔ URL references must be cleared before switching to Banana (0.7909ms)
+✔ model parameters, quality choices and reference port ceilings (1.1741ms)
+✔ changing model or count never silently disconnects a linked image (0.2153ms)
+✔ reload restores saved selection, count, links and widget values (0.1786ms)
+✔ incompatible connected parameter blocks model switch (0.2014ms)
 ℹ tests 11
 ℹ suites 0
 ℹ pass 11
@@ -16,4 +16,4 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 55.3743
+ℹ duration_ms 60.0782

@@ -14,7 +14,7 @@ const source = (await readFile(new URL("../web/canvaspro.js",import.meta.url),"u
 await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
 class Task {
     constructor(){
-        const values={model:"gpt-image-2",reference_count:2,size_mode:"pixels",pixel_size:"1024x1024",aspect_ratio:"1:1",quality:"",image_size:"1K",reference_urls:"",advanced:false};
+        const values={model:"gpt-image-2",reference_count:2,size_mode:"pixels",pixel_size:"1024x1024",aspect_ratio:"1:1",quality:"",image_size:"1K",reference_urls:"",advanced:false,width:1024,height:1024};
         this.widgets=Object.entries(values).map(([name,value])=>({name,value,type:"combo",options:{}}));
         this.inputs=Array.from({length:16},(_,i)=>({name:`image_${i+1}`,type:"IMAGE",link:null})); this.size=[350,600];
     }
@@ -32,6 +32,11 @@ test("registered task hooks grow ports, preserve load links and keep advanced hi
     widget(n,"advanced").value=true; widget(n,"advanced").callback(true); assert.equal(widget(n,"quality").hidden,false);
     widget(n,"model").value="T香蕉2"; widget(n,"model").callback("T香蕉2"); assert.equal(widget(n,"quality").hidden,true);
     n.onConfigure(); await Promise.resolve(); assert.equal(n.inputs.find(i=>i.name==="image_2").link,55);
+    widget(n,"model").value="gpt-image-2"; widget(n,"model").callback("gpt-image-2");
+    widget(n,"pixel_size").value="1536x1024";
+    n.onConfigure({widgets_values:Array(10).fill(null)});
+    assert.equal(widget(n,"width").value,1536);assert.equal(widget(n,"height").value,1024);
+    assert.equal(widget(n,"pixel_size").hidden,true);assert.equal(widget(n,"width").hidden,false);
 });
 
 test("batch key uses password DOM widget and retains parameter positions",async()=>{

@@ -33,7 +33,13 @@ export function syncTaskPorts(node) {
 export function syncTaskAdvanced(node) {
     const advanced = Boolean(find(node,"advanced")?.value);
     const model = find(node,"model")?.value || "";
-    visibility(node,["reference_count"],false);
+    visibility(node,["reference_count", "pixel_size"],false);
+    const pixels = !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels");
+    visibility(node,["width", "height"],pixels);
+    for (const name of ["width","height"]) {
+        const w=find(node,name);
+        if (w) { w.options.min=model.startsWith("s-")?1:16; w.options.max=model.startsWith("s-")?32768:3840; w.options.step=model.startsWith("s-")?10:160; }
+    }
     visibility(node,["quality"],advanced && !model.startsWith("T香蕉"));
     visibility(node,["reference_urls"],advanced && !model.startsWith("T香蕉"));
     node.setSize([node.size[0],node.computeSize()[1]]);

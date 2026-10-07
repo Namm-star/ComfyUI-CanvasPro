@@ -150,7 +150,9 @@
         "",
         "1K",
         "",
-        false
+        false,
+        1024,
+        1024
       ]
     },
     {
@@ -202,7 +204,9 @@
         "",
         "1K",
         "",
-        false
+        false,
+        1024,
+        1024
       ]
     },
     {
@@ -254,7 +258,9 @@
         "",
         "1K",
         "",
-        false
+        false,
+        1024,
+        1024
       ]
     }
   ],
@@ -295,7 +301,7 @@
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.6.0",
+    "canvaspro_version": "0.7.0",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4
