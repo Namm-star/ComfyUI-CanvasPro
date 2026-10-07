@@ -12,6 +12,16 @@ const source = (await readFile(new URL("../web/canvaspro.js",import.meta.url),"u
     .replace('"./model_ui.mjs"',JSON.stringify(new URL("../web/model_ui.mjs",import.meta.url).href))
     .replace('"./batch_ui.mjs"',JSON.stringify(new URL("../web/batch_ui.mjs",import.meta.url).href));
 await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
+test("entry is self-contained and frontend definitions expose only two initial ports",async()=>{
+    assert.doesNotMatch(source,/from\s+["']\.\//);
+    for(const [name,prefix,max] of [["CanvasProPromptTask","image",16],["CanvasProBatchExecute","task",256]]) {
+        class Node {}
+        const optional=Object.fromEntries(Array.from({length:max},(_,i)=>[`${prefix}_${i+1}`,["IMAGE"]]));
+        optional.width=["INT",{default:1024}];
+        await extension.beforeRegisterNodeDef(Node,{name,input:{optional}});
+        assert.deepEqual(Object.keys(optional),[`${prefix}_1`,`${prefix}_2`,"width"]);
+    }
+});
 class Task {
     constructor(){
         const values={model:"gpt-image-2",reference_count:2,size_mode:"pixels",pixel_size:"1024x1024",aspect_ratio:"1:1",quality:"",image_size:"1K",reference_urls:"",advanced:false,width:1024,height:1024};
