@@ -8,4 +8,4 @@
 
 测试环境启动首次因提前导入nodes导致CLI隔离参数未解析，触发已有ComfyUI默认预启动流程；已立即停止该进程并修正。再次启动禁用其他自定义节点并使用临时base/user目录，但ComfyUI预设database URL仍引用旧目录，其初始化报告文件锁失败，UI服务可用；未强制解锁/覆盖用户数据库。此次验证不能宣称用户环境零日志写入。仅运行本地假Key，没有付费请求，也未将插件安装到用户custom_nodes。
 
-新增examples/multi-edit-workflow.json；batch示例改用自适应节点，恢复示例使用example-002。更新后重启ComfyUI、刷新前端，再添加新节点。现有旧节点保持不变。
+新增examples/多图编辑-Multi-Image-Edit.json；batch示例改用自适应节点，恢复示例使用example-002。更新后重启ComfyUI、刷新前端，再添加新节点。现有旧节点保持不变。

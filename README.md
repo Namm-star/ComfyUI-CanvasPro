@@ -6,9 +6,9 @@
 
 旧示例已删除，当前只保留以下三个界面工作流：
 
-- [普通多任务](examples/optimized-workflow.json)：多个独立任务直接连接批量执行，无需合并节点。
-- [混合模型](examples/mixed-model-workflow.json)：GPT Image、香蕉、HC 三个任务一起执行。
-- [多图编辑](examples/multi-edit-workflow.json)：两张参考图连接一个完整提示词任务，再连接批量执行；先选择自己的图片。
+- [普通多任务](examples/多任务并发-Multi-Task-Batch.json)：多个独立任务直接连接批量执行，无需合并节点。
+- [混合模型](examples/混合模型并发-Mixed-Model-Batch.json)：GPT Image、香蕉、HC 三个任务一起执行。
+- [多图编辑](examples/多图编辑-Multi-Image-Edit.json)：两张参考图连接一个完整提示词任务，再连接批量执行；先选择自己的图片。
 
 下载对应 JSON 后拖入 ComfyUI。已安装用户先更新插件、重启 ComfyUI，再刷新浏览器。更多说明见 [示例目录](examples/README.md)。`optimized-api.json` 是 API 格式，界面导入请使用 `*-workflow.json`。
 

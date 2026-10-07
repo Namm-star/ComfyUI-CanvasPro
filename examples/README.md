@@ -4,9 +4,9 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| [optimized-workflow.json](optimized-workflow.json) | 两个完整提示词任务直接连接批量执行；更多任务接到自动出现的入口 |
-| [mixed-model-workflow.json](mixed-model-workflow.json) | GPT Image、香蕉、HC 三个不同模型任务一起执行 |
-| [multi-edit-workflow.json](multi-edit-workflow.json) | 两张参考图连接同一个独立任务；请先在加载图像节点选择自己的图片 |
+| [多任务并发-Multi-Task-Batch.json](多任务并发-Multi-Task-Batch.json) | 两个完整提示词任务直接连接批量执行；更多任务接到自动出现的入口 |
+| [混合模型并发-Mixed-Model-Batch.json](混合模型并发-Mixed-Model-Batch.json) | GPT Image、香蕉、HC 三个不同模型任务一起执行 |
+| [多图编辑-Multi-Image-Edit.json](多图编辑-Multi-Image-Edit.json) | 两张参考图连接同一个独立任务；请先在加载图像节点选择自己的图片 |
 
 统一流程：独立任务 → 批量执行 → 保存图像。已删除旧的按行提交、串联合并及恢复示例，旧节点仍兼容已有工作流。
 
