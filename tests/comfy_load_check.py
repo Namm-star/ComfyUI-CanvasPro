@@ -18,6 +18,7 @@ import nodes
 
 async def main():
     assert await nodes.load_custom_node(str(plugin))
+    assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_preview_any.py'))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
     assert len(names) == 11, names
     for name in names:
@@ -53,6 +54,11 @@ async def main():
             fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],
                 "job_key":"real-mixed", "concurrency":3, "advanced":False, "wait_seconds":5})
             assert len(fetched[0]) == 2
+            for slot in (1, 2):
+                text_value = fetched[slot][0]
+                output, ui, _, _ = await execution.get_output_data('canvaspro-check', f'log-{slot}',
+                    nodes.NODE_CLASS_MAPPINGS['PreviewAny'](), {'source': [text_value]})
+                assert ui['text'][0] == text_value and output[0][0] == text_value
             assert fetched[0][0].shape != fetched[0][1].shape
             import folder_paths
             original_output = folder_paths.get_output_directory()

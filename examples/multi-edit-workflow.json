@@ -1,6 +1,6 @@
 {
-  "last_node_id": 10,
-  "last_link_id": 4,
+  "last_node_id": 12,
+  "last_link_id": 6,
   "nodes": [
     {
       "id": 1,
@@ -40,13 +40,17 @@
         {
           "name": "report",
           "type": "STRING",
-          "links": null,
+          "links": [
+            5
+          ],
           "slot_index": 1
         },
         {
           "name": "tasks_json",
           "type": "STRING",
-          "links": null,
+          "links": [
+            6
+          ],
           "slot_index": 2
         }
       ],
@@ -252,6 +256,76 @@
       ],
       "color": "#432",
       "bgcolor": "#653"
+    },
+    {
+      "id": 11,
+      "type": "PreviewAny",
+      "title": "执行报告 · report",
+      "pos": [
+        980,
+        570
+      ],
+      "size": [
+        390,
+        340
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 12,
+      "type": "PreviewAny",
+      "title": "任务详情 · tasks_json",
+      "pos": [
+        980,
+        960
+      ],
+      "size": [
+        390,
+        340
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
     }
   ],
   "links": [
@@ -286,12 +360,28 @@
       5,
       1,
       "IMAGE"
+    ],
+    [
+      5,
+      1,
+      1,
+      11,
+      0,
+      "STRING"
+    ],
+    [
+      6,
+      1,
+      2,
+      12,
+      0,
+      "STRING"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.7.4",
+    "canvaspro_version": "0.7.5",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4
