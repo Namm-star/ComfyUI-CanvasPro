@@ -20,6 +20,13 @@ const widget = (node, name) => node.widgets?.find(w => w.name === name);
 export function syncModelUI(node, notify = () => {}, restoring = false) {
     const model = widget(node, "model").value;
     const policy = modelPolicy(model, widget(node, "size_mode")?.value);
+    // Linked models can be computed upstream. Keep their parameter choices
+    // available until backend validation resolves the actual model.
+    if (node.inputs?.some(i => i.name === "model_input" && i.link != null)) {
+        policy.max = 16;
+        for (const name of parameters) policy.visible.add(name);
+        policy.qualities = ["", "auto", "low", "medium", "high", "xhigh", "max"];
+    }
     // New task nodes use numeric dimensions. Hide the compatibility field at
     // the base policy level, so later model/UI refreshes cannot reveal it.
     if (widget(node, "width") && widget(node, "height")) policy.visible.delete("pixel_size");

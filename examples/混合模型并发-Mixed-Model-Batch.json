@@ -116,7 +116,7 @@
       ],
       "size": [
         420,
-        480
+        540
       ],
       "flags": {},
       "order": 1,
@@ -130,6 +130,21 @@
         {
           "name": "image_2",
           "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
           "link": null
         }
       ],
@@ -169,7 +184,7 @@
       ],
       "size": [
         420,
-        480
+        540
       ],
       "flags": {},
       "order": 1,
@@ -183,6 +198,21 @@
         {
           "name": "image_2",
           "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
           "link": null
         }
       ],
@@ -222,7 +252,7 @@
       ],
       "size": [
         420,
-        480
+        540
       ],
       "flags": {},
       "order": 1,
@@ -236,6 +266,21 @@
         {
           "name": "image_2",
           "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
           "link": null
         }
       ],
@@ -468,7 +513,7 @@
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.8.0",
+    "canvaspro_version": "0.8.1",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4

@@ -105,3 +105,7 @@ node --test tests/*.test.mjs
 • 此 seed 仅区分批次，不传给图像模型，不保证相同画面。
 
 API 工作流通过 seed 数值区分新批次；randomize 是 ComfyUI 界面的生成后控制选项，API 调用者需自行更换 seed。旧 API 未传 seed 时保留原 job_key 行为。
+
+### 模型和宽高连线（0.8.1）
+
+独立任务新增 model_input（STRING）、width_input（INT）、height_input（INT）可选输入端口；接线优先使用上游结果，未接线则使用节点原有设置。宽高仅在像素模式生效；香蕉使用比例和 image_size。model_input 支持本插件已有模型名称，外部模型连线时显示各模型参数供选择，执行前按实际模型验证。多任务并发示例已用 ComfyUI 内置 Text / Int 节点连接模型、宽度和高度，并由两个任务共享。更改输入后应更换批次 seed。

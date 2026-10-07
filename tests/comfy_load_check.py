@@ -19,6 +19,7 @@ import nodes
 async def main():
     assert await nodes.load_custom_node(str(plugin))
     assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_preview_any.py'))
+    assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_primitive.py'))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
     assert len(names) == 11, names
     for name in names:
@@ -49,8 +50,16 @@ async def main():
                     nodes.NODE_CLASS_MAPPINGS[name](), {k: [v] for k, v in values.items()})
                 assert not subgraph and not pending
                 return output
-            first = await invoke("CanvasProPromptTask", prompt["5"]["inputs"])
-            second = await invoke("CanvasProPromptTask", {**prompt["6"]["inputs"], "model":"T香蕉2"})
+            values = dict(prompt["5"]["inputs"])
+            for port in ('model_input', 'width_input', 'height_input'):
+                origin, slot = values[port]
+                upstream = prompt[origin]
+                result = await invoke(upstream['class_type'], upstream['inputs'])
+                values[port] = result[slot][0]
+            first = await invoke("CanvasProPromptTask", values)
+            assert first[0][0][0]["size"] == "1280x720"
+            second_values = {k:v for k,v in prompt["6"]["inputs"].items() if k not in ('model_input','width_input','height_input')}
+            second = await invoke("CanvasProPromptTask", {**second_values, "model":"T香蕉2"})
             fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],
                 "job_key":"real-mixed", "concurrency":3, "advanced":False, "wait_seconds":5})
             assert len(fetched[0]) == 2

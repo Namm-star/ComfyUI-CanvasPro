@@ -24,6 +24,13 @@ const widget = (node, name) => node.widgets?.find(w => w.name === name);
 function syncModelUI(node, notify = () => {}, restoring = false) {
     const model = widget(node, "model").value;
     const policy = modelPolicy(model, widget(node, "size_mode")?.value);
+    // Linked models can be computed upstream. Keep their parameter choices
+    // available until backend validation resolves the actual model.
+    if (node.inputs?.some(i => i.name === "model_input" && i.link != null)) {
+        policy.max = 16;
+        for (const name of parameters) policy.visible.add(name);
+        policy.qualities = ["", "auto", "low", "medium", "high", "xhigh", "max"];
+    }
     // New task nodes use numeric dimensions. Hide the compatibility field at
     // the base policy level, so later model/UI refreshes cannot reveal it.
     if (widget(node, "width") && widget(node, "height")) policy.visible.delete("pixel_size");
@@ -133,22 +140,27 @@ function syncTaskPorts(node) {
 function syncTaskAdvanced(node) {
     const advanced = Boolean(find(node,"advanced")?.value);
     const model = find(node,"model")?.value || "";
+    const linked = name => node.inputs?.some(i => i.name === name && i.link != null);
+    const externalModel = linked("model_input");
+    visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels");
-    visibility(node,["width", "height"],pixels);
+    const pixels = externalModel || (!model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
+    visibility(node,["width"],pixels && !linked("width_input"));
+    visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {
         const w=find(node,name);
-        if (w) { w.options.min=model.startsWith("s-")?1:16; w.options.max=model.startsWith("s-")?32768:3840; w.options.step=model.startsWith("s-")?10:160; }
+        if (w) { w.options.min=externalModel || model.startsWith("s-")?1:16; w.options.max=externalModel || model.startsWith("s-")?32768:3840; w.options.step=externalModel || model.startsWith("s-")?10:160; }
     }
-    visibility(node,["quality"],advanced && !model.startsWith("T香蕉"));
-    visibility(node,["reference_urls"],advanced && !model.startsWith("T香蕉"));
+    visibility(node,["quality"],advanced && (externalModel || !model.startsWith("T香蕉")));
+    visibility(node,["reference_urls"],advanced && (externalModel || !model.startsWith("T香蕉")));
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }
 
 function autoImageCount(node) {
     const model = find(node,"model")?.value || "";
-    const max = model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
+    const externalModel=node.inputs?.some(i => i.name === "model_input" && i.link != null);
+    const max = externalModel ? 16 : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
     find(node,"reference_count").value = Math.min(max,highest+1);
 }
@@ -163,7 +175,6 @@ function migrateTaskDimensions(values) {
     if (values.length === 10) migrated.push(Number(match[1]),Number(match[2]));
     return migrated;
 }
-
 
 
 app.registerExtension({

@@ -148,10 +148,33 @@ class PromptTask(ModelSubmit):
         note = "像素模式：1K 正方形填 1024×1024；2K 正方形填 2048×2048；4K 横图可填 3840×2160，竖图填 2160×3840。GPT 宽高须为16倍数、单边≤3840、总像素≤8294400；不能填4096×4096。比例模式可直接选1K/2K/4K。"
         schema["optional"]["width"] = ("INT", {"default": 1024, "min": 1, "max": 32768, "tooltip": "宽度（像素）。" + note})
         schema["optional"]["height"] = ("INT", {"default": 1024, "min": 1, "max": 32768, "tooltip": "高度（像素）。" + note})
+        schema["optional"]["model_input"] = ("STRING", {"forceInput": True, "tooltip": "连接上游 STRING 模型名称，优先于 model 下拉；支持本插件已有模型。"})
+        schema["optional"]["width_input"] = ("INT", {"forceInput": True, "tooltip": "连接上游 INT 宽度，优先于手填 width；像素模式生效。"})
+        schema["optional"]["height_input"] = ("INT", {"forceInput": True, "tooltip": "连接上游 INT 高度，优先于手填 height；像素模式生效。"})
         return schema
 
     def execute(self, model, prompt, reference_count=2, size_mode="pixels", pixel_size="1024x1024",
-                aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", advanced=False, width=None, height=None, **images):
+                aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", advanced=False, width=None, height=None,
+                model_input=None, width_input=None, height_input=None, **images):
+        if model_input is not None:
+            if not isinstance(model_input, str) or not model_input.strip():
+                raise ValueError("model_input 必须是非空模型名称字符串")
+            model = model_input.strip()
+        if width_input is not None or height_input is not None:
+            for name, value in (("width_input", width_input), ("height_input", height_input)):
+                if value is not None and (type(value) is not int or value <= 0):
+                    raise ValueError(f"{name} 必须是正整数像素值")
+            # A single connected dimension can use the manual value of its peer.
+            if width is None or height is None:
+                pieces = pixel_size.split("x")
+                if len(pieces) != 2 or not all(p.isdigit() for p in pieces):
+                    raise ValueError("请为未连接的一边填写整数宽高")
+                if width is None:
+                    width = int(pieces[0])
+                if height is None:
+                    height = int(pieces[1])
+            width = width_input if width_input is not None else width
+            height = height_input if height_input is not None else height
         if width is not None or height is not None:
             if width is None or height is None or type(width) is not int or type(height) is not int:
                 raise ValueError("Width and height must both be integer pixel values")

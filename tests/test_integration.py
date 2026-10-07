@@ -282,6 +282,22 @@ class Integration(unittest.TestCase):
                 with self.assertRaises(ValueError): run(task, "invalid", seed=bad)
             self.assertEqual(len(self.service.posts), 2)
 
+    def test_linked_model_and_dimensions_override_manual_fields(self):
+        task = nodes.PromptTask()
+        item = task.execute("T香蕉2", "wired", width=1024, height=1024,
+            model_input=" gpt-image-2 ", width_input=1280, height_input=720)[0][0]
+        self.assertEqual((item["model"], item["size"]), ("gpt-image-2", "1280x720"))
+        single = task.execute("gpt-image-2", "single", width=1024, height=1280, width_input=720)[0][0]
+        self.assertEqual(single["size"], "720x1280")
+        banana = task.execute("gpt-image-2", "banana", model_input="T香蕉2",
+            width_input=1280, height_input=720, aspect_ratio="16:9", image_size="2K")[0][0]
+        self.assertEqual((banana["model"], banana["size"], banana["image_size"]), ("T香蕉2", "16:9", "2K"))
+        for kwargs in [{"model_input":""}, {"model_input":"unknown"}, {"width_input":True},
+                {"height_input":-1}, {"width_input":1.5}, {"width_input":4096, "height_input":4096}]:
+            with self.assertRaises(ValueError): task.execute("gpt-image-2", "bad", width=1024, height=1024, **kwargs)
+        for name in ("model_input", "width_input", "height_input"):
+            self.assertTrue(task.INPUT_TYPES()["optional"][name][1]["forceInput"])
+
     def tearDown(self):
         self.service.shutdown()
         self.service.server_close()

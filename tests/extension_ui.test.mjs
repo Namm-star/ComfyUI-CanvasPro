@@ -26,7 +26,9 @@ class Task {
     constructor(){
         const values={model:"gpt-image-2",reference_count:2,size_mode:"pixels",pixel_size:"1024x1024",aspect_ratio:"1:1",quality:"",image_size:"1K",reference_urls:"",advanced:false,width:1024,height:1024};
         this.widgets=Object.entries(values).map(([name,value])=>({name,value,type:"combo",options:{}}));
-        this.inputs=Array.from({length:16},(_,i)=>({name:`image_${i+1}`,type:"IMAGE",link:null})); this.size=[350,600];
+        this.inputs=Array.from({length:16},(_,i)=>({name:`image_${i+1}`,type:"IMAGE",link:null}));
+        for(const name of ['model_input','width_input','height_input'])this.inputs.push({name,type:name==='model_input'?'STRING':'INT',link:null});
+        this.size=[350,600];
     }
     addInput(name,type){this.inputs.push({name,type,link:null});this.onConnectionsChange?.();}
     removeInput(i){this.inputs.splice(i,1);this.onConnectionsChange?.();}
@@ -36,14 +38,26 @@ const widget=(n,name)=>n.widgets.find(w=>w.name===name);
 test("registered task hooks grow ports, preserve load links and keep advanced hidden",async()=>{
     await extension.beforeRegisterNodeDef(Task,{name:"CanvasProPromptTask"});
     const n=new Task(); n.onNodeCreated(); await Promise.resolve(); await Promise.resolve();
-    assert.equal(n.inputs.length,2); assert.equal(widget(n,"quality").hidden,true);
+    assert.equal(n.inputs.filter(i=>i.type==='IMAGE').length,2); assert.equal(widget(n,"quality").hidden,true);
     n.inputs[1].link=55; n.onConnectionsChange(); await Promise.resolve(); await Promise.resolve();
-    assert.equal(n.inputs.length,3); assert.equal(widget(n,"reference_count").value,3);
+    assert.equal(n.inputs.filter(i=>i.type==='IMAGE').length,3); assert.equal(widget(n,"reference_count").value,3);
     widget(n,"advanced").value=true; widget(n,"advanced").callback(true); assert.equal(widget(n,"quality").hidden,false);
     widget(n,"model").value="T香蕉2"; widget(n,"model").callback("T香蕉2"); assert.equal(widget(n,"quality").hidden,true);
     n.onConfigure(); await Promise.resolve(); assert.equal(n.inputs.find(i=>i.name==="image_2").link,55);
     widget(n,"model").value="gpt-image-2"; widget(n,"model").callback("gpt-image-2");
     assert.equal(widget(n,"pixel_size").hidden,true);assert.equal(widget(n,"width").hidden,false);
+});
+
+test("wired parameter ports survive refresh and hide overridden widgets",async()=>{
+    const n=new Task();n.onNodeCreated();await Promise.resolve();
+    for(const name of ['model_input','width_input','height_input']) n.inputs.find(i=>i.name===name).link=100;
+    n.onConnectionsChange();await Promise.resolve();await Promise.resolve();
+    for(const name of ['model','width','height']) assert.equal(widget(n,name).hidden,true);
+    assert.equal(widget(n,'image_size').hidden,false);
+    assert.equal(n.inputs.filter(i=>/_input$/.test(i.name)).length,3);
+    for(const i of n.inputs.filter(i=>/_input$/.test(i.name)))i.link=null;
+    n.onConnectionsChange();await Promise.resolve();await Promise.resolve();
+    for(const name of ['model','width','height']) assert.equal(widget(n,name).hidden,false);
 });
 
 test("batch key uses password DOM widget and retains parameter positions",async()=>{

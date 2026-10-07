@@ -1,6 +1,6 @@
 {
-  "last_node_id": 11,
-  "last_link_id": 7,
+  "last_node_id": 14,
+  "last_link_id": 13,
   "nodes": [
     {
       "id": 1,
@@ -111,7 +111,7 @@
       ],
       "size": [
         420,
-        480
+        540
       ],
       "flags": {},
       "order": 1,
@@ -126,6 +126,21 @@
           "name": "image_2",
           "type": "IMAGE",
           "link": null
+        },
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": 8
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": 10
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
+          "link": 12
         }
       ],
       "outputs": [
@@ -164,7 +179,7 @@
       ],
       "size": [
         420,
-        480
+        540
       ],
       "flags": {},
       "order": 1,
@@ -179,6 +194,21 @@
           "name": "image_2",
           "type": "IMAGE",
           "link": null
+        },
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": 9
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": 11
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
+          "link": 13
         }
       ],
       "outputs": [
@@ -355,6 +385,110 @@
       ],
       "color": "#234",
       "bgcolor": "#345"
+    },
+    {
+      "id": 12,
+      "type": "PrimitiveString",
+      "title": "模型名称 · Model",
+      "pos": [
+        -380,
+        0
+      ],
+      "size": [
+        280,
+        110
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            8,
+            9
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveString"
+      },
+      "widgets_values": [
+        "gpt-image-2"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "PrimitiveInt",
+      "title": "宽度 · Width",
+      "pos": [
+        -380,
+        180
+      ],
+      "size": [
+        280,
+        110
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            10,
+            11
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        1280,
+        "fixed"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "PrimitiveInt",
+      "title": "高度 · Height",
+      "pos": [
+        -380,
+        360
+      ],
+      "size": [
+        280,
+        110
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            12,
+            13
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        720,
+        "fixed"
+      ]
     }
   ],
   "links": [
@@ -397,12 +531,60 @@
       9,
       0,
       "STRING"
+    ],
+    [
+      8,
+      12,
+      0,
+      5,
+      2,
+      "STRING"
+    ],
+    [
+      9,
+      12,
+      0,
+      6,
+      2,
+      "STRING"
+    ],
+    [
+      10,
+      13,
+      0,
+      5,
+      3,
+      "INT"
+    ],
+    [
+      11,
+      13,
+      0,
+      6,
+      3,
+      "INT"
+    ],
+    [
+      12,
+      14,
+      0,
+      5,
+      4,
+      "INT"
+    ],
+    [
+      13,
+      14,
+      0,
+      6,
+      4,
+      "INT"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.8.0",
+    "canvaspro_version": "0.8.1",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4

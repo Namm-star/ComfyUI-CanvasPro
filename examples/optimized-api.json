@@ -36,7 +36,19 @@
       "pixel_size": "1024x1024",
       "quality": "",
       "width": 1024,
-      "height": 1024
+      "height": 1024,
+      "model_input": [
+        "100",
+        0
+      ],
+      "width_input": [
+        "101",
+        0
+      ],
+      "height_input": [
+        "102",
+        0
+      ]
     }
   },
   "6": {
@@ -49,7 +61,19 @@
       "pixel_size": "1024x1024",
       "quality": "",
       "width": 1024,
-      "height": 1024
+      "height": 1024,
+      "model_input": [
+        "100",
+        0
+      ],
+      "width_input": [
+        "101",
+        0
+      ],
+      "height_input": [
+        "102",
+        0
+      ]
     }
   },
   "8": {
@@ -68,6 +92,24 @@
         "1",
         2
       ]
+    }
+  },
+  "100": {
+    "class_type": "PrimitiveString",
+    "inputs": {
+      "value": "gpt-image-2"
+    }
+  },
+  "101": {
+    "class_type": "PrimitiveInt",
+    "inputs": {
+      "value": 1280
+    }
+  },
+  "102": {
+    "class_type": "PrimitiveInt",
+    "inputs": {
+      "value": 720
     }
   }
 }
