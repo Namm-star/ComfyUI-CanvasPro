@@ -72,3 +72,17 @@ test("incompatible connected parameter blocks model switch", () => {
     assert.equal(widget(n,"model").value,"gpt-image-2");
     assert.equal(n.inputs.find(i=>i.name==="quality").link,777);
 });
+
+
+test("numeric dimension nodes never reveal legacy pixel size on model refresh", () => {
+    const n=fixture();
+    for(const name of ["width","height"]) n.widgets.push({name,value:1024,type:"number",options:{}});
+    installModelUI(n,()=>{});
+    assert(!shown(n,"pixel_size")); assert(shown(n,"width"));
+    change(n,"model","s-gpt-image-2");
+    assert(!shown(n,"pixel_size")); assert(shown(n,"width")); assert(shown(n,"height"));
+    restoreModelUI(n,()=>{}); assert(!shown(n,"pixel_size"));
+    change(n,"model","T香蕉2"); assert(!shown(n,"width")); assert(!shown(n,"pixel_size"));
+    change(n,"model","gpt-image-2"); change(n,"size_mode","ratio");
+    assert(!shown(n,"pixel_size")); assert(!shown(n,"width"));
+});

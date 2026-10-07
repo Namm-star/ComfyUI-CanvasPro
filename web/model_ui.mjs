@@ -20,6 +20,9 @@ const widget = (node, name) => node.widgets?.find(w => w.name === name);
 export function syncModelUI(node, notify = () => {}, restoring = false) {
     const model = widget(node, "model").value;
     const policy = modelPolicy(model, widget(node, "size_mode")?.value);
+    // New task nodes use numeric dimensions. Hide the compatibility field at
+    // the base policy level, so later model/UI refreshes cannot reveal it.
+    if (widget(node, "width") && widget(node, "height")) policy.visible.delete("pixel_size");
     if (!restoring && model.startsWith("T香蕉") && widget(node, "reference_urls")?.value?.trim()) {
         notify("香蕉不支持 URL 参考图，请先清空 reference_urls，再切换模型；原内容已保留。");
         return false;
