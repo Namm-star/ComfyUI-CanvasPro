@@ -14,7 +14,7 @@
 | 型号/协议 | 生成 | 编辑/参考图 | 查询 | 限制 |
 | --- | --- | --- | --- | --- |
 | gpt-image-2 / KR | POST `/kr/v1/images/generations` JSON | POST `/kr/v1/images/edits` multipart | GET `/kr/v1/images/tasks/{task_id}` | prompt≤4000 UTF-16 单元，n=1，response_format=url；1–16 参考图，PNG/JPEG/WebP，单文件≤10 MiB、合计≤64 MiB；文件与公网 HTTPS URL 二选一 |
-| T香蕉2、T香蕉pro / KR Gemini | POST `/kr/gemini/v1/images/generations` Gemini JSON | 同一入口，parts 中 inlineData | GET `/kr/gemini/v1/images/tasks/{task_id}` | 一个 role=user contents；1–32 parts；本插件一个 text≤8000 UTF-16 单元；≤14 图，单图≤12 MiB，base64合计≤64 MiB |
+| T香蕉2、T香蕉2.1、T香蕉pro / KR Gemini | POST `/kr/gemini/v1/images/generations` Gemini JSON | 同一入口，parts 中 inlineData | GET `/kr/gemini/v1/images/tasks/{task_id}` | 一个 role=user contents；1–32 parts；本插件一个 text≤8000 UTF-16 单元；≤14 图，单图≤12 MiB，base64合计≤64 MiB |
 | 三款 s-gpt-image / HC | POST `/hc/v1/images/generations` JSON | URL JSON `/hc/v1/images/edits`；文件 multipart `/hc/v1/images/edits/upload` | GET `/hc/v1/images/tasks/{task_id}` | prompt≤8000 UTF-16 单元，n=1；1–15 图，单图≤10 MiB，合计≤50 MiB，请求体≤52 MiB |
 
 KR：一图文件字段 `image`，多图重复 `image[]`；一 URL 字段 `image_url`，多 URL 重复 `image_url[]`。HC：所有文件重复字段 `image`；URL 字段 `image` 为字符串或数组。PNG 由节点编码，真实上传含正确 MIME/文件名，requests 创建 boundary。
@@ -37,3 +37,7 @@ HC：size 为正像素 WIDTHxHEIGHT，总像素严格小于8294400；基本 qual
 - 视频输出需要专用媒体类型/本地文件与下载缓存；不得将 MP4 填 IMAGE 或猜测现有 ComfyUI VIDEO 构造 API。视频上传上限、轮询输出映射、终态费用不能从图片合同外推。
 
 后续发布前重新读取目录、核对路径与活动协议，再做独立无费合同测试；真实生成需另有明确授权及预算。
+
+## 2026-10-08：T香蕉2.1
+
+无凭据 GET 公开 `/api/pricing` 确认 T香蕉2.1 已上架，声明生成/查询使用 KR Gemini 路径、支持 inlineData 参考图、最多14图、1K/2K/4K、单次输出1图。目录字段摘录见 [T-BANANA-2.1.json](T-BANANA-2.1.json)。其余请求结构沿用现有香蕉协议，新增型号通过本地模拟接口完成文生图、多图编辑、查询和结果下载验证；没有调用付费生产生成。

@@ -1,0 +1,12 @@
+{
+  "checked_date": "2026-10-08",
+  "source": "https://api.canvasproai.com/api/pricing",
+  "model_name": "T香蕉2.1",
+  "description": "Gemini 格式异步图片生成；文生图与 inlineData 参考图编辑。清晰度 1K/2K/4K；本站参考图最多 14 张（PNG/JPEG/WebP 原始 base64），单次输出 1 张。POST /kr/gemini/v1/images/generations 提交，GET /kr/gemini/v1/images/tasks/{task_id} 查询。通过 KR 合作渠道提供，并非 Google 官方直连。",
+  "supported_endpoint_types": [
+    "openai",
+    "image-generation-async",
+    "image-task-query"
+  ],
+  "validation": "Public catalog GET and local mock contract tests; no paid production generation."
+}

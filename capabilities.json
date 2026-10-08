@@ -10,6 +10,14 @@
         "model": "T香蕉2"
       },
       {
+        "model": "T香蕉2.1",
+        "endpoint_types": [
+          "openai",
+          "image-generation-async",
+          "image-task-query"
+        ]
+      },
+      {
         "endpoint_types": [
           "openai",
           "image-generation-async",
@@ -58,7 +66,8 @@
         "model": "s-gpt-image-2"
       }
     ],
-    "implemented": true
+    "implemented": true,
+    "checked_date": "2026-10-08"
   },
   "public_model_count": 104,
   "hc_video": {

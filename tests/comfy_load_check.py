@@ -59,7 +59,7 @@ async def main():
             first = await invoke("CanvasProPromptTask", values)
             assert first[0][0][0]["size"] == "1280x720"
             second_values = {k:v for k,v in prompt["6"]["inputs"].items() if k not in ('model_input','width_input','height_input')}
-            second = await invoke("CanvasProPromptTask", {**second_values, "model":"T香蕉2"})
+            second = await invoke("CanvasProPromptTask", {**second_values, "model":"T香蕉2.1"})
             fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],
                 "job_key":"real-mixed", "concurrency":3, "advanced":False, "wait_seconds":5})
             assert len(fetched[0]) == 2

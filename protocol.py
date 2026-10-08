@@ -3,7 +3,7 @@ import base64
 import re
 from urllib.parse import urlsplit
 
-MODELS = ("gpt-image-2", "T香蕉2", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst")
+MODELS = ("gpt-image-2", "T香蕉2", "T香蕉2.1", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst")
 RATIOS = ("1:1", "3:4", "4:3", "9:16", "16:9")
 
 
@@ -46,7 +46,7 @@ def build_request(model, prompt, size="", quality="", image_size="", files=(), u
     if image_size and image_size not in ("1K", "2K", "4K"):
         raise ValueError("Resolution tier must be 1K/2K/4K")
     allowed_quality = ("auto", "low", "medium", "high")
-    if model in MODELS[4:]:
+    if model in ("s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst"):
         allowed_quality += ("xhigh", "max")
     if quality and quality not in allowed_quality:
         raise ValueError("Unsupported quality for model")

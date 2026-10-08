@@ -584,7 +584,7 @@
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.8.1",
+    "canvaspro_version": "0.8.2",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4

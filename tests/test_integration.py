@@ -396,13 +396,38 @@ print(batch)
         for index, model in enumerate(MODELS):
             submit_batch(self.store, self.client, str(index), model, ["edit"], files=files)
         paths = [p for p, _ in self.service.posts]
-        self.assertEqual(paths, ["/kr/v1/images/edits", "/kr/gemini/v1/images/generations", "/kr/gemini/v1/images/generations"] + ["/hc/v1/images/edits/upload"]*3)
+        self.assertEqual(paths, ["/kr/v1/images/edits"] + ["/kr/gemini/v1/images/generations"]*3 + ["/hc/v1/images/edits/upload"]*3)
         self.assertEqual(self.service.posts[0][1]["upload_fields"], ["image[]"]*2)
-        self.assertEqual(self.service.posts[3][1]["upload_fields"], ["image"]*2)
-        self.assertEqual(self.service.posts[3][1]["uploads"], files)
+        self.assertEqual(self.service.posts[4][1]["upload_fields"], ["image"]*2)
+        self.assertEqual(self.service.posts[4][1]["uploads"], files)
         body = self.service.posts[1][1]
         self.assertEqual(len(body["contents"][0]["parts"]), 3)
         self.assertNotIn("size", body)
+
+    def test_banana_21_text_edit_query_and_wired_model(self):
+        from canvaspro.protocol import query_path
+        self.assertIn("T香蕉2.1", nodes.PromptTask.INPUT_TYPES()["required"]["model"][0])
+        self.assertIn("T香蕉2.1", nodes.ModelSubmit.INPUT_TYPES()["required"]["model"][0])
+        text = nodes.PromptTask().execute("T香蕉2.1", "text generation", aspect_ratio="16:9", image_size="2K")[0]
+        edit = nodes.PromptTask().execute("gpt-image-2", "multi-image edit", model_input="T香蕉2.1",
+            image_size="4K", image_1=torch.zeros((1,7,11,3)), image_2=torch.zeros((1,5,9,3)))[0]
+        env = dict(CANVASPRO_API_KEY="fake-secret", CANVASPRO_DATA_DIR=str(self.root),
+            CANVASPRO_BASE_URL=self.service.base, CANVASPRO_ALLOW_LOCAL_TEST="1")
+        with patch.dict(os.environ, env), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
+            images, info, handle = nodes.BatchExecute().execute(text, "banana-21", task_2=edit, concurrency=1, wait_seconds=5)["result"]
+        self.assertEqual(len(images), 2)
+        for path, body in self.service.posts:
+            self.assertEqual(path, "/kr/gemini/v1/images/generations")
+            self.assertEqual(body["model"], "T香蕉2.1")
+            self.assertNotIn("quality", body)
+            self.assertNotIn("size", body)
+        self.assertEqual(self.service.posts[0][1]["generationConfig"]["imageConfig"], {"aspectRatio":"16:9", "imageSize":"2K"})
+        self.assertEqual(len(self.service.posts[1][1]["contents"][0]["parts"]), 3)
+        self.assertEqual(query_path("T香蕉2.1", "example-id"), "/kr/gemini/v1/images/tasks/example-id")
+        self.assertTrue(all(t["model"] == "T香蕉2.1" for t in json.loads(handle)["tasks"]))
+        self.assertEqual(json.loads(info)["query"]["counts"]["succeeded"], 2)
+        with self.assertRaises(ValueError): build_request("T香蕉2.1", "too many", files=[b"a"]*15)
+        with self.assertRaises(ValueError): build_request("T香蕉2.1", "URL", urls=["https://example.com/ref.png"])
 
     def test_url_edit_is_multipart_and_hc_is_json(self):
         submit_batch(self.store, self.client, "kr", "gpt-image-2", ["edit"], urls=["https://example.com/a.png"])

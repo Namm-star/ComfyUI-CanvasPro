@@ -71,7 +71,7 @@ node --test tests/*.test.mjs
 
 23 项本地模拟 HTTP 集成测试、11 项前端逻辑测试通过；真实 ComfyUI 已验证混合模型节点执行、API 示例及不同尺寸图片保存。示例连线和类型已检查。未使用生产 Key，未发送付费请求。
 
-支持图片模型：`gpt-image-2`、`T香蕉2`、`T香蕉pro`、`s-gpt-image-2`、`s-gpt-image-2.5-flare`、`s-gpt-image-2.5-sunburst`。详细参数见 [协议记录](docs/PROTOCOL.md)。视频和文本执行节点尚未实现。
+支持图片模型：`gpt-image-2`、`T香蕉2`、`T香蕉2.1`、`T香蕉pro`、`s-gpt-image-2`、`s-gpt-image-2.5-flare`、`s-gpt-image-2.5-sunburst`。详细参数见 [协议记录](docs/PROTOCOL.md)。视频和文本执行节点尚未实现。
 
 参考项目及许可见 [第三方声明](THIRD_PARTY_NOTICES.md)。
 
@@ -109,3 +109,7 @@ API 工作流通过 seed 数值区分新批次；randomize 是 ComfyUI 界面的
 ### 模型和宽高连线（0.8.1）
 
 独立任务新增 model_input（STRING）、width_input（INT）、height_input（INT）可选输入端口；接线优先使用上游结果，未接线则使用节点原有设置。宽高仅在像素模式生效；香蕉使用比例和 image_size。model_input 支持本插件已有模型名称，外部模型连线时显示各模型参数供选择，执行前按实际模型验证。多任务并发示例已用 ComfyUI 内置 Text / Int 节点连接模型、宽度和高度，并由两个任务共享。更改输入后应更换批次 seed。
+
+### T香蕉2.1（0.8.2）
+
+新增模型下拉与 model_input 名称支持，复用 KR Gemini 图片提交和查询接口；支持文生图、多图参考、比例和 1K/2K/4K，最多14张参考图。混合模型示例已使用 T香蕉2.1。

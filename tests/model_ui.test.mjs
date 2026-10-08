@@ -17,6 +17,15 @@ const widget = (n, name) => n.widgets.find(w => w.name === name);
 function change(n, name, value) { const w = widget(n, name); w.value = value; w.callback?.(value); }
 const shown = (n, name) => !widget(n, name).hidden;
 
+test("Banana 2.1 uses ratio/tier controls and fourteen reference ports",()=>{
+    const n=fixture(); installModelUI(n,()=>{});
+    change(n,'model','T香蕉2.1');
+    assert(shown(n,'aspect_ratio'));assert(shown(n,'image_size'));
+    for(const name of ['quality','reference_urls','size_mode','pixel_size'])assert(!shown(n,name));
+    change(n,'reference_count',16);
+    assert.equal(n.inputs.length,14);
+});
+
 test("URL references must be cleared before switching to Banana", () => {
     const n=fixture(); installModelUI(n,()=>{});
     widget(n,"reference_urls").value="https://example.com/reference.png";
