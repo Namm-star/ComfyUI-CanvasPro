@@ -26,6 +26,18 @@ test("Banana 2.1 uses ratio/tier controls and fourteen reference ports",()=>{
     assert.equal(n.inputs.length,14);
 });
 
+test("ratios and resolution choices follow exact model capabilities",()=>{
+    const n=fixture();installModelUI(n,()=>{});
+    change(n,'model','T香蕉2.1');assert(widget(n,'aspect_ratio').options.values.includes('1:8'));
+    change(n,'aspect_ratio','1:8');change(n,'model','T香蕉pro');
+    assert(!widget(n,'aspect_ratio').options.values.includes('1:8'));assert.equal(widget(n,'aspect_ratio').value,'1:1');
+    change(n,'model','即梦-65-seedream-5-lite');
+    assert.equal(n.inputs.length,0);assert(shown(n,'reference_urls'));assert(!shown(n,'pixel_size'));
+    assert.deepEqual(widget(n,'image_size').options.values,['4K']);assert.equal(widget(n,'image_size').value,'4K');
+    change(n,'model','即梦-55-gpt-image-2.5-flare');assert(widget(n,'aspect_ratio').options.values.includes('21:9'));
+    change(n,'model','gpt-image-2');assert(!widget(n,'aspect_ratio').options.values.includes('21:9'));
+});
+
 test("URL references must be cleared before switching to Banana", () => {
     const n=fixture(); installModelUI(n,()=>{});
     widget(n,"reference_urls").value="https://example.com/reference.png";

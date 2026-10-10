@@ -77,20 +77,20 @@ class Handler(BaseHTTPRequestHandler):
             elif prompt == "missing-id":
                 self.respond(200, {"status": "queued"})
             else:
-                self.respond(200, {"task_id": task_id, "status": "queued"})
+                self.respond(200, {"id" if self.path.startswith("/aistars/") else "task_id": task_id, "status": "queued"})
         finally:
             with s.lock:
                 s.active -= 1
     def do_GET(self):
         s = self.server
         s.auth.append((self.path, self.headers.get("Authorization")))
-        if self.path.startswith("/image/"):
+        if self.path.startswith("/image/") or self.path.startswith("/v1/tasks/"):
             with s.lock:
                 s.download_active += 1
                 s.download_peak = max(s.download_peak, s.download_active)
             try:
                 time.sleep(0.04)
-                index = int(self.path.split("/")[-1])
+                index = int(self.path.split("/")[3] if self.path.startswith("/v1/tasks/") else self.path.split("/")[-1])
                 image = Image.new("RGB", (16+index, 12+index), (index, 100, 200))
                 b = io.BytesIO()
                 image.save(b, format="PNG")
@@ -114,6 +114,10 @@ class Handler(BaseHTTPRequestHandler):
         else:
             status = "failed" if t["prompt"] == "fail" else "succeeded"
         body = {"task_id": task_id, "status": status}
+        if self.path.startswith("/aistars/"):
+            self.respond(200, {"id":task_id,"status":"failed" if t["prompt"]=="fail" else "completed",
+                "artifacts":[] if t["prompt"]=="fail" else [{"content_url":f"/v1/tasks/{task_id}/artifacts/image-0/content"}]})
+            return
         if status == "succeeded":
             body["data"] = [{"url": s.base + "/image/" + task_id}]
         if status == "failed":
@@ -393,7 +397,7 @@ print(batch)
         b = io.BytesIO()
         Image.new("RGB", (4, 4)).save(b, format="PNG")
         files = [b.getvalue(), b.getvalue()]
-        for index, model in enumerate(MODELS):
+        for index, model in enumerate(MODELS[:7]):
             submit_batch(self.store, self.client, str(index), model, ["edit"], files=files)
         paths = [p for p, _ in self.service.posts]
         self.assertEqual(paths, ["/kr/v1/images/edits"] + ["/kr/gemini/v1/images/generations"]*3 + ["/hc/v1/images/edits/upload"]*3)
@@ -428,6 +432,52 @@ print(batch)
         self.assertEqual(json.loads(info)["query"]["counts"]["succeeded"], 2)
         with self.assertRaises(ValueError): build_request("T香蕉2.1", "too many", files=[b"a"]*15)
         with self.assertRaises(ValueError): build_request("T香蕉2.1", "URL", urls=["https://example.com/ref.png"])
+
+    def test_expanded_banana_ratios_keep_gpt_and_pro_limits(self):
+        from canvaspro.protocol import ratios
+        for model in ("T香蕉2","T香蕉2.1","T香蕉pro"):
+            for ratio in ratios(model):
+                _,body,_=build_request(model,"test",size=ratio,image_size="2K")
+                self.assertEqual(body['generationConfig']['imageConfig']['aspectRatio'],ratio)
+        for ratio in ("1:4","4:1","1:8","8:1"):
+            with self.assertRaises(ValueError):build_request("T香蕉pro","test",size=ratio)
+        with self.assertRaises(ValueError):build_request("gpt-image-2","test",size="1:8")
+
+    def test_new_image_models_text_url_edit_query_download_and_no_replay(self):
+        from canvaspro.protocol import AISTARS
+        tasks=[]
+        for model,spec in AISTARS.items():
+            for ratio in spec['ratios']:
+                for tier in spec['resolutions']:
+                    build_request(model,'contract',size=ratio,image_size=tier)
+            with self.assertRaises(ValueError):
+                build_request(model,'too many',size=spec['ratios'][0],image_size=spec['resolutions'][0],
+                    urls=['https://example.com/ref.png']*(spec['references']+1))
+            for prompt,urls in [('text',''),('edit','https://example.com/ref.png')]:
+                tasks.extend(nodes.PromptTask().execute(model,prompt,aspect_ratio=spec['ratios'][0],
+                    image_size=spec['resolutions'][0],reference_urls=urls)[0])
+        env=dict(CANVASPRO_API_KEY="fake-secret",CANVASPRO_DATA_DIR=str(self.root),CANVASPRO_BASE_URL=self.service.base,CANVASPRO_ALLOW_LOCAL_TEST="1")
+        with patch.dict(os.environ,env),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            first=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
+            again=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
+        self.assertEqual(len(first[0]),34);self.assertEqual(len(self.service.posts),34)
+        self.assertEqual(first[2],again[2])
+        for path,body in self.service.posts:
+            self.assertEqual(path,'/aistars/v1/images/'+('edits' if body['prompt']=='edit' else 'generations'))
+            self.assertIn(body['resolution'],AISTARS[body['model']]['resolutions'])
+            self.assertNotIn('quality',body);self.assertNotIn('size',body)
+        self.assertTrue(all(p.startswith('/aistars/v1/tasks/') for p in self.service.gets))
+        with self.assertRaises(ValueError):build_request('即梦-65-seedream-5-lite','test',size='1:1',image_size='1K')
+        with self.assertRaises(ValueError):build_request('即梦-55-gpt-image-2','test',size='21:9',image_size='1K')
+        with self.assertRaises(ValueError):build_request('即梦-55-gpt-image-2','test',size='1:1',image_size='1K',files=[b'image'])
+
+    def test_aistars_rejects_mismatched_ids_and_unsafe_artifacts(self):
+        from canvaspro.client import ClientError
+        for body in [{'id':'wrong','status':'completed','artifacts':[]},
+            {'id':'123','status':'completed','artifacts':[{'content_url':'https://evil.example/image'}]},
+            {'id':'123','status':'completed','artifacts':[{'content_url':'/v1/tasks/123/artifacts/../content'}]}]:
+            with self.assertRaises(ClientError):Client.normalize_aistars(body,'123')
+        self.assertEqual(Client.normalize_aistars({'id':'123','status':'in_progress'},'123')['status'],'processing')
 
     def test_url_edit_is_multipart_and_hc_is_json(self):
         submit_batch(self.store, self.client, "kr", "gpt-image-2", ["edit"], urls=["https://example.com/a.png"])

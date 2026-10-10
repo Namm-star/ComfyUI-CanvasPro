@@ -1,3 +1,5 @@
+import { IMAGE_MODELS } from "./image_models.mjs";
+
 const find = (node, name) => node.widgets?.find(w => w.name === name);
 
 export function visibility(node, names, visible) {
@@ -33,19 +35,20 @@ export function syncTaskPorts(node) {
 export function syncTaskAdvanced(node) {
     const advanced = Boolean(find(node,"advanced")?.value);
     const model = find(node,"model")?.value || "";
+    const aistars = Boolean(IMAGE_MODELS.aistars[model]);
     const linked = name => node.inputs?.some(i => i.name === name && i.link != null);
     const externalModel = linked("model_input");
     visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = externalModel || (!model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
+    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
     visibility(node,["width"],pixels && !linked("width_input"));
     visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {
         const w=find(node,name);
         if (w) { w.options.min=externalModel || model.startsWith("s-")?1:16; w.options.max=externalModel || model.startsWith("s-")?32768:3840; w.options.step=externalModel || model.startsWith("s-")?10:160; }
     }
-    visibility(node,["quality"],advanced && (externalModel || !model.startsWith("T香蕉")));
-    visibility(node,["reference_urls"],advanced && (externalModel || !model.startsWith("T香蕉")));
+    visibility(node,["quality"],advanced && (externalModel || (!aistars && !model.startsWith("T香蕉"))));
+    visibility(node,["reference_urls"],aistars || (advanced && (externalModel || !model.startsWith("T香蕉"))));
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }
@@ -53,9 +56,9 @@ export function syncTaskAdvanced(node) {
 export function autoImageCount(node) {
     const model = find(node,"model")?.value || "";
     const externalModel=node.inputs?.some(i => i.name === "model_input" && i.link != null);
-    const max = externalModel ? 16 : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
+    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? 0 : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
-    find(node,"reference_count").value = Math.min(max,highest+1);
+    find(node,"reference_count").value = Math.max(1,Math.min(max,highest+1));
 }
 
 

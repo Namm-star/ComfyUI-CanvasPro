@@ -2,12 +2,157 @@
   "images": {
     "models": [
       {
+        "model": "即梦-67-gpt-image-2.5-sunburst",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "即梦-66-gpt-image-2.5-sunburst",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "即梦-46-gpt-image-2",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "即梦-52-gpt-image-2.5-flare",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "s-gpt-image-2",
+        "endpoint_types": [
+          "openai",
+          "hc-image-edit-async-upload",
+          "hc-image-generation-async",
+          "hc-image-edit-async-url",
+          "hc-image-task-query"
+        ]
+      },
+      {
+        "model": "即梦-55-gpt-image-2",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "即梦-65-seedream-5-lite",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-edit-submit",
+          "aistars-task-query",
+          "aistars-image-generation-submit"
+        ]
+      },
+      {
+        "model": "即梦-55-gpt-image-2.5-sunburst",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-edit-submit",
+          "aistars-task-query",
+          "aistars-image-generation-submit"
+        ]
+      },
+      {
+        "model": "即梦-65-seedream-5-pro",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "即梦-55-gpt-image-2.5-flare",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "即梦-46-gpt-image-2.5-sunburst",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "即梦-52-gpt-image-2.5-sunburst",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "gpt-image-2",
+        "endpoint_types": [
+          "openai",
+          "kr-image-task-query",
+          "image-edit-async-url",
+          "image-edit-async-file",
+          "kr-image-generation-async"
+        ]
+      },
+      {
+        "model": "T香蕉2",
         "endpoint_types": [
           "openai",
           "image-generation-async",
           "image-task-query"
-        ],
-        "model": "T香蕉2"
+        ]
+      },
+      {
+        "model": "即梦-52-gpt-image-2",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "T香蕉pro",
+        "endpoint_types": [
+          "openai",
+          "image-generation-async",
+          "image-task-query"
+        ]
+      },
+      {
+        "model": "即梦-66-gpt-image-2.5-flare",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-edit-submit",
+          "aistars-task-query",
+          "aistars-image-generation-submit"
+        ]
       },
       {
         "model": "T香蕉2.1",
@@ -18,58 +163,66 @@
         ]
       },
       {
+        "model": "即梦-46-gpt-image-2.5-flare",
         "endpoint_types": [
           "openai",
-          "image-generation-async",
-          "image-task-query"
-        ],
-        "model": "T香蕉pro"
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
       },
       {
+        "model": "即梦-23-gemini-3.1-flash-image-preview",
         "endpoint_types": [
           "openai",
-          "kr-image-task-query",
-          "image-edit-async-url",
-          "image-edit-async-file",
-          "kr-image-generation-async"
-        ],
-        "model": "gpt-image-2"
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
       },
       {
+        "model": "即梦-67-gpt-image-2.5-flare",
+        "endpoint_types": [
+          "openai",
+          "aistars-image-generation-submit",
+          "aistars-image-edit-submit",
+          "aistars-task-query"
+        ]
+      },
+      {
+        "model": "s-gpt-image-2.5-sunburst",
         "endpoint_types": [
           "openai",
           "hc-image-generation-async",
           "hc-image-edit-async-url",
           "hc-image-task-query",
           "hc-image-edit-async-upload"
-        ],
-        "model": "s-gpt-image-2.5-sunburst"
+        ]
       },
       {
+        "model": "s-gpt-image-2.5-flare",
         "endpoint_types": [
           "openai",
           "hc-image-generation-async",
           "hc-image-edit-async-url",
           "hc-image-task-query",
           "hc-image-edit-async-upload"
-        ],
-        "model": "s-gpt-image-2.5-flare"
+        ]
       },
       {
+        "model": "即梦-23-gemini-3-pro-image-preview",
         "endpoint_types": [
           "openai",
-          "hc-image-edit-async-url",
-          "hc-image-task-query",
-          "hc-image-edit-async-upload",
-          "hc-image-generation-async"
-        ],
-        "model": "s-gpt-image-2"
+          "aistars-image-edit-submit",
+          "aistars-task-query",
+          "aistars-image-generation-submit"
+        ]
       }
     ],
     "implemented": true,
-    "checked_date": "2026-10-08"
+    "checked_date": "2026-10-10"
   },
-  "public_model_count": 104,
+  "public_model_count": 160,
   "hc_video": {
     "models": [
       "官转doubao-seedance-2.0",

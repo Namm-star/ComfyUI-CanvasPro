@@ -7,7 +7,7 @@
 旧示例已删除，当前只保留以下三个界面工作流：
 
 - [普通多任务](examples/多任务并发-Multi-Task-Batch.json)：多个独立任务直接连接批量执行，无需合并节点。
-- [混合模型](examples/混合模型并发-Mixed-Model-Batch.json)：GPT Image、香蕉、HC 三个任务一起执行。
+- [混合模型](examples/混合模型并发-Mixed-Model-Batch.json)：GPT Image、香蕉、HC 和新即梦 Seedream 四个任务一起执行。
 - [多图编辑](examples/多图编辑-Multi-Image-Edit.json)：两张参考图连接一个完整提示词任务，再连接批量执行；先选择自己的图片。
 
 下载对应 JSON 后拖入 ComfyUI。已安装用户先更新插件、重启 ComfyUI，再刷新浏览器。更多说明见 [示例目录](examples/README.md)。`optimized-api.json` 是 API 格式，界面导入请使用 `*-workflow.json`。
@@ -71,7 +71,7 @@ node --test tests/*.test.mjs
 
 23 项本地模拟 HTTP 集成测试、11 项前端逻辑测试通过；真实 ComfyUI 已验证混合模型节点执行、API 示例及不同尺寸图片保存。示例连线和类型已检查。未使用生产 Key，未发送付费请求。
 
-支持图片模型：`gpt-image-2`、`T香蕉2`、`T香蕉2.1`、`T香蕉pro`、`s-gpt-image-2`、`s-gpt-image-2.5-flare`、`s-gpt-image-2.5-sunburst`。详细参数见 [协议记录](docs/PROTOCOL.md)。视频和文本执行节点尚未实现。
+支持24款图片模型：`gpt-image-2`、`T香蕉2`、`T香蕉2.1`、`T香蕉pro`、三款 `s-gpt-image`，以及17款即梦 GPT Image、Gemini 和 Seedream 型号。完整新型号及参数见 [模型能力](image_models.json)和[协议记录](docs/PROTOCOL.md)。视频和文本执行节点尚未实现。
 
 参考项目及许可见 [第三方声明](THIRD_PARTY_NOTICES.md)。
 
@@ -113,3 +113,7 @@ API 工作流通过 seed 数值区分新批次；randomize 是 ComfyUI 界面的
 ### T香蕉2.1（0.8.2）
 
 新增模型下拉与 model_input 名称支持，复用 KR Gemini 图片提交和查询接口；支持文生图、多图参考、比例和 1K/2K/4K，最多14张参考图。混合模型示例已使用 T香蕉2.1。
+
+### 新图片模型与香蕉比例（0.9.0）
+
+新增17款即梦图片型号，完整名称见 image_models.json，插件共支持24款图片模型。新型号使用独立AIStars异步协议，单次1图；参考图只能填写公网HTTPS URL（每行一个），尚无已确认的直接文件上传接口。界面按型号显示比例、清晰度及参考能力。香蕉比例按型号扩展，GPT Image比例保持原有限制。混合模型示例增加Seedream任务。

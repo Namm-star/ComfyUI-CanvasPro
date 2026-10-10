@@ -30,7 +30,7 @@ class Client:
                     # No generic HTTP code proves upstream did not run/charge.
                     raise ClientError(f"submit_http_{r.status_code}_outcome_unknown")
                 body = r.json()
-                task_id = body.get("task_id") if isinstance(body, dict) else None
+                task_id = body.get("id" if path.startswith("/aistars/") else "task_id") if isinstance(body, dict) else None
                 if not isinstance(task_id, str) or not task_id or len(task_id) > 256:
                     raise ClientError("submit_response_missing_task_id_outcome_unknown")
                 if self.key in task_id or any(c.isspace() for c in task_id):
@@ -49,6 +49,8 @@ class Client:
                 with requests.get(self.base + path, headers={"Authorization": "Bearer " + self.key}, timeout=timeout, allow_redirects=False) as r:
                     if 200 <= r.status_code < 300:
                         body = r.json()
+                        if path.startswith("/aistars/"):
+                            body = self.normalize_aistars(body, path.rsplit("/",1)[-1])
                         if not isinstance(body, dict) or body.get("status") not in ("queued", "processing", "succeeded", "failed", "unknown"):
                             raise ClientError("query_invalid_response")
                         return body
@@ -59,6 +61,28 @@ class Client:
                 last = "query_transport_or_response_error"
             cancel.wait(min(0.5 * 2**attempt, max(0, deadline - time.monotonic())))
         raise ClientError(last)
+
+    @staticmethod
+    def normalize_aistars(body, encoded_id):
+        from urllib.parse import unquote
+        if not isinstance(body, dict) or body.get("id") != unquote(encoded_id):
+            raise ClientError("query_task_id_mismatch")
+        status = {"queued":"queued", "pending":"queued", "running":"processing", "in_progress":"processing",
+            "processing":"processing", "completed":"succeeded", "failed":"failed", "cancelled":"failed"}.get(body.get("status"))
+        if status is None:
+            raise ClientError("query_invalid_response")
+        data=[]
+        if status == "succeeded":
+            artifacts=body.get("artifacts")
+            if not isinstance(artifacts,list) or len(artifacts)!=1:
+                raise ClientError("query_success_missing_image_url")
+            for artifact in artifacts:
+                url=artifact.get("content_url") if isinstance(artifact,dict) else None
+                prefix=f"/v1/tasks/{encoded_id}/artifacts/"
+                if not isinstance(url,str) or not url.startswith(prefix) or not url.endswith("/content") or any(p in (".","..") for p in url.split("/")):
+                    raise ClientError("query_invalid_artifact_content_path")
+                data.append({"url":url})
+        return {"task_id":body["id"],"status":status,"data":data}
 
     def download(self, url, max_bytes=64 * 1024**2):
         url = urljoin(self.base + "/", url)

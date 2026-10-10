@@ -2,17 +2,336 @@ import { app } from "/scripts/app.js";
 import { api } from "/scripts/api.js";
 
 // Self-contained entry: helper code cannot load from a stale module cache.
+const IMAGE_MODELS = {
+  "aistars": {
+    "即梦-55-gpt-image-2": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 9
+    },
+    "即梦-55-gpt-image-2.5-flare": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-55-gpt-image-2.5-sunburst": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-66-gpt-image-2.5-flare": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-66-gpt-image-2.5-sunburst": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-67-gpt-image-2.5-flare": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-67-gpt-image-2.5-sunburst": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-52-gpt-image-2": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 9
+    },
+    "即梦-52-gpt-image-2.5-flare": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-52-gpt-image-2.5-sunburst": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-46-gpt-image-2": {
+      "ratios": [
+        "1:1",
+        "4:3",
+        "3:2",
+        "16:9",
+        "21:9",
+        "3:4",
+        "2:3",
+        "9:16"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-46-gpt-image-2.5-flare": {
+      "ratios": [
+        "1:1",
+        "9:16",
+        "16:9",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-46-gpt-image-2.5-sunburst": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-23-gemini-3-pro-image-preview": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 7
+    },
+    "即梦-23-gemini-3.1-flash-image-preview": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 7
+    },
+    "即梦-65-seedream-5-pro": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K"
+      ],
+      "references": 6
+    },
+    "即梦-65-seedream-5-lite": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "4K"
+      ],
+      "references": 6
+    }
+  },
+  "banana_ratios": {
+    "T香蕉pro": [
+      "1:1",
+      "2:3",
+      "3:2",
+      "3:4",
+      "4:3",
+      "4:5",
+      "5:4",
+      "9:16",
+      "16:9",
+      "21:9"
+    ],
+    "T香蕉2": [
+      "1:1",
+      "2:3",
+      "3:2",
+      "3:4",
+      "4:3",
+      "4:5",
+      "5:4",
+      "9:16",
+      "16:9",
+      "21:9",
+      "1:4",
+      "4:1",
+      "1:8",
+      "8:1"
+    ],
+    "T香蕉2.1": [
+      "1:1",
+      "2:3",
+      "3:2",
+      "3:4",
+      "4:3",
+      "4:5",
+      "5:4",
+      "9:16",
+      "16:9",
+      "21:9",
+      "1:4",
+      "4:1",
+      "1:8",
+      "8:1"
+    ]
+  }
+};
+
 function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
     const hc = model.startsWith("s-");
+    const aistars = IMAGE_MODELS.aistars[model];
     return {
-        max: banana ? 14 : hc ? 15 : 16,
+        max: aistars ? 0 : banana ? 14 : hc ? 15 : 16,
+        ratios: aistars?.ratios || IMAGE_MODELS.banana_ratios[model] || ["1:1","3:4","4:3","9:16","16:9"],
+        resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
-            ...(!banana && !hc ? ["size_mode"] : []),
-            ...(hc || (!banana && mode === "pixels") ? ["pixel_size", "width", "height"] : []),
-            ...(banana || (!hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
-            ...(!banana ? ["quality", "reference_urls"] : []),
+            ...(!aistars && !banana && !hc ? ["size_mode"] : []),
+            ...(!aistars && (hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
+            ...(aistars || banana || (!hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
+            ...(aistars ? ["reference_urls"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
         qualities: ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
@@ -30,6 +349,8 @@ function syncModelUI(node, notify = () => {}, restoring = false) {
         policy.max = 16;
         for (const name of parameters) policy.visible.add(name);
         policy.qualities = ["", "auto", "low", "medium", "high", "xhigh", "max"];
+        policy.ratios = [...new Set(Object.values(IMAGE_MODELS.banana_ratios).flat())];
+        policy.resolutions = ["1K","2K","4K"];
     }
     // New task nodes use numeric dimensions. Hide the compatibility field at
     // the base policy level, so later model/UI refreshes cannot reveal it.
@@ -39,7 +360,7 @@ function syncModelUI(node, notify = () => {}, restoring = false) {
         return false;
     }
     const countWidget = widget(node, "reference_count");
-    const count = Math.max(1, Math.min(policy.max, Math.round(Number(countWidget.value) || 2)));
+    const count = Math.max(0, Math.min(policy.max, Math.round(Number(countWidget.value) || 2)));
     const removed = (node.inputs || []).filter(input => {
         const m = /^image_(\d+)$/.exec(input.name);
         return m ? Number(m[1]) > count : parameters.includes(input.name) && !policy.visible.has(input.name);
@@ -58,8 +379,12 @@ function syncModelUI(node, notify = () => {}, restoring = false) {
     for (let i = 1; i <= count; i++) {
         if (!node.inputs?.some(input => input.name === `image_${i}`)) node.addInput(`image_${i}`, "IMAGE");
     }
-    countWidget.value = count;
-    countWidget.options.max = policy.max;
+    countWidget.value = Math.max(1,count);
+    countWidget.options.max = Math.max(1,policy.max);
+    for(const [name,values] of [["aspect_ratio",policy.ratios],["image_size",policy.resolutions]]) {
+        const w=widget(node,name);
+        if(w) {w.options.values=values;if(!values.includes(w.value))w.value=values.includes("1:1")?"1:1":values[0];}
+    }
     for (const name of parameters) {
         const w = widget(node, name);
         if (!w) continue;
@@ -140,19 +465,20 @@ function syncTaskPorts(node) {
 function syncTaskAdvanced(node) {
     const advanced = Boolean(find(node,"advanced")?.value);
     const model = find(node,"model")?.value || "";
+    const aistars = Boolean(IMAGE_MODELS.aistars[model]);
     const linked = name => node.inputs?.some(i => i.name === name && i.link != null);
     const externalModel = linked("model_input");
     visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = externalModel || (!model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
+    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
     visibility(node,["width"],pixels && !linked("width_input"));
     visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {
         const w=find(node,name);
         if (w) { w.options.min=externalModel || model.startsWith("s-")?1:16; w.options.max=externalModel || model.startsWith("s-")?32768:3840; w.options.step=externalModel || model.startsWith("s-")?10:160; }
     }
-    visibility(node,["quality"],advanced && (externalModel || !model.startsWith("T香蕉")));
-    visibility(node,["reference_urls"],advanced && (externalModel || !model.startsWith("T香蕉")));
+    visibility(node,["quality"],advanced && (externalModel || (!aistars && !model.startsWith("T香蕉"))));
+    visibility(node,["reference_urls"],aistars || (advanced && (externalModel || !model.startsWith("T香蕉"))));
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }
@@ -160,9 +486,9 @@ function syncTaskAdvanced(node) {
 function autoImageCount(node) {
     const model = find(node,"model")?.value || "";
     const externalModel=node.inputs?.some(i => i.name === "model_input" && i.link != null);
-    const max = externalModel ? 16 : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
+    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? 0 : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
-    find(node,"reference_count").value = Math.min(max,highest+1);
+    find(node,"reference_count").value = Math.max(1,Math.min(max,highest+1));
 }
 
 
@@ -175,7 +501,6 @@ function migrateTaskDimensions(values) {
     if (values.length === 10) migrated.push(Number(match[1]),Number(match[2]));
     return migrated;
 }
-
 
 app.registerExtension({
     name: "CanvasPro.ModelInputs",

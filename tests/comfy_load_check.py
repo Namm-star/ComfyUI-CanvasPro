@@ -37,6 +37,11 @@ async def main():
     prompt = json.loads((plugin / "examples/optimized-api.json").read_text(encoding="utf-8"))
     valid, error, outputs, errors = await execution.validate_prompt("canvaspro-check", prompt, None)
     assert valid, (error, errors)
+    native_values={"model":"即梦-65-seedream-5-lite","prompt":"new model text generation","aspect_ratio":"1:1","image_size":"4K"}
+    wired_prompt={**prompt,"103":{"class_type":"CanvasProPromptTask","inputs":native_values}}
+    wired_prompt['1']={**prompt['1'],"inputs":{**prompt['1']['inputs'],"task_3":["103",0]}}
+    valid,error,_,errors=await execution.validate_prompt('canvaspro-check-new',wired_prompt,None)
+    assert valid,(error,errors)
     sys.path.insert(0, str(plugin / "tests"))
     from test_integration import Service
     service = Service()
@@ -60,9 +65,10 @@ async def main():
             assert first[0][0][0]["size"] == "1280x720"
             second_values = {k:v for k,v in prompt["6"]["inputs"].items() if k not in ('model_input','width_input','height_input')}
             second = await invoke("CanvasProPromptTask", {**second_values, "model":"T香蕉2.1"})
-            fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],
+            third = await invoke('CanvasProPromptTask',native_values)
+            fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],"task_3":third[0][0],
                 "job_key":"real-mixed", "concurrency":3, "advanced":False, "wait_seconds":5})
-            assert len(fetched[0]) == 2
+            assert len(fetched[0]) == 3
             for slot in (1, 2):
                 text_value = fetched[slot][0]
                 output, ui, _, _ = await execution.get_output_data('canvaspro-check', f'log-{slot}',
@@ -75,11 +81,11 @@ async def main():
             try:
                 output, ui, _, _ = await execution.get_output_data("canvaspro-check", "save",
                     nodes.NODE_CLASS_MAPPINGS["SaveImage"](), {"images": fetched[0], "filename_prefix": ["mock"]})
-                assert len(ui["images"]) == 2
+                assert len(ui["images"]) == 3
             finally:
                 folder_paths.set_output_directory(original_output)
-            assert len(service.posts) == 2
-            print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (2 differently sized images)")
+            assert len(service.posts) == 3
+            print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (KR/Gemini/AIStars mixed batch)")
         finally:
             service.shutdown()
             service.server_close()

@@ -41,3 +41,9 @@ HC：size 为正像素 WIDTHxHEIGHT，总像素严格小于8294400；基本 qual
 ## 2026-10-08：T香蕉2.1
 
 无凭据 GET 公开 `/api/pricing` 确认 T香蕉2.1 已上架，声明生成/查询使用 KR Gemini 路径、支持 inlineData 参考图、最多14图、1K/2K/4K、单次输出1图。目录字段摘录见 [T-BANANA-2.1.json](T-BANANA-2.1.json)。其余请求结构沿用现有香蕉协议，新增型号通过本地模拟接口完成文生图、多图编辑、查询和结果下载验证；没有调用付费生产生成。
+
+## 2026-10-10：24款图片模型与香蕉比例
+
+依据公开 /api/pricing 与 /source/ 发布包；选定源码路径、包SHA256和型号合同记录于 [IMAGE-CONTRACTS-20261010.json](IMAGE-CONTRACTS-20261010.json)。17款新增即梦型号：POST /aistars/v1/images/generations 或 /aistars/v1/images/edits，JSON model/prompt/aspect_ratio/resolution/n=1；编辑 images 为公网URL数组。未确认文件上传接口，不自动上传本地图片。提交返回id，GET /aistars/v1/tasks/{id}，completed终态 artifacts[].content_url 指向本站 /v1/tasks/{id}/artifacts/{artifact}/content；单图任务验证恰好一件制品。同站下载带Key，跨站仍禁止转发。
+
+香蕉pro支持10种比例；香蕉2/2.1支持14种，详见image_models.json。新型号的比例、档位、最大URL数量按公开源登记独立校验；prompt≤5000 UTF-16单元。新增协议仍保持POST单次提交、持久化恢复、失败不自动重提交。此次使用本地模拟HTTP与真实ComfyUI加载验证，未调用付费生产生成。

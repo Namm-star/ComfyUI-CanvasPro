@@ -1,6 +1,6 @@
 {
-  "last_node_id": 12,
-  "last_link_id": 8,
+  "last_node_id": 14,
+  "last_link_id": 9,
   "nodes": [
     {
       "id": 1,
@@ -34,6 +34,11 @@
         },
         {
           "name": "task_4",
+          "type": "CANVASPRO_TASKS",
+          "link": 9
+        },
+        {
+          "name": "task_5",
           "type": "CANVASPRO_TASKS",
           "link": null
         }
@@ -458,6 +463,91 @@
       ],
       "color": "#234",
       "bgcolor": "#345"
+    },
+    {
+      "id": 13,
+      "type": "CanvasProPromptTask",
+      "pos": [
+        0,
+        1550
+      ],
+      "size": [
+        420,
+        540
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tasks",
+          "type": "CANVASPRO_TASKS",
+          "links": [
+            9
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CanvasProPromptTask"
+      },
+      "widgets_values": [
+        "即梦-65-seedream-5-lite",
+        "清晨湖畔的小木屋，宁静自然光，细节清晰。",
+        1,
+        "ratio",
+        "1:1",
+        "",
+        "4K",
+        "",
+        false,
+        1024,
+        1024
+      ],
+      "title": "新图片模型 · Seedream Lite"
+    },
+    {
+      "id": 14,
+      "type": "Note",
+      "title": "图片模型与比例 · Model Guide",
+      "pos": [
+        1390,
+        1080
+      ],
+      "size": [
+        700,
+        410
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "text": "图片模型与比例（0.9.0）\n\nT香蕉pro：1:1、2:3、3:2、3:4、4:3、4:5、5:4、9:16、16:9、21:9。\nT香蕉2 / 2.1：以上比例加 1:4、4:1、1:8、8:1。\n\n新“即梦”图片模型：选择该型号支持的 aspect_ratio 与 image_size；各型号比例、清晰度、参考数量不同。\nSeedream 5 Pro 支持1K/2K；Lite仅4K。\n\n新“即梦”参考图：在 reference_urls 填公网 HTTPS 图片地址，每行一个；当前公开 API 仅接受URL，不支持直接 IMAGE 文件上传。\n原有香蕉继续连接 IMAGE 参考图，不支持URL。\n\n修改模型或参数后，使用新 seed 创建批次。"
+      },
+      "widgets_values": [
+        "图片模型与比例（0.9.0）\n\nT香蕉pro：1:1、2:3、3:2、3:4、4:3、4:5、5:4、9:16、16:9、21:9。\nT香蕉2 / 2.1：以上比例加 1:4、4:1、1:8、8:1。\n\n新“即梦”图片模型：选择该型号支持的 aspect_ratio 与 image_size；各型号比例、清晰度、参考数量不同。\nSeedream 5 Pro 支持1K/2K；Lite仅4K。\n\n新“即梦”参考图：在 reference_urls 填公网 HTTPS 图片地址，每行一个；当前公开 API 仅接受URL，不支持直接 IMAGE 文件上传。\n原有香蕉继续连接 IMAGE 参考图，不支持URL。\n\n修改模型或参数后，使用新 seed 创建批次。"
+      ],
+      "color": "#234",
+      "bgcolor": "#345"
     }
   ],
   "links": [
@@ -508,12 +598,20 @@
       10,
       0,
       "STRING"
+    ],
+    [
+      9,
+      13,
+      0,
+      1,
+      3,
+      "CANVASPRO_TASKS"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.8.2",
+    "canvaspro_version": "0.9.0",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4

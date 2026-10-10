@@ -8,7 +8,7 @@ from PIL import Image, ImageOps
 from .config import settings
 from .client import Client, ClientError
 from .store import Store
-from .protocol import MODELS, family
+from .protocol import MODELS, family, reference_limit, IMAGE_MODELS
 from .batch import submit_batch, submit_tasks, query_batch, run_parallel, report
 
 
@@ -88,7 +88,7 @@ class ModelSubmit(Submit):
             "reference_count": ("INT", {"default": 2, "min": 1, "max": 16}),
             "size_mode": (["pixels", "ratio", "auto"],),
             "pixel_size": ("STRING", {"default": "1024x1024"}),
-            "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9"],),
+            "aspect_ratio": (list(dict.fromkeys(r for rs in IMAGE_MODELS["banana_ratios"].values() for r in rs)),),
             "quality": (["", "auto", "low", "medium", "high", "xhigh", "max"],),
             "image_size": (["1K", "2K", "4K"],),
             "reference_urls": ("STRING", {"multiline": True, "default": ""})}
@@ -99,7 +99,7 @@ class ModelSubmit(Submit):
                 reference_count=2, size_mode="pixels", pixel_size="1024x1024", aspect_ratio="1:1",
                 quality="", image_size="1K", reference_urls="", **images):
         f = family(model)
-        maximum = {"kr": 16, "hc": 15, "gemini": 14}[f]
+        maximum = reference_limit(model)
         if not 1 <= reference_count <= maximum:
             raise ValueError(f"Selected model supports at most {maximum} reference ports")
         files = []
@@ -109,7 +109,9 @@ class ModelSubmit(Submit):
                 if i > reference_count:
                     raise ValueError("Connected image exceeds active reference_count/model limit")
                 files.extend(encode_images(image))
-        if f == "gemini":
+        if f == "aistars":
+            size, quality = aspect_ratio, ""
+        elif f == "gemini":
             if reference_urls.strip():
                 raise ValueError("Banana requires image ports; URL references unsupported")
             size, quality, image_size = aspect_ratio, "", image_size
@@ -179,7 +181,7 @@ class PromptTask(ModelSubmit):
             if width is None or height is None or type(width) is not int or type(height) is not int:
                 raise ValueError("Width and height must both be integer pixel values")
             pixel_size = f"{width}x{height}"
-        maximum = {"kr": 16, "hc": 15, "gemini": 14}[family(model)]
+        maximum = reference_limit(model)
         if not 1 <= reference_count <= maximum:
             raise ValueError("Reference count exceeds model limit")
         files = []
@@ -190,7 +192,7 @@ class PromptTask(ModelSubmit):
                     raise ValueError("Connected image exceeds active reference count")
                 files.extend(encode_images(image))
         f = family(model)
-        if f == "gemini":
+        if f in ("gemini", "aistars"):
             size, quality = aspect_ratio, ""
         elif f == "hc" or size_mode == "pixels":
             size, image_size = pixel_size, ""

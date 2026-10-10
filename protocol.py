@@ -1,23 +1,35 @@
-"""CanvasPro native image contracts checked 2026-10-05 (not GrsAI)."""
+"""CanvasPro native image contracts updated 2026-10-10; see docs evidence."""
 import base64
 import re
+import json
+from pathlib import Path
 from urllib.parse import urlsplit
 
-MODELS = ("gpt-image-2", "T香蕉2", "T香蕉2.1", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst")
+IMAGE_MODELS = json.loads((Path(__file__).with_name("image_models.json")).read_text(encoding="utf-8"))
+AISTARS = IMAGE_MODELS["aistars"]
+MODELS = ("gpt-image-2", "T香蕉2", "T香蕉2.1", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst", *AISTARS)
 RATIOS = ("1:1", "3:4", "4:3", "9:16", "16:9")
+
+def ratios(model):
+    return tuple(AISTARS[model]["ratios"] if model in AISTARS else IMAGE_MODELS["banana_ratios"].get(model, RATIOS))
+
+def reference_limit(model):
+    return AISTARS[model]["references"] if model in AISTARS else {"kr":16,"hc":15,"gemini":14}[family(model)]
 
 
 def family(model):
     if model not in MODELS:
         raise ValueError("Unsupported model; consult protocol evidence before extending registry")
-    return "gemini" if model.startswith("T香蕉") else "hc" if model.startswith("s-") else "kr"
+    return "aistars" if model in AISTARS else "gemini" if model.startswith("T香蕉") else "hc" if model.startswith("s-") else "kr"
 
 
 def query_path(model, task_id):
     from urllib.parse import quote
-    prefix = {"gemini": "/kr/gemini", "hc": "/hc", "kr": "/kr"}[family(model)]
     if not isinstance(task_id, str) or not task_id or len(task_id) > 256:
         raise ValueError("Invalid task ID")
+    if family(model) == "aistars":
+        return "/aistars/v1/tasks/" + quote(task_id, safe="")
+    prefix = {"gemini": "/kr/gemini", "hc": "/hc", "kr": "/kr"}[family(model)]
     return prefix + "/v1/images/tasks/" + quote(task_id, safe="")
 
 
@@ -35,14 +47,23 @@ def build_request(model, prompt, size="", quality="", image_size="", files=(), u
     f = family(model)
     prompt = prompt.strip()
     # JavaScript contract limits UTF-16 units, not Python Unicode code points.
-    if not prompt or len(prompt.encode("utf-16-le")) // 2 > (4000 if f == "kr" else 8000):
+    if not prompt or len(prompt.encode("utf-16-le")) // 2 > (4000 if f == "kr" else 5000 if f == "aistars" else 8000):
         raise ValueError("Prompt empty or exceeds model text limit")
     if files and urls:
         raise ValueError("Use image tensor(s) or reference URLs, not both")
-    limit = {"kr": 16, "hc": 15, "gemini": 14}[f]
+    limit = reference_limit(model)
     if max(len(files), len(urls)) > limit:
         raise ValueError("Too many reference images for model")
     urls = [public_reference(url) for url in urls]
+    if f == "aistars":
+        spec = AISTARS[model]
+        if files:
+            raise ValueError("此模型参考图需公网 HTTPS URL，请断开 IMAGE 并填写 reference_urls；API 未提供文件上传接口")
+        if quality or size not in spec["ratios"] or image_size not in spec["resolutions"]:
+            raise ValueError("该模型需要支持的比例和清晰度；不支持像素宽高或 quality")
+        body = {"model":model,"prompt":prompt,"aspect_ratio":size,"resolution":image_size,"n":1}
+        if urls:body["images"]=list(urls)
+        return "/aistars/v1/images/" + ("edits" if urls else "generations"), body, None
     if image_size and image_size not in ("1K", "2K", "4K"):
         raise ValueError("Resolution tier must be 1K/2K/4K")
     allowed_quality = ("auto", "low", "medium", "high")
@@ -53,7 +74,7 @@ def build_request(model, prompt, size="", quality="", image_size="", files=(), u
     if f == "gemini":
         if urls:
             raise ValueError("Banana references require IMAGE inputs (inlineData), not URLs")
-        if quality or (size and size not in RATIOS):
+        if quality or (size and size not in ratios(model)):
             raise ValueError("Banana uses aspect ratio and imageSize; quality/pixel size unsupported")
         if any(len(b) > 12 * 1024**2 for b in files):
             raise ValueError("Banana reference exceeds 12 MiB")

@@ -1,14 +1,19 @@
+import { IMAGE_MODELS } from "./image_models.mjs";
+
 export function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
     const hc = model.startsWith("s-");
+    const aistars = IMAGE_MODELS.aistars[model];
     return {
-        max: banana ? 14 : hc ? 15 : 16,
+        max: aistars ? 0 : banana ? 14 : hc ? 15 : 16,
+        ratios: aistars?.ratios || IMAGE_MODELS.banana_ratios[model] || ["1:1","3:4","4:3","9:16","16:9"],
+        resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
-            ...(!banana && !hc ? ["size_mode"] : []),
-            ...(hc || (!banana && mode === "pixels") ? ["pixel_size", "width", "height"] : []),
-            ...(banana || (!hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
-            ...(!banana ? ["quality", "reference_urls"] : []),
+            ...(!aistars && !banana && !hc ? ["size_mode"] : []),
+            ...(!aistars && (hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
+            ...(aistars || banana || (!hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
+            ...(aistars ? ["reference_urls"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
         qualities: ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
@@ -26,6 +31,8 @@ export function syncModelUI(node, notify = () => {}, restoring = false) {
         policy.max = 16;
         for (const name of parameters) policy.visible.add(name);
         policy.qualities = ["", "auto", "low", "medium", "high", "xhigh", "max"];
+        policy.ratios = [...new Set(Object.values(IMAGE_MODELS.banana_ratios).flat())];
+        policy.resolutions = ["1K","2K","4K"];
     }
     // New task nodes use numeric dimensions. Hide the compatibility field at
     // the base policy level, so later model/UI refreshes cannot reveal it.
@@ -35,7 +42,7 @@ export function syncModelUI(node, notify = () => {}, restoring = false) {
         return false;
     }
     const countWidget = widget(node, "reference_count");
-    const count = Math.max(1, Math.min(policy.max, Math.round(Number(countWidget.value) || 2)));
+    const count = Math.max(0, Math.min(policy.max, Math.round(Number(countWidget.value) || 2)));
     const removed = (node.inputs || []).filter(input => {
         const m = /^image_(\d+)$/.exec(input.name);
         return m ? Number(m[1]) > count : parameters.includes(input.name) && !policy.visible.has(input.name);
@@ -54,8 +61,12 @@ export function syncModelUI(node, notify = () => {}, restoring = false) {
     for (let i = 1; i <= count; i++) {
         if (!node.inputs?.some(input => input.name === `image_${i}`)) node.addInput(`image_${i}`, "IMAGE");
     }
-    countWidget.value = count;
-    countWidget.options.max = policy.max;
+    countWidget.value = Math.max(1,count);
+    countWidget.options.max = Math.max(1,policy.max);
+    for(const [name,values] of [["aspect_ratio",policy.ratios],["image_size",policy.resolutions]]) {
+        const w=widget(node,name);
+        if(w) {w.options.values=values;if(!values.includes(w.value))w.value=values.includes("1:1")?"1:1":values[0];}
+    }
     for (const name of parameters) {
         const w = widget(node, name);
         if (!w) continue;

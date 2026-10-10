@@ -1,0 +1,545 @@
+{
+  "date": "2026-10-10",
+  "catalog_url": "https://api.canvasproai.com/api/pricing",
+  "source_url": "https://api.canvasproai.com/source/new-api-kr-banana-ratios-20261010-5bd61a45.tar.gz",
+  "source_sha256": "0c1df5e0b35b1c600026f10df052b91345e952d441cc0437be9690032e727929",
+  "source_paths": [
+    "web/src/features/pricing/lib/aistarslab-registry.ts",
+    "web/src/features/pricing/lib/aistarslab-examples.ts",
+    "web/src/features/pricing/lib/async-image-examples.ts"
+  ],
+  "models": [
+    {
+      "model": "即梦-67-gpt-image-2.5-sunburst",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-66-gpt-image-2.5-sunburst",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-46-gpt-image-2",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-52-gpt-image-2.5-flare",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "s-gpt-image-2",
+      "endpoints": [
+        "openai",
+        "hc-image-edit-async-upload",
+        "hc-image-generation-async",
+        "hc-image-edit-async-url",
+        "hc-image-task-query"
+      ]
+    },
+    {
+      "model": "即梦-55-gpt-image-2",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-65-seedream-5-lite",
+      "endpoints": [
+        "openai",
+        "aistars-image-edit-submit",
+        "aistars-task-query",
+        "aistars-image-generation-submit"
+      ]
+    },
+    {
+      "model": "即梦-55-gpt-image-2.5-sunburst",
+      "endpoints": [
+        "openai",
+        "aistars-image-edit-submit",
+        "aistars-task-query",
+        "aistars-image-generation-submit"
+      ]
+    },
+    {
+      "model": "即梦-65-seedream-5-pro",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-55-gpt-image-2.5-flare",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-46-gpt-image-2.5-sunburst",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-52-gpt-image-2.5-sunburst",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "gpt-image-2",
+      "endpoints": [
+        "openai",
+        "kr-image-task-query",
+        "image-edit-async-url",
+        "image-edit-async-file",
+        "kr-image-generation-async"
+      ]
+    },
+    {
+      "model": "T香蕉2",
+      "endpoints": [
+        "openai",
+        "image-generation-async",
+        "image-task-query"
+      ]
+    },
+    {
+      "model": "即梦-52-gpt-image-2",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "T香蕉pro",
+      "endpoints": [
+        "openai",
+        "image-generation-async",
+        "image-task-query"
+      ]
+    },
+    {
+      "model": "即梦-66-gpt-image-2.5-flare",
+      "endpoints": [
+        "openai",
+        "aistars-image-edit-submit",
+        "aistars-task-query",
+        "aistars-image-generation-submit"
+      ]
+    },
+    {
+      "model": "T香蕉2.1",
+      "endpoints": [
+        "openai",
+        "image-generation-async",
+        "image-task-query"
+      ]
+    },
+    {
+      "model": "即梦-46-gpt-image-2.5-flare",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-23-gemini-3.1-flash-image-preview",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "即梦-67-gpt-image-2.5-flare",
+      "endpoints": [
+        "openai",
+        "aistars-image-generation-submit",
+        "aistars-image-edit-submit",
+        "aistars-task-query"
+      ]
+    },
+    {
+      "model": "s-gpt-image-2.5-sunburst",
+      "endpoints": [
+        "openai",
+        "hc-image-generation-async",
+        "hc-image-edit-async-url",
+        "hc-image-task-query",
+        "hc-image-edit-async-upload"
+      ]
+    },
+    {
+      "model": "s-gpt-image-2.5-flare",
+      "endpoints": [
+        "openai",
+        "hc-image-generation-async",
+        "hc-image-edit-async-url",
+        "hc-image-task-query",
+        "hc-image-edit-async-upload"
+      ]
+    },
+    {
+      "model": "即梦-23-gemini-3-pro-image-preview",
+      "endpoints": [
+        "openai",
+        "aistars-image-edit-submit",
+        "aistars-task-query",
+        "aistars-image-generation-submit"
+      ]
+    }
+  ],
+  "contracts": {
+    "aistars": {
+      "即梦-55-gpt-image-2": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 9
+      },
+      "即梦-55-gpt-image-2.5-flare": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-55-gpt-image-2.5-sunburst": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-66-gpt-image-2.5-flare": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-66-gpt-image-2.5-sunburst": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-67-gpt-image-2.5-flare": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-67-gpt-image-2.5-sunburst": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-52-gpt-image-2": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 9
+      },
+      "即梦-52-gpt-image-2.5-flare": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-52-gpt-image-2.5-sunburst": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-46-gpt-image-2": {
+        "ratios": [
+          "1:1",
+          "4:3",
+          "3:2",
+          "16:9",
+          "21:9",
+          "3:4",
+          "2:3",
+          "9:16"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-46-gpt-image-2.5-flare": {
+        "ratios": [
+          "1:1",
+          "9:16",
+          "16:9",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-46-gpt-image-2.5-sunburst": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 6
+      },
+      "即梦-23-gemini-3-pro-image-preview": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 7
+      },
+      "即梦-23-gemini-3.1-flash-image-preview": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "references": 7
+      },
+      "即梦-65-seedream-5-pro": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "resolutions": [
+          "1K",
+          "2K"
+        ],
+        "references": 6
+      },
+      "即梦-65-seedream-5-lite": {
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "resolutions": [
+          "4K"
+        ],
+        "references": 6
+      }
+    },
+    "banana_ratios": {
+      "T香蕉pro": [
+        "1:1",
+        "2:3",
+        "3:2",
+        "3:4",
+        "4:3",
+        "4:5",
+        "5:4",
+        "9:16",
+        "16:9",
+        "21:9"
+      ],
+      "T香蕉2": [
+        "1:1",
+        "2:3",
+        "3:2",
+        "3:4",
+        "4:3",
+        "4:5",
+        "5:4",
+        "9:16",
+        "16:9",
+        "21:9",
+        "1:4",
+        "4:1",
+        "1:8",
+        "8:1"
+      ],
+      "T香蕉2.1": [
+        "1:1",
+        "2:3",
+        "3:2",
+        "3:4",
+        "4:3",
+        "4:5",
+        "5:4",
+        "9:16",
+        "16:9",
+        "21:9",
+        "1:4",
+        "4:1",
+        "1:8",
+        "8:1"
+      ]
+    }
+  }
+}
