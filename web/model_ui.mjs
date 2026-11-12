@@ -3,6 +3,7 @@ import { IMAGE_MODELS } from "./image_models.mjs";
 export function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
     const hc = model.startsWith("s-");
+    const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
     return {
         max: aistars ? 0 : banana ? 14 : hc ? 15 : 16,
@@ -10,12 +11,12 @@ export function modelPolicy(model, mode = "pixels") {
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
-            ...(!aistars && !banana && !hc ? ["size_mode"] : []),
-            ...(!aistars && (hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
-            ...(aistars || banana || (!hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
-            ...(aistars ? ["reference_urls"] : !banana ? ["quality", "reference_urls"] : []),
+            ...(!sync && !aistars && !banana && !hc ? ["size_mode"] : []),
+            ...(!aistars && (sync || hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
+            ...(aistars || banana || (!sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
+            ...(aistars ? ["reference_urls"] : sync ? ["quality"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
-        qualities: ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
+        qualities: sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
 }
 

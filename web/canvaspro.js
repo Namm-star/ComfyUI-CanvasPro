@@ -25,8 +25,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -41,8 +40,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -57,8 +55,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -73,8 +70,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -89,8 +85,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -105,8 +100,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -136,8 +130,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -152,8 +145,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -164,14 +156,11 @@ const IMAGE_MODELS = {
     },
     "即梦-46-gpt-image-2": {
       "ratios": [
+        "16:9",
+        "9:16",
         "1:1",
         "4:3",
-        "3:2",
-        "16:9",
-        "21:9",
-        "3:4",
-        "2:3",
-        "9:16"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -186,8 +175,7 @@ const IMAGE_MODELS = {
         "9:16",
         "16:9",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -202,8 +190,7 @@ const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -211,6 +198,21 @@ const IMAGE_MODELS = {
         "4K"
       ],
       "references": 6
+    },
+    "即梦-23-gemini-nano-banana-2.1": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 7
     },
     "即梦-23-gemini-3-pro-image-preview": {
       "ratios": [
@@ -265,6 +267,7 @@ const IMAGE_MODELS = {
         "3:4"
       ],
       "resolutions": [
+        "2K",
         "4K"
       ],
       "references": 6
@@ -315,12 +318,112 @@ const IMAGE_MODELS = {
       "1:8",
       "8:1"
     ]
+  },
+  "sync": {
+    "gpt-image-2-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-flare-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-sunburst-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-flare-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-sunburst-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-flare-FULL": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-sunburst-FULL": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    }
   }
 };
 
 function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
     const hc = model.startsWith("s-");
+    const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
     return {
         max: aistars ? 0 : banana ? 14 : hc ? 15 : 16,
@@ -328,12 +431,12 @@ function modelPolicy(model, mode = "pixels") {
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
-            ...(!aistars && !banana && !hc ? ["size_mode"] : []),
-            ...(!aistars && (hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
-            ...(aistars || banana || (!hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
-            ...(aistars ? ["reference_urls"] : !banana ? ["quality", "reference_urls"] : []),
+            ...(!sync && !aistars && !banana && !hc ? ["size_mode"] : []),
+            ...(!aistars && (sync || hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
+            ...(aistars || banana || (!sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
+            ...(aistars ? ["reference_urls"] : sync ? ["quality"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
-        qualities: ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
+        qualities: sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
 }
 
@@ -470,7 +573,7 @@ function syncTaskAdvanced(node) {
     const externalModel = linked("model_input");
     visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
+    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (IMAGE_MODELS.sync[model] || model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
     visibility(node,["width"],pixels && !linked("width_input"));
     visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {
@@ -478,7 +581,7 @@ function syncTaskAdvanced(node) {
         if (w) { w.options.min=externalModel || model.startsWith("s-")?1:16; w.options.max=externalModel || model.startsWith("s-")?32768:3840; w.options.step=externalModel || model.startsWith("s-")?10:160; }
     }
     visibility(node,["quality"],advanced && (externalModel || (!aistars && !model.startsWith("T香蕉"))));
-    visibility(node,["reference_urls"],aistars || (advanced && (externalModel || !model.startsWith("T香蕉"))));
+    visibility(node,["reference_urls"],aistars || (advanced && (externalModel || (!IMAGE_MODELS.sync[model] && !model.startsWith("T香蕉")))));
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }

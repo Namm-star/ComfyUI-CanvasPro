@@ -47,3 +47,15 @@ HC：size 为正像素 WIDTHxHEIGHT，总像素严格小于8294400；基本 qual
 依据公开 /api/pricing 与 /source/ 发布包；选定源码路径、包SHA256和型号合同记录于 [IMAGE-CONTRACTS-20261010.json](IMAGE-CONTRACTS-20261010.json)。17款新增即梦型号：POST /aistars/v1/images/generations 或 /aistars/v1/images/edits，JSON model/prompt/aspect_ratio/resolution/n=1；编辑 images 为公网URL数组。未确认文件上传接口，不自动上传本地图片。提交返回id，GET /aistars/v1/tasks/{id}，completed终态 artifacts[].content_url 指向本站 /v1/tasks/{id}/artifacts/{artifact}/content；单图任务验证恰好一件制品。同站下载带Key，跨站仍禁止转发。
 
 香蕉pro支持10种比例；香蕉2/2.1支持14种，详见image_models.json。新型号的比例、档位、最大URL数量按公开源登记独立校验；prompt≤5000 UTF-16单元。新增协议仍保持POST单次提交、持久化恢复、失败不自动重提交。此次使用本地模拟HTTP与真实ComfyUI加载验证，未调用付费生产生成。
+
+
+## 2026-11-11 文档合同更新（0.10.0）
+
+来源摘要与 SHA256 见 IMAGE-CONTRACTS-20261111.json；新版覆盖此前合同。
+
+图片模型更新（0.10.0 / 文档2026-11-11）：共34款。
+SR/FULL：/v1/images 同步返回，不轮询；使用整数宽高，16倍数、最长边≤3840、总像素655360–8294400、长短边≤3。参考图接 IMAGE，最多16张，不支持 reference_urls。quality 按型号选择，GPT Image 2-SR 不支持xhigh/max。同步请求超时或结果未知不会自动重提；相同批次恢复已有结果。
+即梦新增：即梦-23-gemini-nano-banana-2.1；参考图在 reference_urls 每行填写一个公网HTTP(S)地址，不接IMAGE。所有18款即梦仅支持16:9、9:16、1:1、4:3、3:4。Seedream Pro 1K/2K，Lite 2K/4K，其余1K/2K/4K。
+KR香蕉：T香蕉pro为10种比例；T香蕉2/2.1为14种，额外支持1:4、4:1、1:8、8:1；仍用IMAGE参考图与1K/2K/4K。
+API Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点。report与tasks_json已连接日志显示。
+同步返回支持 data[0].url 或 data[0].b64_json。Base64验证图片后保存至本地SQLite二进制列，不写入任务句柄或日志。同步POST最多一次，超时和不完整响应记为submit_unknown；查询节点跳过没有远程任务号的同步结果。同步POST等待120秒；异步仍遵循节点request_timeout。

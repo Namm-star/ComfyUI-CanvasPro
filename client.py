@@ -1,5 +1,7 @@
 """POST exactly once. GET retries only. Never echo transport/body errors."""
 import time
+import base64
+import binascii
 from urllib.parse import urljoin, urlsplit
 import requests
 
@@ -25,11 +27,13 @@ class Client:
             kwargs = {"files": [(k, (None, v)) for k, v in payload]}
         try:
             with requests.post(self.base + path, headers={"Authorization": "Bearer " + self.key},
-                               timeout=self.timeout, allow_redirects=False, **kwargs) as r:
+                               timeout=max(120,self.timeout) if path in ("/v1/images/generations","/v1/images/edits") else self.timeout, allow_redirects=False, **kwargs) as r:
                 if not 200 <= r.status_code < 300:
                     # No generic HTTP code proves upstream did not run/charge.
                     raise ClientError(f"submit_http_{r.status_code}_outcome_unknown")
                 body = r.json()
+                if path in ("/v1/images/generations", "/v1/images/edits"):
+                    return self.normalize_sync(body)
                 task_id = body.get("id" if path.startswith("/aistars/") else "task_id") if isinstance(body, dict) else None
                 if not isinstance(task_id, str) or not task_id or len(task_id) > 256:
                     raise ClientError("submit_response_missing_task_id_outcome_unknown")
@@ -38,6 +42,36 @@ class Client:
                 return task_id
         except (requests.RequestException, ValueError):
             raise ClientError("submit_transport_or_response_error_outcome_unknown") from None
+
+    def normalize_sync(self, body):
+        data=body.get("data") if isinstance(body,dict) else None
+        if not isinstance(data,list) or len(data)!=1 or not isinstance(data[0],dict):
+            raise ClientError("sync_invalid_response_outcome_unknown")
+        item=data[0]
+        encoded=item.get("b64_json")
+        url=item.get("url")
+        if isinstance(encoded,str) and encoded:
+            if len(encoded)>90*1024**2:
+                raise ClientError("sync_image_too_large_outcome_unknown")
+            try: blob=base64.b64decode(encoded,validate=True)
+            except (ValueError,binascii.Error):
+                raise ClientError("sync_invalid_base64_outcome_unknown") from None
+            if not blob or len(blob)>64*1024**2:
+                raise ClientError("sync_image_too_large_outcome_unknown")
+            # Reject corrupt data before recording success; never retry the POST.
+            from PIL import Image
+            import io
+            try:
+                with Image.open(io.BytesIO(blob)) as im: im.verify()
+            except Exception:
+                raise ClientError("sync_invalid_image_outcome_unknown") from None
+            return {"urls":[],"image":blob}
+        if isinstance(url,str) and url and self.key not in url:
+            u=urlsplit(url)
+            local_test=origin(url)==origin(self.base) and u.hostname=="127.0.0.1"
+            if (u.scheme=="https" or local_test) and u.hostname and not u.username and not u.password:
+                return {"urls":[url],"image":None}
+        raise ClientError("sync_missing_result_outcome_unknown")
 
     def query(self, path, cancel, deadline):
         last = "query_unavailable"
@@ -68,7 +102,7 @@ class Client:
         if not isinstance(body, dict) or body.get("id") != unquote(encoded_id):
             raise ClientError("query_task_id_mismatch")
         status = {"queued":"queued", "pending":"queued", "running":"processing", "in_progress":"processing",
-            "processing":"processing", "completed":"succeeded", "failed":"failed", "cancelled":"failed"}.get(body.get("status"))
+            "processing":"processing", "completed":"succeeded", "unknown":"unknown", "failed":"failed", "cancelled":"failed"}.get(body.get("status"))
         if status is None:
             raise ClientError("query_invalid_response")
         data=[]

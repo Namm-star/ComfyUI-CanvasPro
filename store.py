@@ -25,6 +25,9 @@ class Store:
             if "model" not in columns:
                 db.execute("ALTER TABLE tasks ADD COLUMN model TEXT")
 
+            if "image" not in columns:
+                db.execute("ALTER TABLE tasks ADD COLUMN image BLOB")
+
     @contextmanager
     def connect(self):
         db = sqlite3.connect(self.path, timeout=30)
@@ -58,7 +61,7 @@ class Store:
             return cur.rowcount == 1
 
     def update(self, batch, index, **fields):
-        if not fields or not set(fields) <= {"status", "task_id", "detail", "urls"}:
+        if not fields or not set(fields) <= {"status", "task_id", "detail", "urls", "image"}:
             raise ValueError("Invalid task update")
         if "urls" in fields:
             fields["urls"] = json.dumps(fields["urls"])

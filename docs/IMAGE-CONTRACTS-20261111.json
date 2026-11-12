@@ -1,0 +1,1148 @@
+{
+  "source_file": "new-api-listed-models-guide (11).md",
+  "sha256": "471dc3328963eb401c9a43d9a1e2b17ecbe3c5a315a9d340e07d7d91e44d8db0",
+  "document_version": "20261111-suanli-slowtrain-add-1-rates-counts-v3",
+  "profiles": {
+    "kr-image": {
+      "required": [
+        "model",
+        "prompt"
+      ],
+      "allowed": [
+        "model",
+        "prompt",
+        "n",
+        "size",
+        "image_size",
+        "quality",
+        "response_format"
+      ],
+      "prompt_max": 4000,
+      "n": {
+        "enum": [
+          1
+        ],
+        "default": 1
+      },
+      "size": {
+        "maxLength": 32,
+        "formats": [
+          "auto",
+          "WIDTHxHEIGHT",
+          "KR ratio extension"
+        ],
+        "default": "upstream"
+      },
+      "image_size": {
+        "enum": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "default": "2K for KR ratio extension"
+      },
+      "quality": {
+        "enum": [
+          "auto",
+          "low",
+          "medium",
+          "high"
+        ],
+        "default": "upstream"
+      },
+      "response_format": {
+        "enum": [
+          "url"
+        ],
+        "default": "url"
+      },
+      "edit": {
+        "content_type": "multipart/form-data",
+        "exclusive_inputs": [
+          "image or repeated image[] files",
+          "image_url or repeated image_url[] strings"
+        ],
+        "reference_max": 16,
+        "mimes": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "per_file_bytes": 10485760,
+        "total_file_bytes": 67108864,
+        "url_scheme": "https"
+      }
+    },
+    "kr-gemini": {
+      "required": [
+        "model",
+        "contents"
+      ],
+      "allowed": [
+        "model",
+        "contents",
+        "generationConfig"
+      ],
+      "contents": {
+        "length": 1,
+        "role": "user",
+        "parts_min": 1,
+        "parts_max": 32,
+        "at_least_one_text": true,
+        "text_max": 8000,
+        "part_exclusive_fields": [
+          "text",
+          "inlineData"
+        ],
+        "inlineData": {
+          "required": [
+            "mimeType",
+            "data"
+          ],
+          "mimeTypes": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ],
+          "raw_base64": true,
+          "data_URI": false,
+          "reference_max": 14,
+          "per_image_base64_chars": 16777216,
+          "total_base64_chars": 67108864
+        }
+      },
+      "generationConfig": {
+        "allowed": [
+          "responseModalities",
+          "imageConfig"
+        ],
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "imageConfig": {
+          "allowed": [
+            "aspectRatio",
+            "imageSize"
+          ],
+          "aspectRatio": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ],
+          "aspectRatioByModel": {
+            "T香蕉2": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9",
+              "1:4",
+              "4:1",
+              "1:8",
+              "8:1"
+            ],
+            "T香蕉2.1": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9",
+              "1:4",
+              "4:1",
+              "1:8",
+              "8:1"
+            ],
+            "T香蕉pro": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "aspectRatioSelection": "aspectRatioByModel[model]; aspectRatio is the common subset, not the full per-model list",
+          "imageSize": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "defaults": "upstream"
+        }
+      }
+    },
+    "hc-image": {
+      "required": [
+        "model",
+        "prompt"
+      ],
+      "allowed": [
+        "model",
+        "prompt",
+        "n",
+        "size",
+        "quality",
+        "image"
+      ],
+      "prompt_max": 8000,
+      "n": {
+        "enum": [
+          1
+        ],
+        "default": 1
+      },
+      "size": {
+        "format": "WIDTHxHEIGHT",
+        "side_min": 1,
+        "side_max": 99999,
+        "pixels_exclusive_max": 8294400,
+        "default": "upstream"
+      },
+      "quality_default": "upstream",
+      "edit": {
+        "image_type": [
+          "string",
+          "string[]"
+        ],
+        "references_min": 1,
+        "references_max": 15,
+        "url_scheme": "https",
+        "url_max_length": 2048
+      },
+      "upload": {
+        "field": "image",
+        "min": 1,
+        "max": 15,
+        "mimeTypes": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "per_file_bytes": 10485760,
+        "total_file_bytes": 52428800,
+        "request_bytes": 54525952
+      }
+    },
+    "aistars-image": {
+      "required": [
+        "model",
+        "prompt",
+        "aspect_ratio",
+        "resolution"
+      ],
+      "allowed": [
+        "model",
+        "prompt",
+        "aspect_ratio",
+        "resolution",
+        "n",
+        "images"
+      ],
+      "prompt_max": 5000,
+      "n": {
+        "enum": [
+          1
+        ],
+        "default": 1
+      },
+      "media_format": "public HTTP(S) URL only",
+      "url_max_length": 8192,
+      "generate_requires": "no reference media",
+      "edit_requires": "1<=images<=model.media.images",
+      "defaults": "none for required fields"
+    },
+    "gpt-image-sync": {
+      "generation": "/v1/images/generations",
+      "edit": "/v1/images/edits",
+      "response": "synchronous_data_url_or_b64_json",
+      "n": 1
+    }
+  },
+  "models": [
+    {
+      "model": "gpt-image-2",
+      "kind": "image",
+      "profile": "kr-image"
+    },
+    {
+      "model": "T香蕉2",
+      "kind": "image",
+      "profile": "kr-gemini"
+    },
+    {
+      "model": "T香蕉2.1",
+      "kind": "image",
+      "profile": "kr-gemini"
+    },
+    {
+      "model": "T香蕉pro",
+      "kind": "image",
+      "profile": "kr-gemini"
+    },
+    {
+      "model": "s-gpt-image-2",
+      "kind": "image",
+      "profile": "hc-image",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    {
+      "model": "s-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "hc-image",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ]
+    },
+    {
+      "model": "s-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "hc-image",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ]
+    },
+    {
+      "model": "即梦-55-gpt-image-2",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 9,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-55-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-55-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-66-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-66-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-67-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-67-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-52-gpt-image-2",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 9,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-52-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-52-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-46-gpt-image-2",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-46-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "1:1",
+        "9:16",
+        "16:9",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-46-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-23-gemini-nano-banana-2.1",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 7,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-23-gemini-3-pro-image-preview",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 7,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-23-gemini-3.1-flash-image-preview",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 7,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-65-seedream-5-pro",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-65-seedream-5-lite",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "gpt-image-2-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-flare-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-sunburst-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.6-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.6-flare-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.6-sunburst-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-flare-FULL",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.12
+      }
+    },
+    {
+      "model": "gpt-image-2.5-sunburst-FULL",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.12
+      }
+    }
+  ]
+}

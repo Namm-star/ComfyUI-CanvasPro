@@ -67,7 +67,7 @@ test("AIStars registered task exposes URLs and model-specific tiers without IMAG
     assert.equal(n.inputs.filter(i=>i.type==='IMAGE').length,0);
     assert.equal(widget(n,'reference_urls').hidden,false);
     assert.equal(widget(n,'width').hidden,true);assert.equal(widget(n,'height').hidden,true);
-    assert.equal(widget(n,'quality').hidden,true);assert.equal(widget(n,'image_size').value,'4K');
+    assert.equal(widget(n,'quality').hidden,true);assert.equal(widget(n,'image_size').value,'2K');
 });
 
 test("batch key uses password DOM widget and retains parameter positions",async()=>{
@@ -83,4 +83,15 @@ test("batch key uses password DOM widget and retains parameter positions",async(
     key.value='changed-key';assert.equal(key.inputEl.value,'changed-key');assert.equal(n.widgets[3].name,'wait_seconds');assert.equal(n.widgets[5].name,'api_key');
     assert.equal(n.widgets[6].name,'seed');assert.equal(n.widgets[6].value,123);assert.equal(n.widgets[7].value,'randomize');
     delete globalThis.document;
+});
+
+test("registered SR node shows numeric dimensions even after switching from Banana",async()=>{
+ await extension.beforeRegisterNodeDef(Task,{name:'CanvasProPromptTask',input:{optional:{}}});
+ const n=new Task(); n.onNodeCreated();
+ for(const model of ['T香蕉2.1','gpt-image-2.6-SR']) {widget(n,'model').value=model;widget(n,'model').callback(model);}
+ assert.equal(widget(n,'width').hidden,false);assert.equal(widget(n,'height').hidden,false);
+ assert.equal(widget(n,'size_mode').hidden,true);assert.equal(widget(n,'image_size').hidden,true);
+ assert.equal(widget(n,'reference_urls').hidden,true);
+ widget(n,'advanced').value=true;widget(n,'advanced').callback(true);
+ assert.equal(widget(n,'quality').hidden,false);assert(widget(n,'quality').options.values.includes('max'));
 });

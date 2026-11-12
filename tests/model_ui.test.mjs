@@ -33,8 +33,8 @@ test("ratios and resolution choices follow exact model capabilities",()=>{
     assert(!widget(n,'aspect_ratio').options.values.includes('1:8'));assert.equal(widget(n,'aspect_ratio').value,'1:1');
     change(n,'model','即梦-65-seedream-5-lite');
     assert.equal(n.inputs.length,0);assert(shown(n,'reference_urls'));assert(!shown(n,'pixel_size'));
-    assert.deepEqual(widget(n,'image_size').options.values,['4K']);assert.equal(widget(n,'image_size').value,'4K');
-    change(n,'model','即梦-55-gpt-image-2.5-flare');assert(widget(n,'aspect_ratio').options.values.includes('21:9'));
+    assert.deepEqual(widget(n,'image_size').options.values,['2K','4K']);assert.equal(widget(n,'image_size').value,'2K');
+    change(n,'model','即梦-55-gpt-image-2.5-flare');assert(!widget(n,'aspect_ratio').options.values.includes('21:9'));
     change(n,'model','gpt-image-2');assert(!widget(n,'aspect_ratio').options.values.includes('21:9'));
 });
 
@@ -106,4 +106,11 @@ test("numeric dimension nodes never reveal legacy pixel size on model refresh", 
     change(n,"model","T香蕉2"); assert(!shown(n,"width")); assert(!shown(n,"pixel_size"));
     change(n,"model","gpt-image-2"); change(n,"size_mode","ratio");
     assert(!shown(n,"pixel_size")); assert(!shown(n,"width"));
+});
+
+test("SR FULL expose pixel controls and exact quality choices",()=>{
+ const n=fixture(); installModelUI(n,()=>{}); change(n,'model','gpt-image-2.6-SR');
+ assert(!shown(n,'size_mode'));assert(shown(n,'pixel_size'));assert(!shown(n,'reference_urls'));assert(!shown(n,'image_size'));
+ assert(widget(n,'quality').options.values.includes('max'));
+ change(n,'model','gpt-image-2-SR');assert(!widget(n,'quality').options.values.includes('max'));
 });

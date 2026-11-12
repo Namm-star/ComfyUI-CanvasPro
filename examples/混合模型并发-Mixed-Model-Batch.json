@@ -303,7 +303,7 @@
         "Node name for S&R": "CanvasProPromptTask"
       },
       "widgets_values": [
-        "s-gpt-image-2.5-flare",
+        "gpt-image-2.5-flare-SR",
         "主体：白色机械键盘\n构图：斜侧视角\n背景：深灰色",
         2,
         "pixels",
@@ -314,7 +314,8 @@
         false,
         1024,
         1024
-      ]
+      ],
+      "title": "SR同步任务 / Synchronous SR"
     },
     {
       "id": 8,
@@ -526,14 +527,14 @@
     {
       "id": 14,
       "type": "Note",
-      "title": "图片模型与比例 · Model Guide",
+      "title": "图片模型与参数 / Image Model Guide",
       "pos": [
         1390,
         1080
       ],
       "size": [
-        700,
-        410
+        620,
+        470
       ],
       "flags": {},
       "order": 11,
@@ -544,7 +545,7 @@
         "text": "图片模型与比例（0.9.0）\n\nT香蕉pro：1:1、2:3、3:2、3:4、4:3、4:5、5:4、9:16、16:9、21:9。\nT香蕉2 / 2.1：以上比例加 1:4、4:1、1:8、8:1。\n\n新“即梦”图片模型：选择该型号支持的 aspect_ratio 与 image_size；各型号比例、清晰度、参考数量不同。\nSeedream 5 Pro 支持1K/2K；Lite仅4K。\n\n新“即梦”参考图：在 reference_urls 填公网 HTTPS 图片地址，每行一个；当前公开 API 仅接受URL，不支持直接 IMAGE 文件上传。\n原有香蕉继续连接 IMAGE 参考图，不支持URL。\n\n修改模型或参数后，使用新 seed 创建批次。"
       },
       "widgets_values": [
-        "图片模型与比例（0.9.0）\n\nT香蕉pro：1:1、2:3、3:2、3:4、4:3、4:5、5:4、9:16、16:9、21:9。\nT香蕉2 / 2.1：以上比例加 1:4、4:1、1:8、8:1。\n\n新“即梦”图片模型：选择该型号支持的 aspect_ratio 与 image_size；各型号比例、清晰度、参考数量不同。\nSeedream 5 Pro 支持1K/2K；Lite仅4K。\n\n新“即梦”参考图：在 reference_urls 填公网 HTTPS 图片地址，每行一个；当前公开 API 仅接受URL，不支持直接 IMAGE 文件上传。\n原有香蕉继续连接 IMAGE 参考图，不支持URL。\n\n修改模型或参数后，使用新 seed 创建批次。"
+        "图片模型更新（0.10.0 / 文档2026-11-11）：共34款。\nSR/FULL：/v1/images 同步返回，不轮询；使用整数宽高，16倍数、最长边≤3840、总像素655360–8294400、长短边≤3。参考图接 IMAGE，最多16张，不支持 reference_urls。quality 按型号选择，GPT Image 2-SR 不支持xhigh/max。同步请求超时或结果未知不会自动重提；相同批次恢复已有结果。\n即梦新增：即梦-23-gemini-nano-banana-2.1；参考图在 reference_urls 每行填写一个公网HTTP(S)地址，不接IMAGE。所有18款即梦仅支持16:9、9:16、1:1、4:3、3:4。Seedream Pro 1K/2K，Lite 2K/4K，其余1K/2K/4K。\nKR香蕉：T香蕉pro为10种比例；T香蕉2/2.1为14种，额外支持1:4、4:1、1:8、8:1；仍用IMAGE参考图与1K/2K/4K。\nAPI Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点。report与tasks_json已连接日志显示。"
       ],
       "color": "#234",
       "bgcolor": "#345"
@@ -611,7 +612,7 @@
   "groups": [],
   "config": {},
   "extra": {
-    "canvaspro_version": "0.9.0",
+    "canvaspro_version": "0.10.0",
     "canvaspro_flow": "独立任务 → 批量执行 → 保存图像"
   },
   "version": 0.4

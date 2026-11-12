@@ -21,8 +21,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -37,8 +36,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -53,8 +51,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -69,8 +66,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -85,8 +81,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -101,8 +96,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -132,8 +126,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -148,8 +141,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -160,14 +152,11 @@ export const IMAGE_MODELS = {
     },
     "即梦-46-gpt-image-2": {
       "ratios": [
+        "16:9",
+        "9:16",
         "1:1",
         "4:3",
-        "3:2",
-        "16:9",
-        "21:9",
-        "3:4",
-        "2:3",
-        "9:16"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -182,8 +171,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "16:9",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -198,8 +186,7 @@ export const IMAGE_MODELS = {
         "9:16",
         "1:1",
         "4:3",
-        "3:4",
-        "21:9"
+        "3:4"
       ],
       "resolutions": [
         "1K",
@@ -207,6 +194,21 @@ export const IMAGE_MODELS = {
         "4K"
       ],
       "references": 6
+    },
+    "即梦-23-gemini-nano-banana-2.1": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 7
     },
     "即梦-23-gemini-3-pro-image-preview": {
       "ratios": [
@@ -261,6 +263,7 @@ export const IMAGE_MODELS = {
         "3:4"
       ],
       "resolutions": [
+        "2K",
         "4K"
       ],
       "references": 6
@@ -311,5 +314,104 @@ export const IMAGE_MODELS = {
       "1:8",
       "8:1"
     ]
+  },
+  "sync": {
+    "gpt-image-2-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-flare-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-sunburst-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-flare-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-sunburst-SR": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-flare-FULL": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-sunburst-FULL": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    }
   }
 };

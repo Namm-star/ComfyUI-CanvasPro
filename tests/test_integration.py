@@ -76,6 +76,13 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond(503, {"error": "Bearer fake-secret"})
             elif prompt == "missing-id":
                 self.respond(200, {"status": "queued"})
+            elif self.path in ("/v1/images/generations","/v1/images/edits"):
+                import base64
+                if prompt=="invalid-sync": self.respond(200,{"data":[{"b64_json":"bad!"}]})
+                elif prompt=="sync-url": self.respond(200,{"data":[{"url":s.base+"/image/"+task_id}]})
+                else:
+                    b=io.BytesIO();Image.new("RGB",(24,32),(10,20,30)).save(b,format="PNG")
+                    self.respond(200,{"data":[{"b64_json":base64.b64encode(b.getvalue()).decode()}]})
             else:
                 self.respond(200, {"id" if self.path.startswith("/aistars/") else "task_id": task_id, "status": "queued"})
         finally:
@@ -134,6 +141,51 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_sync_all_models_file_edit_resume_and_mixed(self):
+        from canvaspro.protocol import SYNC
+        self.assertEqual(len(MODELS),34)
+        items=[]
+        for model in SYNC:
+            items.extend(nodes.PromptTask().execute(model,"sync b64",quality="high",width=1280,height=720)[0])
+            items.extend(nodes.PromptTask().execute(model,"sync-url",image_1=torch.zeros(1,12,16,3),image_2=torch.ones(1,8,10,3))[0])
+        items.extend(nodes.PromptTask().execute("T香蕉2.1","async banana")[0])
+        with patch.object(nodes,"runtime",return_value=(self.store,self.client)),patch.object(nodes,"interrupt"),patch.object(nodes,"progress",return_value=lambda n,t:None):
+            result=nodes.BatchExecute().execute(items,"sync-mixed",wait_seconds=5,concurrency=4)["result"]
+            self.assertEqual(len(result[0]),19)
+            self.assertEqual(result[0][0].shape[1:3],(32,24))
+            persisted=Store(self.root)
+            with patch.object(nodes,"runtime",return_value=(persisted,self.client)):
+                again=nodes.BatchExecute().execute(items,"sync-mixed",wait_seconds=5)["result"]
+            self.assertEqual(len(again[0]),19)
+        self.assertEqual(len(self.service.posts),19)
+        self.assertTrue(all('/kr/gemini/' in u for u in self.service.gets))
+        for path,body in self.service.posts:
+            if path=='/v1/images/edits': self.assertEqual(body['upload_fields'],['image[]','image[]'])
+        self.assertNotIn('b64_json',result[1]+result[2])
+
+    def test_sync_transport_timeout_no_retry_and_unknown_aistars(self):
+        import requests
+        with patch('canvaspro.client.requests.post',side_effect=requests.Timeout) as post:
+            batch=submit_batch(self.store,self.client,'lost-sync','gpt-image-2-SR',['p'],size='1024x1024')
+            submit_batch(self.store,self.client,'lost-sync','gpt-image-2-SR',['p'],size='1024x1024')
+            self.assertEqual(post.call_count,1)
+            self.assertEqual(post.call_args.kwargs['timeout'],120)
+            self.assertEqual(self.store.read(batch)[1][0]['status'],'submit_unknown')
+        self.assertEqual(Client.normalize_aistars({'id':'123','status':'unknown'},'123')['status'],'unknown')
+        self.assertEqual(build_request('即梦-23-gemini-nano-banana-2.1','p',size='1:1',image_size='2K',urls=['http://example.com/a.png'])[0],'/aistars/v1/images/edits')
+
+    def test_sync_validation_and_uncertain_submit_never_replays(self):
+        from canvaspro.protocol import SYNC
+        for model in SYNC:
+            for args in [dict(size='16:9'),dict(size='4096x4096'),dict(size='1024x576'),dict(size='1024x1024',image_size='1K'),dict(size='1024x1024',urls=['https://example.com/a.png']),dict(size='1024x1024',files=[b'a']*17)]:
+                with self.assertRaises(ValueError):build_request(model,'p',**args)
+        with self.assertRaises(ValueError):build_request('gpt-image-2-SR','p',size='1024x1024',quality='max')
+        for prompt in ['bad-submit','invalid-sync']:
+            batch=submit_batch(self.store,self.client,prompt,'gpt-image-2-SR',[prompt],size='1024x1024')
+            self.assertEqual(self.store.read(batch)[1][0]['status'],'submit_unknown')
+            submit_batch(self.store,self.client,prompt,'gpt-image-2-SR',[prompt],size='1024x1024')
+        self.assertEqual(len(self.service.posts),2)
+
     def test_independent_multiline_tasks(self):
         a = nodes.PromptTask().execute("gpt-image-2", "主体：键盘\n构图：俯拍\n保留文字", image_1=torch.zeros(1,7,11,3))[0]
         b = nodes.PromptTask().execute("gpt-image-2", "主体：小猫\n背景：纯白", image_1=torch.ones(1,13,5,3))[0]
@@ -460,7 +512,7 @@ print(batch)
         with patch.dict(os.environ,env),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             first=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
             again=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
-        self.assertEqual(len(first[0]),34);self.assertEqual(len(self.service.posts),34)
+        self.assertEqual(len(first[0]),36);self.assertEqual(len(self.service.posts),36)
         self.assertEqual(first[2],again[2])
         for path,body in self.service.posts:
             self.assertEqual(path,'/aistars/v1/images/'+('edits' if body['prompt']=='edit' else 'generations'))

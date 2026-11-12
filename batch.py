@@ -84,8 +84,11 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
             return
         path, payload, uploads = requests[index]
         try:
-            task_id = client.submit(path, payload, uploads)
-            store.update(batch, index, status="queued", task_id=task_id, detail="")
+            result = client.submit(path, payload, uploads)
+            if path in ("/v1/images/generations", "/v1/images/edits"):
+                store.update(batch,index,status="succeeded",urls=result["urls"],image=result["image"],detail="sync_completed_no_poll")
+            else:
+                store.update(batch, index, status="queued", task_id=result, detail="")
         except ClientError as error:
             store.update(batch, index, status="submit_unknown", detail=str(error))
         except Exception:

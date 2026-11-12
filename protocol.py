@@ -1,4 +1,4 @@
-"""CanvasPro native image contracts updated 2026-10-10; see docs evidence."""
+"""CanvasPro native image contracts updated 2026-11-11; see docs evidence."""
 import base64
 import re
 import json
@@ -7,39 +7,42 @@ from urllib.parse import urlsplit
 
 IMAGE_MODELS = json.loads((Path(__file__).with_name("image_models.json")).read_text(encoding="utf-8"))
 AISTARS = IMAGE_MODELS["aistars"]
-MODELS = ("gpt-image-2", "T香蕉2", "T香蕉2.1", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst", *AISTARS)
+SYNC = IMAGE_MODELS["sync"]
+MODELS = ("gpt-image-2", "T香蕉2", "T香蕉2.1", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst", *AISTARS, *SYNC)
 RATIOS = ("1:1", "3:4", "4:3", "9:16", "16:9")
 
 def ratios(model):
     return tuple(AISTARS[model]["ratios"] if model in AISTARS else IMAGE_MODELS["banana_ratios"].get(model, RATIOS))
 
 def reference_limit(model):
-    return AISTARS[model]["references"] if model in AISTARS else {"kr":16,"hc":15,"gemini":14}[family(model)]
+    return SYNC[model]["references"] if model in SYNC else AISTARS[model]["references"] if model in AISTARS else {"kr":16,"hc":15,"gemini":14}[family(model)]
 
 
 def family(model):
     if model not in MODELS:
         raise ValueError("Unsupported model; consult protocol evidence before extending registry")
-    return "aistars" if model in AISTARS else "gemini" if model.startswith("T香蕉") else "hc" if model.startswith("s-") else "kr"
+    return "sync" if model in SYNC else "aistars" if model in AISTARS else "gemini" if model.startswith("T香蕉") else "hc" if model.startswith("s-") else "kr"
 
 
 def query_path(model, task_id):
     from urllib.parse import quote
     if not isinstance(task_id, str) or not task_id or len(task_id) > 256:
         raise ValueError("Invalid task ID")
+    if family(model) == "sync":
+        raise ValueError("同步图片接口没有任务查询入口")
     if family(model) == "aistars":
         return "/aistars/v1/tasks/" + quote(task_id, safe="")
     prefix = {"gemini": "/kr/gemini", "hc": "/hc", "kr": "/kr"}[family(model)]
     return prefix + "/v1/images/tasks/" + quote(task_id, safe="")
 
 
-def public_reference(url):
+def public_reference(url, https_only=True):
     u = urlsplit(url)
     host = u.hostname or ""
-    if (u.scheme != "https" or u.username or u.password or u.port not in (None, 443)
+    if (u.scheme not in (("https",) if https_only else ("http","https")) or u.username or u.password or u.port not in (None, 443, *(() if https_only else (80,)))
             or "." not in host or host.endswith((".local", ".localhost"))
             or re.fullmatch(r"[\d.]+", host) or ":" in host or len(url) > 2048):
-        raise ValueError("Reference URLs must be public HTTPS domain URLs")
+        raise ValueError("Reference URLs must be public domain URLs using the supported HTTP(S) scheme")
     return url
 
 
@@ -47,14 +50,14 @@ def build_request(model, prompt, size="", quality="", image_size="", files=(), u
     f = family(model)
     prompt = prompt.strip()
     # JavaScript contract limits UTF-16 units, not Python Unicode code points.
-    if not prompt or len(prompt.encode("utf-16-le")) // 2 > (4000 if f == "kr" else 5000 if f == "aistars" else 8000):
+    if not prompt or (f != "sync" and len(prompt.encode("utf-16-le")) // 2 > (4000 if f == "kr" else 5000 if f == "aistars" else 8000)):
         raise ValueError("Prompt empty or exceeds model text limit")
     if files and urls:
         raise ValueError("Use image tensor(s) or reference URLs, not both")
     limit = reference_limit(model)
     if max(len(files), len(urls)) > limit:
         raise ValueError("Too many reference images for model")
-    urls = [public_reference(url) for url in urls]
+    urls = [public_reference(url, https_only=f != "aistars") for url in urls]
     if f == "aistars":
         spec = AISTARS[model]
         if files:
@@ -64,6 +67,23 @@ def build_request(model, prompt, size="", quality="", image_size="", files=(), u
         body = {"model":model,"prompt":prompt,"aspect_ratio":size,"resolution":image_size,"n":1}
         if urls:body["images"]=list(urls)
         return "/aistars/v1/images/" + ("edits" if urls else "generations"), body, None
+    if f == "sync":
+        if urls or image_size:
+            raise ValueError("SR/FULL 使用像素宽高和 IMAGE 文件输入，不支持 URL 或清晰度档")
+        m = re.fullmatch(r"([0-9]{1,5})x([0-9]{1,5})", size)
+        if not m:
+            raise ValueError("SR/FULL size 必须是宽x高像素")
+        w,h=map(int,m.groups())
+        if min(w,h)<=0 or w%16 or h%16 or max(w,h)>3840 or max(w,h)/min(w,h)>3 or not 655360<=w*h<=8294400:
+            raise ValueError("Invalid SR/FULL pixel dimensions")
+        if quality and quality not in SYNC[model]["qualities"]:
+            raise ValueError("Unsupported quality for model")
+        body={"model":model,"prompt":prompt,"size":size,"n":1}
+        if quality: body["quality"]=quality
+        if not files: return "/v1/images/generations",body,None
+        fields=[(k,str(v)) for k,v in body.items()]
+        uploads=[("image" if len(files)==1 else "image[]",(f"reference-{i}.png",b,"image/png")) for i,b in enumerate(files)]
+        return "/v1/images/edits",fields,uploads
     if image_size and image_size not in ("1K", "2K", "4K"):
         raise ValueError("Resolution tier must be 1K/2K/4K")
     allowed_quality = ("auto", "low", "medium", "high")

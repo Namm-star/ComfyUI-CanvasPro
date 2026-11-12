@@ -2,227 +2,876 @@
   "images": {
     "models": [
       {
-        "model": "即梦-67-gpt-image-2.5-sunburst",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-66-gpt-image-2.5-sunburst",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-46-gpt-image-2",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-52-gpt-image-2.5-flare",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "s-gpt-image-2",
-        "endpoint_types": [
-          "openai",
-          "hc-image-edit-async-upload",
-          "hc-image-generation-async",
-          "hc-image-edit-async-url",
-          "hc-image-task-query"
-        ]
-      },
-      {
-        "model": "即梦-55-gpt-image-2",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-65-seedream-5-lite",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-edit-submit",
-          "aistars-task-query",
-          "aistars-image-generation-submit"
-        ]
-      },
-      {
-        "model": "即梦-55-gpt-image-2.5-sunburst",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-edit-submit",
-          "aistars-task-query",
-          "aistars-image-generation-submit"
-        ]
-      },
-      {
-        "model": "即梦-65-seedream-5-pro",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-55-gpt-image-2.5-flare",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-46-gpt-image-2.5-sunburst",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-52-gpt-image-2.5-sunburst",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
         "model": "gpt-image-2",
-        "endpoint_types": [
-          "openai",
-          "kr-image-task-query",
-          "image-edit-async-url",
-          "image-edit-async-file",
-          "kr-image-generation-async"
-        ]
+        "kind": "image",
+        "profile": "kr-image"
       },
       {
         "model": "T香蕉2",
-        "endpoint_types": [
-          "openai",
-          "image-generation-async",
-          "image-task-query"
-        ]
-      },
-      {
-        "model": "即梦-52-gpt-image-2",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "T香蕉pro",
-        "endpoint_types": [
-          "openai",
-          "image-generation-async",
-          "image-task-query"
-        ]
-      },
-      {
-        "model": "即梦-66-gpt-image-2.5-flare",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-edit-submit",
-          "aistars-task-query",
-          "aistars-image-generation-submit"
-        ]
+        "kind": "image",
+        "profile": "kr-gemini"
       },
       {
         "model": "T香蕉2.1",
-        "endpoint_types": [
-          "openai",
-          "image-generation-async",
-          "image-task-query"
-        ]
+        "kind": "image",
+        "profile": "kr-gemini"
       },
       {
-        "model": "即梦-46-gpt-image-2.5-flare",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
+        "model": "T香蕉pro",
+        "kind": "image",
+        "profile": "kr-gemini"
       },
       {
-        "model": "即梦-23-gemini-3.1-flash-image-preview",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "即梦-67-gpt-image-2.5-flare",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-generation-submit",
-          "aistars-image-edit-submit",
-          "aistars-task-query"
-        ]
-      },
-      {
-        "model": "s-gpt-image-2.5-sunburst",
-        "endpoint_types": [
-          "openai",
-          "hc-image-generation-async",
-          "hc-image-edit-async-url",
-          "hc-image-task-query",
-          "hc-image-edit-async-upload"
+        "model": "s-gpt-image-2",
+        "kind": "image",
+        "profile": "hc-image",
+        "qualities": [
+          "auto",
+          "low",
+          "medium",
+          "high"
         ]
       },
       {
         "model": "s-gpt-image-2.5-flare",
-        "endpoint_types": [
-          "openai",
-          "hc-image-generation-async",
-          "hc-image-edit-async-url",
-          "hc-image-task-query",
-          "hc-image-edit-async-upload"
+        "kind": "image",
+        "profile": "hc-image",
+        "qualities": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
         ]
       },
       {
-        "model": "即梦-23-gemini-3-pro-image-preview",
-        "endpoint_types": [
-          "openai",
-          "aistars-image-edit-submit",
-          "aistars-task-query",
-          "aistars-image-generation-submit"
+        "model": "s-gpt-image-2.5-sunburst",
+        "kind": "image",
+        "profile": "hc-image",
+        "qualities": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
         ]
+      },
+      {
+        "model": "即梦-55-gpt-image-2",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 9,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-55-gpt-image-2.5-flare",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-55-gpt-image-2.5-sunburst",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-66-gpt-image-2.5-flare",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-66-gpt-image-2.5-sunburst",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-67-gpt-image-2.5-flare",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-67-gpt-image-2.5-sunburst",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-52-gpt-image-2",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 9,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-52-gpt-image-2.5-flare",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-52-gpt-image-2.5-sunburst",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-46-gpt-image-2",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-46-gpt-image-2.5-flare",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "1:1",
+          "9:16",
+          "16:9",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-46-gpt-image-2.5-sunburst",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-23-gemini-nano-banana-2.1",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 7,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-23-gemini-3-pro-image-preview",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 7,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-23-gemini-3.1-flash-image-preview",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 7,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-65-seedream-5-pro",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "1K",
+          "2K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "即梦-65-seedream-5-lite",
+        "kind": "image",
+        "profile": "aistars-image",
+        "resolutions": [
+          "2K",
+          "4K"
+        ],
+        "ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "media": {
+          "images": 6,
+          "audios": 0,
+          "videos": 0
+        },
+        "n": 1
+      },
+      {
+        "model": "gpt-image-2-SR",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.012
+        }
+      },
+      {
+        "model": "gpt-image-2.5-SR",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.012
+        }
+      },
+      {
+        "model": "gpt-image-2.5-flare-SR",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.012
+        }
+      },
+      {
+        "model": "gpt-image-2.5-sunburst-SR",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.012
+        }
+      },
+      {
+        "model": "gpt-image-2.6-SR",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.012
+        }
+      },
+      {
+        "model": "gpt-image-2.6-flare-SR",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.012
+        }
+      },
+      {
+        "model": "gpt-image-2.6-sunburst-SR",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.012
+        }
+      },
+      {
+        "model": "gpt-image-2.5-flare-FULL",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.12
+        }
+      },
+      {
+        "model": "gpt-image-2.5-sunburst-FULL",
+        "category": "image",
+        "profile": "gpt-image-sync",
+        "vendor": "OpenAI",
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "parameters": {
+          "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+          "n": 1,
+          "quality": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "editing": {
+            "input": "multipart",
+            "field": "image[]",
+            "single_reference_field": "image",
+            "references": 16,
+            "minimum_references": 1,
+            "maximum_references": 16,
+            "mime": "image/png",
+            "ordering": "repeated_same_field_upload_order",
+            "scope": "input_reference_count_not_output_n",
+            "output_count": 1
+          }
+        },
+        "price": {
+          "unit": "request_n1",
+          "credits": 0.12
+        }
       }
     ],
     "implemented": true,
-    "checked_date": "2026-10-10"
+    "checked_date": "2026-11-11",
+    "source": "docs/IMAGE-CONTRACTS-20261111.json",
+    "verified_date": "2026-11-12",
+    "count": 34
   },
-  "public_model_count": 160,
+  "public_model_count": 319,
   "hc_video": {
     "models": [
       "官转doubao-seedance-2.0",
@@ -4316,5 +4965,6 @@
     ],
     "plugin_sha256": "0b2147c4d8a9722663b53d88d6fc6805bd754750399d4339e24b5537c8afa04a",
     "implemented": false
-  }
+  },
+  "public_model_count_source": "2026-11-11 user-provided model guide; non-image protocol records below remain historical and unimplemented"
 }

@@ -115,7 +115,7 @@ class ModelSubmit(Submit):
             if reference_urls.strip():
                 raise ValueError("Banana requires image ports; URL references unsupported")
             size, quality, image_size = aspect_ratio, "", image_size
-        elif f == "hc":
+        elif f in ("hc", "sync"):
             size, image_size = pixel_size, ""
         elif size_mode == "pixels":
             size, image_size = pixel_size, ""
@@ -194,7 +194,7 @@ class PromptTask(ModelSubmit):
         f = family(model)
         if f in ("gemini", "aistars"):
             size, quality = aspect_ratio, ""
-        elif f == "hc" or size_mode == "pixels":
+        elif f in ("hc", "sync") or size_mode == "pixels":
             size, image_size = pixel_size, ""
         elif size_mode == "ratio":
             size = aspect_ratio
@@ -305,10 +305,13 @@ class Fetch:
                 return
             tensors = []
             try:
-                for url in task["urls"]:
+                if task.get("image") is not None:
+                    blobs = [task["image"]]
+                else:
+                    blobs = (client.download(url) for url in task["urls"])
+                for blob in blobs:
                     if cancel.is_set():
                         raise ClientError("download_cancelled")
-                    blob = client.download(url)
                     with Image.open(io.BytesIO(blob)) as im:
                         im = ImageOps.exif_transpose(im).convert("RGB")
                         tensor = torch.from_numpy(np.array(im).astype(np.float32) / 255.0).unsqueeze(0)

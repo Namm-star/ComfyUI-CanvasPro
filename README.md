@@ -1,4 +1,4 @@
-# ComfyUI CanvasPro 0.8.0
+# ComfyUI CanvasPro 0.10.0
 
 **独立任务 → 批量执行 → 保存图像**。支持完整多行提示词、混合模型、自动增加任务及参考图入口。每批最多 256 个任务，提交并发数 1～8；重复运行同一批次不会重新提交收费。
 
@@ -7,10 +7,10 @@
 旧示例已删除，当前只保留以下三个界面工作流：
 
 - [普通多任务](examples/多任务并发-Multi-Task-Batch.json)：多个独立任务直接连接批量执行，无需合并节点。
-- [混合模型](examples/混合模型并发-Mixed-Model-Batch.json)：GPT Image、香蕉、HC 和新即梦 Seedream 四个任务一起执行。
+- [混合模型](examples/混合模型并发-Mixed-Model-Batch.json)：GPT Image、香蕉、SR 同步和即梦 Seedream 四个任务一起执行。
 - [多图编辑](examples/多图编辑-Multi-Image-Edit.json)：两张参考图连接一个完整提示词任务，再连接批量执行；先选择自己的图片。
 
-下载对应 JSON 后拖入 ComfyUI。已安装用户先更新插件、重启 ComfyUI，再刷新浏览器。更多说明见 [示例目录](examples/README.md)。`optimized-api.json` 是 API 格式，界面导入请使用 `*-workflow.json`。
+下载对应 JSON 后拖入 ComfyUI。已安装用户先更新插件、重启 ComfyUI，再刷新浏览器。更多说明见 [示例目录](examples/README.md)。`optimized-api.json` 是 API 格式，界面导入请使用上面三个双语文件名 JSON。
 
 ## 使用
 
@@ -114,6 +114,13 @@ API 工作流通过 seed 数值区分新批次；randomize 是 ComfyUI 界面的
 
 新增模型下拉与 model_input 名称支持，复用 KR Gemini 图片提交和查询接口；支持文生图、多图参考、比例和 1K/2K/4K，最多14张参考图。混合模型示例已使用 T香蕉2.1。
 
-### 新图片模型与香蕉比例（0.9.0）
+### 图片模型目录（0.10.0）
 
-新增17款即梦图片型号，完整名称见 image_models.json，插件共支持24款图片模型。新型号使用独立AIStars异步协议，单次1图；参考图只能填写公网HTTPS URL（每行一个），尚无已确认的直接文件上传接口。界面按型号显示比例、清晰度及参考能力。香蕉比例按型号扩展，GPT Image比例保持原有限制。混合模型示例增加Seedream任务。
+根据2026-11-11手册支持全部34款图片模型：9款SR/FULL同步、18款即梦、KR GPT、3款KR香蕉及3款HC。精确型号、质量、比例和分辨率见 image_models.json，合同证据见 docs/IMAGE-CONTRACTS-20261111.json。即梦参考图使用公网HTTP(S) URL；SR/FULL、KR香蕉使用IMAGE输入。混合示例同时演示同步与异步任务。
+
+
+图片模型更新（0.10.0 / 文档2026-11-11）：共34款。
+SR/FULL：/v1/images 同步返回，不轮询；使用整数宽高，16倍数、最长边≤3840、总像素655360–8294400、长短边≤3。参考图接 IMAGE，最多16张，不支持 reference_urls。quality 按型号选择，GPT Image 2-SR 不支持xhigh/max。同步请求超时或结果未知不会自动重提；相同批次恢复已有结果。
+即梦新增：即梦-23-gemini-nano-banana-2.1；参考图在 reference_urls 每行填写一个公网HTTP(S)地址，不接IMAGE。所有18款即梦仅支持16:9、9:16、1:1、4:3、3:4。Seedream Pro 1K/2K，Lite 2K/4K，其余1K/2K/4K。
+KR香蕉：T香蕉pro为10种比例；T香蕉2/2.1为14种，额外支持1:4、4:1、1:8、8:1；仍用IMAGE参考图与1K/2K/4K。
+API Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点。report与tasks_json已连接日志显示。

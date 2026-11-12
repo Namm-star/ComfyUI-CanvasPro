@@ -40,7 +40,7 @@ export function syncTaskAdvanced(node) {
     const externalModel = linked("model_input");
     visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
+    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (IMAGE_MODELS.sync[model] || model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
     visibility(node,["width"],pixels && !linked("width_input"));
     visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {
@@ -48,7 +48,7 @@ export function syncTaskAdvanced(node) {
         if (w) { w.options.min=externalModel || model.startsWith("s-")?1:16; w.options.max=externalModel || model.startsWith("s-")?32768:3840; w.options.step=externalModel || model.startsWith("s-")?10:160; }
     }
     visibility(node,["quality"],advanced && (externalModel || (!aistars && !model.startsWith("T香蕉"))));
-    visibility(node,["reference_urls"],aistars || (advanced && (externalModel || !model.startsWith("T香蕉"))));
+    visibility(node,["reference_urls"],aistars || (advanced && (externalModel || (!IMAGE_MODELS.sync[model] && !model.startsWith("T香蕉")))));
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }
