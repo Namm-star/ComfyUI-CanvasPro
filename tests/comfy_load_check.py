@@ -66,10 +66,11 @@ async def main():
             second_values = {k:v for k,v in prompt["6"]["inputs"].items() if k not in ('model_input','width_input','height_input')}
             second = await invoke("CanvasProPromptTask", {**second_values, "model":"T香蕉2.1"})
             third = await invoke('CanvasProPromptTask',native_values)
-            fourth = await invoke('CanvasProPromptTask',{'model':'gpt-image-2.6-SR','prompt':'sync b64','width':1280,'height':720,'quality':'max'})
-            fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],"task_3":third[0][0],"task_4":fourth[0][0],
+            fourth = await invoke('CanvasProPromptTask',{'model':'gpt-image-2.6-flare-W','prompt':'sync b64','width':1280,'height':720,'quality':'max'})
+            fifth = await invoke('CanvasProPromptTask',{'model':'gpt-image-2.6-sunburst','prompt':'kr25','width':1280,'height':720,'quality':'xhigh'})
+            fetched = await invoke("CanvasProBatchExecute", {"task_1":first[0][0], "task_2":second[0][0],"task_3":third[0][0],"task_4":fourth[0][0],"task_5":fifth[0][0],
                 "job_key":"real-mixed", "concurrency":3, "advanced":False, "wait_seconds":5})
-            assert len(fetched[0]) == 4
+            assert len(fetched[0]) == 5
             for slot in (1, 2):
                 text_value = fetched[slot][0]
                 output, ui, _, _ = await execution.get_output_data('canvaspro-check', f'log-{slot}',
@@ -82,11 +83,11 @@ async def main():
             try:
                 output, ui, _, _ = await execution.get_output_data("canvaspro-check", "save",
                     nodes.NODE_CLASS_MAPPINGS["SaveImage"](), {"images": fetched[0], "filename_prefix": ["mock"]})
-                assert len(ui["images"]) == 4
+                assert len(ui["images"]) == 5
             finally:
                 folder_paths.set_output_directory(original_output)
-            assert len(service.posts) == 4
-            print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (KR/Gemini/AIStars/SR sync mixed batch)")
+            assert len(service.posts) == 5
+            print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (KR/Gemini/AIStars/W sync/KR25 mixed batch)")
         finally:
             service.shutdown()
             service.server_close()

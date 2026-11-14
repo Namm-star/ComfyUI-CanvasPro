@@ -114,3 +114,12 @@ test("SR FULL expose pixel controls and exact quality choices",()=>{
  assert(widget(n,'quality').options.values.includes('max'));
  change(n,'model','gpt-image-2-SR');assert(!widget(n,'quality').options.values.includes('max'));
 });
+
+test("new KR and W offer pixels or auto, Seedream 5.5 only 2K",()=>{
+ const n=fixture(); installModelUI(n,()=>{});
+ for(const model of ['gpt-image-2.6-flare','gpt-image-2.6-flare-W']){
+  change(n,'model',model);assert(shown(n,'size_mode'));assert(!shown(n,'image_size'));assert(!shown(n,'aspect_ratio'));
+  assert.deepEqual(widget(n,'size_mode').options.values,['pixels','auto']);change(n,'size_mode','auto');assert(!shown(n,'pixel_size'));
+ }
+ change(n,'model','即梦-65-seedream-5.5');assert.deepEqual(widget(n,'image_size').options.values,['2K']);
+});

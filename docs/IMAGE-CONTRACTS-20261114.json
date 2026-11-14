@@ -1,0 +1,1588 @@
+{
+  "source_url": "https://api.canvasproai.com/new-api-listed-models-guide.md?v=1cab6846d70ecb9e",
+  "guide_sha256": "55eb23d21da4b3ea2ef5abc1aed463eab9196db701cd5e2bbd85c3e945866c60",
+  "document_version": "20261114-aistars-phase3-v1",
+  "count_discrepancy": "Header says 32 image models; embedded precise contracts and live pricing both list 45.",
+  "models": [
+    {
+      "model": "gpt-image-2",
+      "kind": "image",
+      "profile": "kr-image"
+    },
+    {
+      "model": "T香蕉2",
+      "kind": "image",
+      "profile": "kr-gemini"
+    },
+    {
+      "model": "T香蕉2.1",
+      "kind": "image",
+      "profile": "kr-gemini"
+    },
+    {
+      "model": "T香蕉pro",
+      "kind": "image",
+      "profile": "kr-gemini"
+    },
+    {
+      "model": "s-gpt-image-2",
+      "kind": "image",
+      "profile": "hc-image",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    {
+      "model": "s-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "hc-image",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ]
+    },
+    {
+      "model": "s-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "hc-image",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ]
+    },
+    {
+      "model": "gpt-image-2-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-flare-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-sunburst-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.6-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.6-flare-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.6-sunburst-SR",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.012
+      }
+    },
+    {
+      "model": "gpt-image-2.5-flare-FULL",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.12
+      }
+    },
+    {
+      "model": "gpt-image-2.5-sunburst-FULL",
+      "category": "image",
+      "profile": "gpt-image-sync",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "size": "WIDTHxHEIGHT;16px step;edge<=3840;pixels655360..8294400;ratio1:3..3:1",
+        "n": 1,
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "editing": {
+          "input": "multipart",
+          "field": "image[]",
+          "single_reference_field": "image",
+          "references": 16,
+          "minimum_references": 1,
+          "maximum_references": 16,
+          "mime": "image/png",
+          "ordering": "repeated_same_field_upload_order",
+          "scope": "input_reference_count_not_output_n",
+          "output_count": 1
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "credits": 0.12
+      }
+    },
+    {
+      "model": "gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "kr-gpt-image-25-26",
+      "vendor": "OpenAI",
+      "parameters": {
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "size": {
+          "auto": true,
+          "multiple": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "experimentalAbovePixels": 3686400
+        },
+        "n": 1,
+        "edit": {
+          "maxReferences": 16,
+          "formats": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ],
+          "eachFileBytesExclusive": 52428800,
+          "transportBodyMiB": 128,
+          "inputs": [
+            "multipart image/image[]",
+            "multipart image_url/image_url[]"
+          ],
+          "mixFilesAndUrls": false
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "group": "default",
+        "credits": 0.132
+      }
+    },
+    {
+      "model": "gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "kr-gpt-image-25-26",
+      "vendor": "OpenAI",
+      "parameters": {
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "size": {
+          "auto": true,
+          "multiple": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "experimentalAbovePixels": 3686400
+        },
+        "n": 1,
+        "edit": {
+          "maxReferences": 16,
+          "formats": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ],
+          "eachFileBytesExclusive": 52428800,
+          "transportBodyMiB": 128,
+          "inputs": [
+            "multipart image/image[]",
+            "multipart image_url/image_url[]"
+          ],
+          "mixFilesAndUrls": false
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "group": "default",
+        "credits": 0.132
+      }
+    },
+    {
+      "model": "gpt-image-2.6-flare",
+      "kind": "image",
+      "profile": "kr-gpt-image-25-26",
+      "vendor": "OpenAI",
+      "parameters": {
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "size": {
+          "auto": true,
+          "multiple": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "experimentalAbovePixels": 3686400
+        },
+        "n": 1,
+        "edit": {
+          "maxReferences": 16,
+          "formats": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ],
+          "eachFileBytesExclusive": 52428800,
+          "transportBodyMiB": 128,
+          "inputs": [
+            "multipart image/image[]",
+            "multipart image_url/image_url[]"
+          ],
+          "mixFilesAndUrls": false
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "group": "default",
+        "credits": 0.132
+      }
+    },
+    {
+      "model": "gpt-image-2.6-sunburst",
+      "kind": "image",
+      "profile": "kr-gpt-image-25-26",
+      "vendor": "OpenAI",
+      "parameters": {
+        "quality": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "size": {
+          "auto": true,
+          "multiple": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "experimentalAbovePixels": 3686400
+        },
+        "n": 1,
+        "edit": {
+          "maxReferences": 16,
+          "formats": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ],
+          "eachFileBytesExclusive": 52428800,
+          "transportBodyMiB": 128,
+          "inputs": [
+            "multipart image/image[]",
+            "multipart image_url/image_url[]"
+          ],
+          "mixFilesAndUrls": false
+        }
+      },
+      "price": {
+        "unit": "request_n1",
+        "group": "default",
+        "credits": 0.132
+      }
+    },
+    {
+      "model": "gpt-image-2.5-flare-W",
+      "category": "image",
+      "profile": "image-sync-gpt-image-2.5-flare-W",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "sync": true,
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "outputCount": 1,
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max",
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "size": {
+          "type": "string",
+          "default": "auto",
+          "step": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "presets": {
+            "oneK": [
+              "1024x1024",
+              "1536x1024",
+              "1024x1536"
+            ],
+            "twoK": [
+              "2048x2048",
+              "2048x1152",
+              "1152x2048"
+            ],
+            "fourKUpscaled": [
+              "3840x2160",
+              "2160x3840"
+            ]
+          },
+          "fourK": "upscaled-not-native"
+        },
+        "editing": {
+          "type": "multipart",
+          "field": "image[]",
+          "singleReferenceField": "image",
+          "minimum": 1,
+          "maximum": 16,
+          "formats": [
+            "png",
+            "jpeg",
+            "webp"
+          ],
+          "maxBytesExclusive": 52428800
+        },
+        "billing": {
+          "unit": "image",
+          "group": "default",
+          "credits": 0.0195
+        },
+        "example": {
+          "model": "gpt-image-2.5-flare-W",
+          "prompt": "桌面上一个红色陶瓷杯与两个橙子，保持自然光影，不添加水印。",
+          "size": "2048x2048",
+          "quality": "high",
+          "n": 1,
+          "output_format": "png"
+        }
+      },
+      "price": {
+        "unit": "image_n1",
+        "credits": 0.0195
+      }
+    },
+    {
+      "model": "gpt-image-2.5-sunburst-W",
+      "category": "image",
+      "profile": "image-sync-gpt-image-2.5-sunburst-W",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "sync": true,
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "outputCount": 1,
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max",
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "size": {
+          "type": "string",
+          "default": "auto",
+          "step": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "presets": {
+            "oneK": [
+              "1024x1024",
+              "1536x1024",
+              "1024x1536"
+            ],
+            "twoK": [
+              "2048x2048",
+              "2048x1152",
+              "1152x2048"
+            ],
+            "fourKUpscaled": [
+              "3840x2160",
+              "2160x3840"
+            ]
+          },
+          "fourK": "upscaled-not-native"
+        },
+        "editing": {
+          "type": "multipart",
+          "field": "image[]",
+          "singleReferenceField": "image",
+          "minimum": 1,
+          "maximum": 16,
+          "formats": [
+            "png",
+            "jpeg",
+            "webp"
+          ],
+          "maxBytesExclusive": 52428800
+        },
+        "billing": {
+          "unit": "image",
+          "group": "default",
+          "credits": 0.0195
+        },
+        "example": {
+          "model": "gpt-image-2.5-sunburst-W",
+          "prompt": "桌面上一个红色陶瓷杯与两个橙子，保持自然光影，不添加水印。",
+          "size": "2048x2048",
+          "quality": "high",
+          "n": 1,
+          "output_format": "png"
+        }
+      },
+      "price": {
+        "unit": "image_n1",
+        "credits": 0.0195
+      }
+    },
+    {
+      "model": "gpt-image-2.6-flare-W",
+      "category": "image",
+      "profile": "image-sync-gpt-image-2.6-flare-W",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "sync": true,
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "outputCount": 1,
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max",
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "size": {
+          "type": "string",
+          "default": "auto",
+          "step": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "presets": {
+            "oneK": [
+              "1024x1024",
+              "1536x1024",
+              "1024x1536"
+            ],
+            "twoK": [
+              "2048x2048",
+              "2048x1152",
+              "1152x2048"
+            ],
+            "fourKUpscaled": [
+              "3840x2160",
+              "2160x3840"
+            ]
+          },
+          "fourK": "upscaled-not-native"
+        },
+        "editing": {
+          "type": "multipart",
+          "field": "image[]",
+          "singleReferenceField": "image",
+          "minimum": 1,
+          "maximum": 16,
+          "formats": [
+            "png",
+            "jpeg",
+            "webp"
+          ],
+          "maxBytesExclusive": 52428800
+        },
+        "billing": {
+          "unit": "image",
+          "group": "default",
+          "credits": 0.0195
+        },
+        "example": {
+          "model": "gpt-image-2.6-flare-W",
+          "prompt": "桌面上一个红色陶瓷杯与两个橙子，保持自然光影，不添加水印。",
+          "size": "2048x2048",
+          "quality": "high",
+          "n": 1,
+          "output_format": "png"
+        }
+      },
+      "price": {
+        "unit": "image_n1",
+        "credits": 0.0195
+      }
+    },
+    {
+      "model": "gpt-image-2.6-sunburst-W",
+      "category": "image",
+      "profile": "image-sync-gpt-image-2.6-sunburst-W",
+      "vendor": "OpenAI",
+      "endpoints": {
+        "image-generation": {
+          "path": "/v1/images/generations",
+          "method": "POST"
+        },
+        "image-edit": {
+          "path": "/v1/images/edits",
+          "method": "POST"
+        }
+      },
+      "parameters": {
+        "sync": true,
+        "endpoints": {
+          "image-generation": {
+            "path": "/v1/images/generations",
+            "method": "POST"
+          },
+          "image-edit": {
+            "path": "/v1/images/edits",
+            "method": "POST"
+          }
+        },
+        "outputCount": 1,
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max",
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "size": {
+          "type": "string",
+          "default": "auto",
+          "step": 16,
+          "maxEdge": 3840,
+          "minPixels": 655360,
+          "maxPixels": 8294400,
+          "maxAspectRatio": 3,
+          "presets": {
+            "oneK": [
+              "1024x1024",
+              "1536x1024",
+              "1024x1536"
+            ],
+            "twoK": [
+              "2048x2048",
+              "2048x1152",
+              "1152x2048"
+            ],
+            "fourKUpscaled": [
+              "3840x2160",
+              "2160x3840"
+            ]
+          },
+          "fourK": "upscaled-not-native"
+        },
+        "editing": {
+          "type": "multipart",
+          "field": "image[]",
+          "singleReferenceField": "image",
+          "minimum": 1,
+          "maximum": 16,
+          "formats": [
+            "png",
+            "jpeg",
+            "webp"
+          ],
+          "maxBytesExclusive": 52428800
+        },
+        "billing": {
+          "unit": "image",
+          "group": "default",
+          "credits": 0.0195
+        },
+        "example": {
+          "model": "gpt-image-2.6-sunburst-W",
+          "prompt": "桌面上一个红色陶瓷杯与两个橙子，保持自然光影，不添加水印。",
+          "size": "2048x2048",
+          "quality": "high",
+          "n": 1,
+          "output_format": "png"
+        }
+      },
+      "price": {
+        "unit": "image_n1",
+        "credits": 0.0195
+      }
+    },
+    {
+      "model": "即梦-55-gpt-image-2",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 9,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-55-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-55-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-55-gpt-image-2.6-flare-High",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-55-gpt-image-2.6-sunburst-High",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-66-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-66-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-67-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-67-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-52-gpt-image-2",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 9,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-52-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-52-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-46-gpt-image-2",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-46-gpt-image-2.5-flare",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "1:1",
+        "9:16",
+        "16:9",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-46-gpt-image-2.5-sunburst",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-23-gemini-nano-banana-2.1",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 7,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-23-gemini-3-pro-image-preview",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 7,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-23-gemini-3.1-flash-image-preview",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 7,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-65-seedream-5-pro",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "1K",
+        "2K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-65-seedream-5-lite",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "2K",
+        "4K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    },
+    {
+      "model": "即梦-65-seedream-5.5",
+      "kind": "image",
+      "profile": "aistars-image",
+      "resolutions": [
+        "2K"
+      ],
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "media": {
+        "images": 6,
+        "audios": 0,
+        "videos": 0
+      },
+      "n": 1
+    }
+  ],
+  "kr25_protocol": {
+    "method": "POST",
+    "submit": "/kr/gpt/v1/images/generations",
+    "edit": "/kr/gpt/v1/images/edits",
+    "query_method": "GET",
+    "query": "/kr/gpt/v1/images/tasks/{task_id}",
+    "async": true,
+    "id_field": "task_id",
+    "pending": [
+      "queued",
+      "processing"
+    ],
+    "success": "succeeded",
+    "failure": "failed",
+    "artifact": "/v1/tasks/{task_id}/artifacts/image-1/content"
+  },
+  "kr25_profile": {
+    "required": [
+      "model",
+      "prompt"
+    ],
+    "allowed": [
+      "model",
+      "prompt",
+      "size",
+      "quality",
+      "n",
+      "response_format"
+    ],
+    "prompt_max_codepoints": 32000,
+    "n": {
+      "enum": [
+        1
+      ],
+      "default": 1
+    },
+    "size": {
+      "auto": true,
+      "multiple": 16,
+      "maxEdge": 3840,
+      "minPixels": 655360,
+      "maxPixels": 8294400,
+      "maxAspectRatio": 3,
+      "experimentalAbovePixels": 3686400
+    },
+    "quality": {
+      "enum": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default": "upstream when omitted"
+    },
+    "response_format": {
+      "enum": [
+        "url"
+      ],
+      "default": "url"
+    },
+    "edit": {
+      "maxReferences": 16,
+      "formats": [
+        "image/png",
+        "image/jpeg",
+        "image/webp"
+      ],
+      "eachFileBytesExclusive": 52428800,
+      "transportBodyMiB": 128,
+      "inputs": [
+        "multipart image/image[]",
+        "multipart image_url/image_url[]"
+      ],
+      "mixFilesAndUrls": false
+    }
+  }
+}

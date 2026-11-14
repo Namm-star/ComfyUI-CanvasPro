@@ -59,3 +59,15 @@ SR/FULL：/v1/images 同步返回，不轮询；使用整数宽高，16倍数、
 KR香蕉：T香蕉pro为10种比例；T香蕉2/2.1为14种，额外支持1:4、4:1、1:8、8:1；仍用IMAGE参考图与1K/2K/4K。
 API Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点。report与tasks_json已连接日志显示。
 同步返回支持 data[0].url 或 data[0].b64_json。Base64验证图片后保存至本地SQLite二进制列，不写入任务句柄或日志。同步POST最多一次，超时和不完整响应记为submit_unknown；查询节点跳过没有远程任务号的同步结果。同步POST等待120秒；异步仍遵循节点request_timeout。
+
+
+## 2026-11-14 最新合同（0.11.0）
+
+0.11.0 · 2026-11-14 最新图片合同：45款（文档首页旧统计32款尚未同步，按逐型号合同与在线目录核对）。
+新增KR GPT 2.5/2.6 Flare、Sunburst：/kr/gpt/v1/images 异步接口；像素宽高或auto，不能传比例或image_size。质量支持auto/low/medium/high/xhigh/max，提示词最多32000字符，文件或URL参考图二选一，最多16张。
+新增四款-W：同步Images接口，像素宽高或auto；参考图仅接IMAGE，不支持URL编辑；4K为超分输出，非原生4K。结果下载不携带API Key。
+新增即梦2.6 Flare High、Sunburst High：1K/2K/4K；Seedream 5.5仅2K。即梦参考图填reference_urls，每行一个公网HTTP(S)地址，最多6张（其他型号上限依各型号合同）。
+宽高均为16的倍数、最长边≤3840、总像素655360–8294400、长短边≤3。KR 2.5/2.6 超过3686400像素属于实验大尺寸，不保证严格尺寸。
+提交不自动重试；同job_key与seed恢复已保存结果。修改输入或另生成一张，请换seed。report与tasks_json已连接日志。
+Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点。
+来源与SHA256、逐型号合同见IMAGE-CONTRACTS-20261114.json。KR25成功后下载本站/v1/tasks/{task_id}/artifacts/image-1/content，必须携带本站Key；W返回URL下载不携带Key。

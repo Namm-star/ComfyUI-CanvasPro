@@ -83,6 +83,11 @@ class Client:
                 with requests.get(self.base + path, headers={"Authorization": "Bearer " + self.key}, timeout=timeout, allow_redirects=False) as r:
                     if 200 <= r.status_code < 300:
                         body = r.json()
+                        if path.startswith("/kr/gpt/") and isinstance(body,dict) and body.get("status")=="succeeded":
+                            from urllib.parse import unquote
+                            encoded=path.rsplit("/",1)[-1]
+                            if body.get("task_id")!=unquote(encoded):raise ClientError("query_task_id_mismatch")
+                            body["data"]=[{"url":f"/v1/tasks/{encoded}/artifacts/image-1/content"}]
                         if path.startswith("/aistars/"):
                             body = self.normalize_aistars(body, path.rsplit("/",1)[-1])
                         if not isinstance(body, dict) or body.get("status") not in ("queued", "processing", "succeeded", "failed", "unknown"):
@@ -118,7 +123,7 @@ class Client:
                 data.append({"url":url})
         return {"task_id":body["id"],"status":status,"data":data}
 
-    def download(self, url, max_bytes=64 * 1024**2):
+    def download(self, url, max_bytes=64 * 1024**2, authorize=True):
         url = urljoin(self.base + "/", url)
         # Re-evaluate auth at every redirect, including redirects off-site.
         for _ in range(6):
@@ -126,7 +131,7 @@ class Client:
             local_test = origin(url) == origin(self.base) and u.hostname == "127.0.0.1"
             if u.username or u.password or (u.scheme != "https" and not local_test):
                 raise ClientError("download_url_not_allowed")
-            headers = {"Authorization": "Bearer " + self.key} if origin(url) == origin(self.base) else {}
+            headers = {"Authorization": "Bearer " + self.key} if authorize and origin(url) == origin(self.base) else {}
             response = None
             for attempt in range(3):
                 try:

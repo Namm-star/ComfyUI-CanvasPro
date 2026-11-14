@@ -115,7 +115,9 @@ class ModelSubmit(Submit):
             if reference_urls.strip():
                 raise ValueError("Banana requires image ports; URL references unsupported")
             size, quality, image_size = aspect_ratio, "", image_size
-        elif f in ("hc", "sync"):
+        elif f in ("kr25","sync") and size_mode == "auto":
+            size,image_size="auto",""
+        elif f in ("hc", "sync","kr25"):
             size, image_size = pixel_size, ""
         elif size_mode == "pixels":
             size, image_size = pixel_size, ""
@@ -194,7 +196,9 @@ class PromptTask(ModelSubmit):
         f = family(model)
         if f in ("gemini", "aistars"):
             size, quality = aspect_ratio, ""
-        elif f in ("hc", "sync") or size_mode == "pixels":
+        elif f in ("kr25","sync") and size_mode == "auto":
+            size,image_size="auto",""
+        elif f in ("hc", "sync","kr25") or size_mode == "pixels":
             size, image_size = pixel_size, ""
         elif size_mode == "ratio":
             size = aspect_ratio
@@ -308,7 +312,7 @@ class Fetch:
                 if task.get("image") is not None:
                     blobs = [task["image"]]
                 else:
-                    blobs = (client.download(url) for url in task["urls"])
+                    blobs = (client.download(url, authorize=not task["model"].endswith("-W")) for url in task["urls"])
                 for blob in blobs:
                     if cancel.is_set():
                         raise ClientError("download_cancelled")

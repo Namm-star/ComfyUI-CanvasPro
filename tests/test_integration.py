@@ -141,9 +141,37 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_new_kr25_routes_prompt_pixels_uploads_and_recovery(self):
+        from canvaspro.protocol import KR25,query_path
+        tasks=[]
+        for model in KR25:
+            for refs in [{},{'image_1':torch.zeros(1,12,16,3),'image_2':torch.zeros(1,9,5,3)},{'reference_urls':'https://example.com/a.png\nhttps://example.com/b.png'}]:
+                tasks.extend(nodes.PromptTask().execute(model,'new KR',quality='max',width=1280,height=720,**refs)[0])
+            self.assertTrue(query_path(model,'123').startswith('/kr/gpt/'))
+            build_request(model,'猫'*32000,size='auto',quality='xhigh')
+            for args in [dict(size='16:9'),dict(size='1024x1024',image_size='2K'),dict(size='4096x4096')]:
+                with self.assertRaises(ValueError):build_request(model,'p',**args)
+            with self.assertRaises(ValueError):build_request(model,'猫'*32001,size='auto')
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            first=nodes.BatchExecute().execute(tasks,'new-kr25',wait_seconds=30)['result']
+            again=nodes.BatchExecute().execute(tasks,'new-kr25',wait_seconds=30)['result']
+        self.assertEqual(len(first[0]),12,first[1]);self.assertEqual(len(again[0]),12)
+        self.assertEqual(len(self.service.posts),12)
+        self.assertTrue(all(path.startswith('/kr/gpt/') for path,_ in self.service.posts))
+        self.assertTrue(any('/artifacts/image-1/content' in p for p,_ in self.service.auth))
+
+    def test_w_auto_and_no_download_key(self):
+        item=nodes.PromptTask().execute('gpt-image-2.6-flare-W','sync-url',size_mode='auto')[0]
+        self.assertEqual(item[0]['size'],'auto')
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            images,info,handle=nodes.BatchExecute().execute(item,'w-no-key',wait_seconds=5)['result']
+        self.assertEqual(len(images),1)
+        self.assertTrue(all(auth is None for _,auth in self.service.auth))
+        self.assertEqual(self.service.posts[0][1]['output_format'],'png')
+
     def test_sync_all_models_file_edit_resume_and_mixed(self):
         from canvaspro.protocol import SYNC
-        self.assertEqual(len(MODELS),34)
+        self.assertEqual(len(MODELS),45)
         items=[]
         for model in SYNC:
             items.extend(nodes.PromptTask().execute(model,"sync b64",quality="high",width=1280,height=720)[0])
@@ -151,13 +179,13 @@ class Integration(unittest.TestCase):
         items.extend(nodes.PromptTask().execute("T香蕉2.1","async banana")[0])
         with patch.object(nodes,"runtime",return_value=(self.store,self.client)),patch.object(nodes,"interrupt"),patch.object(nodes,"progress",return_value=lambda n,t:None):
             result=nodes.BatchExecute().execute(items,"sync-mixed",wait_seconds=5,concurrency=4)["result"]
-            self.assertEqual(len(result[0]),19)
+            self.assertEqual(len(result[0]),27)
             self.assertEqual(result[0][0].shape[1:3],(32,24))
             persisted=Store(self.root)
             with patch.object(nodes,"runtime",return_value=(persisted,self.client)):
                 again=nodes.BatchExecute().execute(items,"sync-mixed",wait_seconds=5)["result"]
-            self.assertEqual(len(again[0]),19)
-        self.assertEqual(len(self.service.posts),19)
+            self.assertEqual(len(again[0]),27)
+        self.assertEqual(len(self.service.posts),27)
         self.assertTrue(all('/kr/gemini/' in u for u in self.service.gets))
         for path,body in self.service.posts:
             if path=='/v1/images/edits': self.assertEqual(body['upload_fields'],['image[]','image[]'])
@@ -512,7 +540,7 @@ print(batch)
         with patch.dict(os.environ,env),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             first=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
             again=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
-        self.assertEqual(len(first[0]),36);self.assertEqual(len(self.service.posts),36)
+        self.assertEqual(len(first[0]),42);self.assertEqual(len(self.service.posts),42)
         self.assertEqual(first[2],again[2])
         for path,body in self.service.posts:
             self.assertEqual(path,'/aistars/v1/images/'+('edits' if body['prompt']=='edit' else 'generations'))

@@ -45,6 +45,36 @@
       ],
       "references": 6
     },
+    "即梦-55-gpt-image-2.6-flare-High": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-55-gpt-image-2.6-sunburst-High": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
     "即梦-66-gpt-image-2.5-flare": {
       "ratios": [
         "16:9",
@@ -267,6 +297,19 @@
         "4K"
       ],
       "references": 6
+    },
+    "即梦-65-seedream-5.5": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "2K"
+      ],
+      "references": 6
     }
   },
   "banana_ratios": {
@@ -403,6 +446,104 @@
       "references": 16
     },
     "gpt-image-2.5-sunburst-FULL": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-flare-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    },
+    "gpt-image-2.5-sunburst-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    },
+    "gpt-image-2.6-flare-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    },
+    "gpt-image-2.6-sunburst-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    }
+  },
+  "kr25": {
+    "gpt-image-2.5-flare": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-sunburst": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-flare": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-sunburst": {
       "qualities": [
         "auto",
         "low",

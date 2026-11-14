@@ -49,6 +49,36 @@ const IMAGE_MODELS = {
       ],
       "references": 6
     },
+    "即梦-55-gpt-image-2.6-flare-High": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
+    "即梦-55-gpt-image-2.6-sunburst-High": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 6
+    },
     "即梦-66-gpt-image-2.5-flare": {
       "ratios": [
         "16:9",
@@ -271,6 +301,19 @@ const IMAGE_MODELS = {
         "4K"
       ],
       "references": 6
+    },
+    "即梦-65-seedream-5.5": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "2K"
+      ],
+      "references": 6
     }
   },
   "banana_ratios": {
@@ -416,6 +459,104 @@ const IMAGE_MODELS = {
         "max"
       ],
       "references": 16
+    },
+    "gpt-image-2.5-flare-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    },
+    "gpt-image-2.5-sunburst-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    },
+    "gpt-image-2.6-flare-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    },
+    "gpt-image-2.6-sunburst-W": {
+      "qualities": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "auto"
+      ],
+      "references": 16,
+      "auto": true,
+      "max_file_bytes_exclusive": 52428800
+    }
+  },
+  "kr25": {
+    "gpt-image-2.5-flare": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.5-sunburst": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-flare": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
+    },
+    "gpt-image-2.6-sunburst": {
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "references": 16
     }
   }
 };
@@ -423,6 +564,7 @@ const IMAGE_MODELS = {
 function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
     const hc = model.startsWith("s-");
+    const kr25 = IMAGE_MODELS.kr25[model];
     const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
     return {
@@ -431,12 +573,12 @@ function modelPolicy(model, mode = "pixels") {
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
-            ...(!sync && !aistars && !banana && !hc ? ["size_mode"] : []),
-            ...(!aistars && (sync || hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
-            ...(aistars || banana || (!sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
+            ...((sync?.auto || kr25 || (!sync && !aistars && !banana && !hc)) ? ["size_mode"] : []),
+            ...(!aistars && (hc || ((sync || kr25) && mode !== "auto") || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
+            ...(aistars || banana || (!kr25 && !sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
             ...(aistars ? ["reference_urls"] : sync ? ["quality"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
-        qualities: sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
+        qualities: kr25 ? ["",...kr25.qualities] : sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
 }
 
@@ -462,6 +604,8 @@ function syncModelUI(node, notify = () => {}, restoring = false) {
         notify("香蕉不支持 URL 参考图，请先清空 reference_urls，再切换模型；原内容已保留。");
         return false;
     }
+    const sizeMode=widget(node,"size_mode");
+    if(sizeMode) {const constrained=IMAGE_MODELS.kr25[model] || IMAGE_MODELS.sync[model]?.auto;sizeMode.options.values=constrained?["pixels","auto"]:["pixels","ratio","auto"];if(constrained && sizeMode.value==="ratio")sizeMode.value="pixels";}
     const countWidget = widget(node, "reference_count");
     const count = Math.max(0, Math.min(policy.max, Math.round(Number(countWidget.value) || 2)));
     const removed = (node.inputs || []).filter(input => {
@@ -573,7 +717,7 @@ function syncTaskAdvanced(node) {
     const externalModel = linked("model_input");
     visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (IMAGE_MODELS.sync[model] || model.startsWith("s-") || find(node,"size_mode")?.value === "pixels"));
+    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels" || (IMAGE_MODELS.sync[model] && !IMAGE_MODELS.sync[model].auto)));
     visibility(node,["width"],pixels && !linked("width_input"));
     visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {

@@ -3,6 +3,7 @@ import { IMAGE_MODELS } from "./image_models.mjs";
 export function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
     const hc = model.startsWith("s-");
+    const kr25 = IMAGE_MODELS.kr25[model];
     const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
     return {
@@ -11,12 +12,12 @@ export function modelPolicy(model, mode = "pixels") {
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
-            ...(!sync && !aistars && !banana && !hc ? ["size_mode"] : []),
-            ...(!aistars && (sync || hc || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
-            ...(aistars || banana || (!sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
+            ...((sync?.auto || kr25 || (!sync && !aistars && !banana && !hc)) ? ["size_mode"] : []),
+            ...(!aistars && (hc || ((sync || kr25) && mode !== "auto") || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
+            ...(aistars || banana || (!kr25 && !sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
             ...(aistars ? ["reference_urls"] : sync ? ["quality"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
-        qualities: sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
+        qualities: kr25 ? ["",...kr25.qualities] : sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
 }
 
@@ -42,6 +43,8 @@ export function syncModelUI(node, notify = () => {}, restoring = false) {
         notify("香蕉不支持 URL 参考图，请先清空 reference_urls，再切换模型；原内容已保留。");
         return false;
     }
+    const sizeMode=widget(node,"size_mode");
+    if(sizeMode) {const constrained=IMAGE_MODELS.kr25[model] || IMAGE_MODELS.sync[model]?.auto;sizeMode.options.values=constrained?["pixels","auto"]:["pixels","ratio","auto"];if(constrained && sizeMode.value==="ratio")sizeMode.value="pixels";}
     const countWidget = widget(node, "reference_count");
     const count = Math.max(0, Math.min(policy.max, Math.round(Number(countWidget.value) || 2)));
     const removed = (node.inputs || []).filter(input => {
