@@ -7,7 +7,7 @@ export function modelPolicy(model, mode = "pixels") {
     const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
     return {
-        max: aistars ? 0 : banana ? 14 : hc ? 15 : 16,
+        max: aistars ? aistars.references : banana ? 14 : hc ? 15 : 16,
         ratios: aistars?.ratios || IMAGE_MODELS.banana_ratios[model] || ["1:1","3:4","4:3","9:16","16:9"],
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([

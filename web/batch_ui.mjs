@@ -56,7 +56,7 @@ export function syncTaskAdvanced(node) {
 export function autoImageCount(node) {
     const model = find(node,"model")?.value || "";
     const externalModel=node.inputs?.some(i => i.name === "model_input" && i.link != null);
-    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? 0 : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
+    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? IMAGE_MODELS.aistars[model].references : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
     find(node,"reference_count").value = Math.max(1,Math.min(max,highest+1));
 }

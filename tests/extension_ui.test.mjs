@@ -60,11 +60,11 @@ test("wired parameter ports survive refresh and hide overridden widgets",async()
     for(const name of ['model','width','height']) assert.equal(widget(n,name).hidden,false);
 });
 
-test("AIStars registered task exposes URLs and model-specific tiers without IMAGE ports",async()=>{
+test("AIStars registered task exposes URLs and model-specific tiers with temporary IMAGE ports",async()=>{
     const n=new Task();n.onNodeCreated();await Promise.resolve();
     widget(n,'model').value='即梦-65-seedream-5-lite';widget(n,'model').callback('即梦-65-seedream-5-lite');
     await Promise.resolve();await Promise.resolve();
-    assert.equal(n.inputs.filter(i=>i.type==='IMAGE').length,0);
+    assert.equal(n.inputs.filter(i=>i.type==='IMAGE').length,2);
     assert.equal(widget(n,'reference_urls').hidden,false);
     assert.equal(widget(n,'width').hidden,true);assert.equal(widget(n,'height').hidden,true);
     assert.equal(widget(n,'quality').hidden,true);assert.equal(widget(n,'image_size').value,'2K');

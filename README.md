@@ -1,4 +1,4 @@
-# ComfyUI CanvasPro 0.11.0
+# ComfyUI CanvasPro 0.12.0
 
 **独立任务 → 批量执行 → 保存图像**。支持完整多行提示词、混合模型、自动增加任务及参考图入口。每批最多 256 个任务，提交并发数 1～8；重复运行同一批次不会重新提交收费。
 
@@ -135,3 +135,13 @@ API Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节�
 宽高均为16的倍数、最长边≤3840、总像素655360–8294400、长短边≤3。KR 2.5/2.6 超过3686400像素属于实验大尺寸，不保证严格尺寸。
 提交不自动重试；同job_key与seed恢复已保存结果。修改输入或另生成一张，请换seed。report与tasks_json已连接日志。
 Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点。
+
+
+## ImgBB 临时图床（0.12.0）
+
+ImgBB临时参考图（0.12.0）：即梦现在可直接连接加载图像的IMAGE端口，接满后自动增加，按型号上限停止。
+本地参考图会自动上传ImgBB后交给即梦，公开直链在上传3小时后由图床自动删除（expiration=10800秒），不会永久保存。任务等待超过3小时后原参考图可能不可用。
+批量执行新增imgbb_api_key密码框：填写ImgBB Key（https://api.imgbb.com/），与CanvasPro Key不同。本机已配置私有Key时可留空。示例不含任何Key。
+IMAGE与reference_urls二选一；URL方式不会上传ImgBB。图床上传失败会阻止该任务生图，report显示原因。
+同批相同图片只上传一次；同job_key与seed恢复原任务，不重新上传、不重复提交。修改输入或另出一张时更换seed。
+上传文件每张≤32MiB，参考图按端口顺序对应图1、图2。

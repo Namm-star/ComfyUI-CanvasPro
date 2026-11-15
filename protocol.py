@@ -47,7 +47,7 @@ def public_reference(url, https_only=True):
     return url
 
 
-def build_request(model, prompt, size="", quality="", image_size="", files=(), urls=()):
+def build_request(model, prompt, size="", quality="", image_size="", files=(), urls=(), defer_upload=False):
     f = family(model)
     prompt = prompt.strip()
     # JavaScript contract limits UTF-16 units, not Python Unicode code points.
@@ -63,6 +63,11 @@ def build_request(model, prompt, size="", quality="", image_size="", files=(), u
     urls = [public_reference(url, https_only=f != "aistars") for url in urls]
     if f == "aistars":
         spec = AISTARS[model]
+        if files and defer_upload:
+            if any(not b or len(b)>32*1024**2 for b in files):
+                raise ValueError("ImgBB参考图每张不得超过32MiB")
+            path,body,_=build_request(model,prompt,size,quality,image_size,(),["https://i.ibb.co/pending.png"]*len(files))
+            return path,body,{"imgbb_files":list(files)}
         if files:
             raise ValueError("此模型参考图需公网 HTTPS URL，请断开 IMAGE 并填写 reference_urls；API 未提供文件上传接口")
         if quality or size not in spec["ratios"] or image_size not in spec["resolutions"]:

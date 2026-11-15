@@ -71,3 +71,14 @@ API Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节�
 提交不自动重试；同job_key与seed恢复已保存结果。修改输入或另生成一张，请换seed。report与tasks_json已连接日志。
 Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点。
 来源与SHA256、逐型号合同见IMAGE-CONTRACTS-20261114.json。KR25成功后下载本站/v1/tasks/{task_id}/artifacts/image-1/content，必须携带本站Key；W返回URL下载不携带Key。
+
+
+## ImgBB 参考图上传（0.12.0 / 2026-11-15）
+
+ImgBB临时参考图（0.12.0）：即梦现在可直接连接加载图像的IMAGE端口，接满后自动增加，按型号上限停止。
+本地参考图会自动上传ImgBB后交给即梦，公开直链在上传3小时后由图床自动删除（expiration=10800秒），不会永久保存。任务等待超过3小时后原参考图可能不可用。
+批量执行新增imgbb_api_key密码框：填写ImgBB Key（https://api.imgbb.com/），与CanvasPro Key不同。本机已配置私有Key时可留空。示例不含任何Key。
+IMAGE与reference_urls二选一；URL方式不会上传ImgBB。图床上传失败会阻止该任务生图，report显示原因。
+同批相同图片只上传一次；同job_key与seed恢复原任务，不重新上传、不重复提交。修改输入或另出一张时更换seed。
+上传文件每张≤32MiB，参考图按端口顺序对应图1、图2。
+官方合同：https://api.imgbb.com/ ；POST https://api.imgbb.com/1/upload，表单key/expiration=10800，文件image；仅使用data.url原图直链，校验success、expiration，忽略delete_url。上传不重试，不跟随重定向，不带CanvasPro鉴权。测试图实际上传已验证10800秒回执；不声称已经等待3小时验证物理删除。

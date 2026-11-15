@@ -568,7 +568,7 @@ function modelPolicy(model, mode = "pixels") {
     const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
     return {
-        max: aistars ? 0 : banana ? 14 : hc ? 15 : 16,
+        max: aistars ? aistars.references : banana ? 14 : hc ? 15 : 16,
         ratios: aistars?.ratios || IMAGE_MODELS.banana_ratios[model] || ["1:1","3:4","4:3","9:16","16:9"],
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
@@ -733,7 +733,7 @@ function syncTaskAdvanced(node) {
 function autoImageCount(node) {
     const model = find(node,"model")?.value || "";
     const externalModel=node.inputs?.some(i => i.name === "model_input" && i.link != null);
-    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? 0 : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
+    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? IMAGE_MODELS.aistars[model].references : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
     find(node,"reference_count").value = Math.max(1,Math.min(max,highest+1));
 }
@@ -774,16 +774,17 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = created?.apply(this,args);
             if (batch) {
-                const old = this.widgets?.find(w => w.name === "api_key");
+                for(const field of ["api_key","imgbb_api_key"]) {
+                const old = this.widgets?.find(w => w.name === field);
                 if (old && this.addDOMWidget && typeof document !== "undefined") {
                     const index = this.widgets.indexOf(old);
                     const input = document.createElement("input");
                     input.type = "password";
-                    input.placeholder = "填写 CanvasPro API Key";
+                    input.placeholder = field==="api_key"?"填写 CanvasPro API Key":"填写 ImgBB API Key（参考图3小时后删除）";
                     input.autocomplete = "off";
                     input.style.cssText = "width:100%;box-sizing:border-box;background:#222;color:#ddd;border:1px solid #555;padding:6px";
                     input.value = old.value || "";
-                    const key = this.addDOMWidget("api_key", "STRING", input, {
+                    const key = this.addDOMWidget(field, "STRING", input, {
                         getValue: () => input.value,
                         setValue: value => { input.value = value || ""; },
                     });
@@ -791,6 +792,7 @@ app.registerExtension({
                     key.computeSize = width => [width,32];
                     this.widgets.splice(this.widgets.indexOf(key),1);
                     this.widgets.splice(index,1,key);
+                }
                 }
             }
             if (!batch) installModelUI(this,notify);

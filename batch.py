@@ -4,6 +4,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from .client import ClientError
+from .image_host import host_key, upload, UploadError
 from .protocol import build_request, query_path
 
 
@@ -59,36 +60,55 @@ def submit_batch(store, client, job_key, model, prompts, size="", quality="", im
     return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress)
 
 
-def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda: None, progress=lambda n, total: None):
+def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda: None, progress=lambda n, total: None, imgbb_api_key=""):
     if not items or len(items) > 256:
         raise ValueError("Batch requires 1-256 tasks")
     if not 1 <= concurrency <= 8:
         raise ValueError("Concurrency must be 1-8")
     requests = [build_request(item["model"], item["prompt"], item["size"], item["quality"],
-        item["image_size"], item["files"], item["urls"]) for item in items]
+        item["image_size"], item["files"], item["urls"], defer_upload=True) for item in items]
     models = [item["model"] for item in items]
     model = models[0] if len(set(models)) == 1 else "mixed"
     fingerprint = hashlib.sha256(json.dumps({"items": [
         {**item, "files": [hashlib.sha256(b).hexdigest() for b in item["files"]]}
         for item in items]}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models)
+    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models, imgbb_api_key)
 
 
-def submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models=None):
+def submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models=None, imgbb_api_key=""):
+    needs_host=any(isinstance(req[2],dict) for req in requests)
+    key=""
+    if needs_host:
+        try: store.by_key(job_key)
+        except ValueError: key=host_key(imgbb_api_key)
     batch, created = store.create(job_key, fingerprint, client.base, model, len(requests), models)
     if not created:
         return batch  # Never replay a saved submit, including unknown/prepared records.
 
+    host_cache={}
+    host_lock=threading.Lock()
     def worker(index, cancel):
         if cancel.is_set() or not store.claim(batch, index):
             return
         path, payload, uploads = requests[index]
         try:
+            if isinstance(uploads,dict):
+                refs=[]
+                for blob in uploads["imgbb_files"]:
+                    if cancel.is_set(): raise UploadError("reference_upload_cancelled")
+                    digest=hashlib.sha256(blob).hexdigest()
+                    with host_lock:
+                        if digest not in host_cache:host_cache[digest]=upload(blob,key)
+                        refs.append(host_cache[digest])
+                payload={**payload,"images":refs};uploads=None
+                if cancel.is_set():raise UploadError("reference_upload_cancelled")
             result = client.submit(path, payload, uploads)
             if path in ("/v1/images/generations", "/v1/images/edits"):
                 store.update(batch,index,status="succeeded",urls=result["urls"],image=result["image"],detail="sync_completed_no_poll")
             else:
                 store.update(batch, index, status="queued", task_id=result, detail="")
+        except UploadError as error:
+            store.update(batch,index,status="failed",detail="reference_upload_failed_no_generation: "+str(error))
         except ClientError as error:
             store.update(batch, index, status="submit_unknown", detail=str(error))
         except Exception:

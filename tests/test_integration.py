@@ -141,6 +141,41 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_imgbb_references_deduplicate_order_and_resume(self):
+        model='即梦-67-gpt-image-2.5-sunburst'
+        refs=dict(image_1=torch.zeros(1,12,8,3),image_2=torch.ones(1,10,6,3))
+        tasks=nodes.PromptTask().execute(model,'edit',**refs)[0]*2
+        calls=[]
+        def hosted(blob,key):
+            self.assertEqual(key,'host-secret');calls.append(blob);return f'https://i.ibb.co/fake/{len(calls)}.png'
+        with patch('canvaspro.batch.upload',side_effect=hosted),patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            result=nodes.BatchExecute().execute(tasks,'hosted',wait_seconds=5,imgbb_api_key='host-secret')['result']
+            again=nodes.BatchExecute().execute(tasks,'hosted',wait_seconds=5)['result']
+        self.assertEqual(len(calls),2);self.assertEqual(len(self.service.posts),2)
+        self.assertEqual(len(result[0]),2);self.assertEqual(result[2],again[2])
+        for path,body in self.service.posts:
+            self.assertEqual(path,'/aistars/v1/images/edits');self.assertEqual(body['images'],['https://i.ibb.co/fake/1.png','https://i.ibb.co/fake/2.png'])
+        self.assertNotIn('host-secret',result[1]+result[2]);self.assertNotIn(b'host-secret',(self.root/'tasks.sqlite3').read_bytes())
+
+    def test_imgbb_failure_prevents_generation(self):
+        from canvaspro.image_host import UploadError
+        task=nodes.PromptTask().execute('即梦-67-gpt-image-2.5-sunburst','edit',image_1=torch.zeros(1,4,4,3))[0]
+        with patch('canvaspro.batch.upload',side_effect=UploadError('imgbb_upload_failed')),patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            result=nodes.BatchExecute().execute(task,'host-fail',wait_seconds=0,imgbb_api_key='host-secret')['result']
+        self.assertEqual(self.service.posts,[]);self.assertIn('reference_upload_failed_no_generation',result[1])
+
+    def test_imgbb_expiration_and_secret_isolation(self):
+        from canvaspro.image_host import upload,UploadError
+        from unittest.mock import MagicMock
+        response=MagicMock();response.status_code=200;response.json.return_value={'success':True,'data':{'expiration':'10800','url':'https://i.ibb.co/fake/ref.png'}}
+        response.__enter__.return_value=response
+        with patch('canvaspro.image_host.requests.post',return_value=response) as post:
+            self.assertEqual(upload(b'image','host-secret'),'https://i.ibb.co/fake/ref.png')
+            self.assertEqual(post.call_args.kwargs['data'],{'key':'host-secret','expiration':'10800'})
+            self.assertNotIn('headers',post.call_args.kwargs)
+            response.json.return_value['data']['expiration']='0'
+            with self.assertRaises(UploadError):upload(b'image','host-secret')
+
     def test_new_kr25_routes_prompt_pixels_uploads_and_recovery(self):
         from canvaspro.protocol import KR25,query_path
         tasks=[]

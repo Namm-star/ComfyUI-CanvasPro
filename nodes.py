@@ -209,7 +209,7 @@ class PromptTask(ModelSubmit):
         item = dict(model=model, prompt=prompt, size=size, quality=quality, image_size=image_size,
                     files=files, urls=[s.strip() for s in reference_urls.splitlines() if s.strip()])
         from .protocol import build_request
-        build_request(model, prompt, size, quality, image_size, files, item["urls"])
+        build_request(model, prompt, size, quality, image_size, files, item["urls"], defer_upload=True)
         return ([item],)
 
 
@@ -367,10 +367,11 @@ class BatchExecute(Fetch):
                 "request_timeout": ("INT", {"default": 30, "min": 1, "max": 120}),
                 "api_key": ("STRING", {"default": "", "multiline": False, "tooltip": "Enter your CanvasPro API Key here. Saved workflows may contain it; remove before sharing."}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 9007199254740991, "control_after_generate": True, "tooltip": "批次种子：fixed 保持同一批次，randomize 每次生成新批次（正常计费）；也可 increment/decrement。仅用于区分批次，不是模型的图像随机种子。"}),
+                "imgbb_api_key": ("STRING", {"default":"", "tooltip":"即梦本地参考图自动上传ImgBB，3小时后删除。此处填写ImgBB Key，独立于CanvasPro Key。"}),
                 **{f"task_{i}": ("CANVASPRO_TASKS",) for i in range(2, 257)}},
             "hidden": {"unique_id": "UNIQUE_ID"}}
 
-    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, api_key="", seed=None, **ports):
+    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, api_key="", seed=None, imgbb_api_key="", **ports):
         original_job_key = job_key
         if seed is not None:
             if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed <= 9007199254740991:
@@ -406,7 +407,7 @@ class BatchExecute(Fetch):
             interrupt()
             publish()
         try:
-            batch = submit_tasks(store, client, job_key, items, concurrency, check, progress())
+            batch = submit_tasks(store, client, job_key, items, concurrency, check, progress(), imgbb_api_key=imgbb_api_key)
         except ValueError as error:
             if "job_key already belongs to different inputs" in str(error):
                 raise ValueError("该批次名称和 seed 已用于其他输入。请修改 seed，或将生成后控制设为 randomize 后修改 seed，再运行以创建新批次。") from None
