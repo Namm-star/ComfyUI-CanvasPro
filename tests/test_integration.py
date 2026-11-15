@@ -141,6 +141,16 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_shared_imgbb_key_without_local_configuration_and_overrides(self):
+        self.assertNotIn("imgbb_api_key",nodes.BatchExecute.INPUT_TYPES()["optional"])
+        from canvaspro.image_host import host_key
+        with patch('canvaspro.image_host.DEFAULT_IMGBB_KEY','bundled-test-key'),patch.dict(os.environ,{'CANVASPRO_IMGBB_API_KEY':'','LOCALAPPDATA':str(self.root)}):
+            self.assertEqual(host_key(),'bundled-test-key')
+            self.assertEqual(host_key('personal-key'),'personal-key')
+            with patch.dict(os.environ,{'CANVASPRO_IMGBB_API_KEY':'env-key'}):self.assertEqual(host_key(),'env-key')
+            private=self.root/'CanvasProComfyUI/imgbb-key.txt';private.parent.mkdir();private.write_text('local-key')
+            self.assertEqual(host_key(),'local-key')
+
     def test_imgbb_references_deduplicate_order_and_resume(self):
         model='即梦-67-gpt-image-2.5-sunburst'
         refs=dict(image_1=torch.zeros(1,12,8,3),image_2=torch.ones(1,10,6,3))

@@ -77,8 +77,13 @@ Key申请：https://api.canvasproai.com/keys ；直接填写批量执行节点�
 
 ImgBB临时参考图（0.12.0）：即梦现在可直接连接加载图像的IMAGE端口，接满后自动增加，按型号上限停止。
 本地参考图会自动上传ImgBB后交给即梦，公开直链在上传3小时后由图床自动删除（expiration=10800秒），不会永久保存。任务等待超过3小时后原参考图可能不可用。
-批量执行新增imgbb_api_key密码框：填写ImgBB Key（https://api.imgbb.com/），与CanvasPro Key不同。本机已配置私有Key时可留空。示例不含任何Key。
+ImgBB Key内置在Python后端，不增加图床密码框；用户只需填写自己的CanvasPro Key。
 IMAGE与reference_urls二选一；URL方式不会上传ImgBB。图床上传失败会阻止该任务生图，report显示原因。
 同批相同图片只上传一次；同job_key与seed恢复原任务，不重新上传、不重复提交。修改输入或另出一张时更换seed。
 上传文件每张≤32MiB，参考图按端口顺序对应图1、图2。
 官方合同：https://api.imgbb.com/ ；POST https://api.imgbb.com/1/upload，表单key/expiration=10800，文件image；仅使用data.url原图直链，校验success、expiration，忽略delete_url。上传不重试，不跟随重定向，不带CanvasPro鉴权。测试图实际上传已验证10800秒回执；不声称已经等待3小时验证物理删除。
+
+
+## 共用图床（0.12.1）
+
+按维护者要求，插件内置共用ImgBB Key。用户只需填写自己的CanvasPro API Key，即梦IMAGE参考图默认使用共用图床，上传后3小时自动删除（expiration=10800）。界面不显示图床Key输入框。随客户端分发的共用Key可被提取，此方式不是密钥保护。Key不进入任务句柄或运行日志。

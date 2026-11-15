@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from urllib.parse import urlsplit
 import requests
+from .bundled_host import DEFAULT_IMGBB_KEY
 
 EXPIRATION = 10800
 class UploadError(Exception): pass
@@ -12,6 +13,7 @@ def host_key(value=""):
     if not key:
         p=Path(os.environ.get("LOCALAPPDATA",Path.home()/".config"))/"CanvasProComfyUI/imgbb-key.txt"
         if p.exists(): key=p.read_text(encoding="utf-8").strip()
+    key = key or DEFAULT_IMGBB_KEY
     if not key or any(c.isspace() for c in key):
         raise ValueError("即梦本地参考图需填写批量执行节点的 imgbb_api_key；图床自动删除时间为3小时")
     return key

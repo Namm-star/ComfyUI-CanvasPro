@@ -367,7 +367,6 @@ class BatchExecute(Fetch):
                 "request_timeout": ("INT", {"default": 30, "min": 1, "max": 120}),
                 "api_key": ("STRING", {"default": "", "multiline": False, "tooltip": "Enter your CanvasPro API Key here. Saved workflows may contain it; remove before sharing."}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 9007199254740991, "control_after_generate": True, "tooltip": "批次种子：fixed 保持同一批次，randomize 每次生成新批次（正常计费）；也可 increment/decrement。仅用于区分批次，不是模型的图像随机种子。"}),
-                "imgbb_api_key": ("STRING", {"default":"", "tooltip":"即梦本地参考图自动上传ImgBB，3小时后删除。此处填写ImgBB Key，独立于CanvasPro Key。"}),
                 **{f"task_{i}": ("CANVASPRO_TASKS",) for i in range(2, 257)}},
             "hidden": {"unique_id": "UNIQUE_ID"}}
 

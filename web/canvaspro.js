@@ -774,13 +774,13 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = created?.apply(this,args);
             if (batch) {
-                for(const field of ["api_key","imgbb_api_key"]) {
+                for(const field of ["api_key"]) {
                 const old = this.widgets?.find(w => w.name === field);
                 if (old && this.addDOMWidget && typeof document !== "undefined") {
                     const index = this.widgets.indexOf(old);
                     const input = document.createElement("input");
                     input.type = "password";
-                    input.placeholder = field==="api_key"?"填写 CanvasPro API Key":"填写 ImgBB API Key（参考图3小时后删除）";
+                    input.placeholder = field==="api_key"?"填写 CanvasPro API Key":"默认共用 ImgBB Key（可填自己的Key覆盖）";
                     input.autocomplete = "off";
                     input.style.cssText = "width:100%;box-sizing:border-box;background:#222;color:#ddd;border:1px solid #555;padding:6px";
                     input.value = old.value || "";
