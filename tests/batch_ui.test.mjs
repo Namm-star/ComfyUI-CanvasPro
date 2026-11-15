@@ -35,3 +35,10 @@ test("removed pixel widget migrates old dimensions without shifting other contro
     const current=["gpt-image-2","prompt",2,"pixels","1:1","high","1K","",false,1280,720];
     assert.equal(migrateTaskDimensions(current),current);
 });
+
+test("sync timeout stays advanced and preserves configured wait",()=>{
+ const n=make();n.widgets.push({name:'sync_timeout',value:900,type:'number',options:{}});
+ syncTaskPorts(n);assert.equal(n.widgets.at(-1).hidden,true);
+ n.widgets.find(w=>w.name==='advanced').value=true;syncTaskPorts(n);
+ assert.equal(n.widgets.at(-1).hidden,false);assert.equal(n.widgets.at(-1).value,900);
+});

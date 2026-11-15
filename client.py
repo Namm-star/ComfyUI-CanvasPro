@@ -16,9 +16,10 @@ def origin(url):
 
 
 class Client:
-    def __init__(self, base, key, request_timeout=30):
+    def __init__(self, base, key, request_timeout=30, sync_timeout=600):
         self.base, self.key = base, key
         self.timeout = max(1, min(120, request_timeout))
+        self.sync_timeout = max(1, min(3600, sync_timeout))
 
     def submit(self, path, payload, uploads):
         kwargs = {"json": payload} if uploads is None else {"data": payload, "files": uploads}
@@ -27,7 +28,7 @@ class Client:
             kwargs = {"files": [(k, (None, v)) for k, v in payload]}
         try:
             with requests.post(self.base + path, headers={"Authorization": "Bearer " + self.key},
-                               timeout=max(120,self.timeout) if path in ("/v1/images/generations","/v1/images/edits") else self.timeout, allow_redirects=False, **kwargs) as r:
+                               timeout=self.sync_timeout if path in ("/v1/images/generations","/v1/images/edits") else self.timeout, allow_redirects=False, **kwargs) as r:
                 if not 200 <= r.status_code < 300:
                     # No generic HTTP code proves upstream did not run/charge.
                     raise ClientError(f"submit_http_{r.status_code}_outcome_unknown")
@@ -40,6 +41,9 @@ class Client:
                 if self.key in task_id or any(c.isspace() for c in task_id):
                     raise ClientError("submit_response_invalid_task_id_outcome_unknown")
                 return task_id
+        except requests.Timeout:
+            message="sync_submit_timeout_outcome_unknown_no_retry" if path in ("/v1/images/generations","/v1/images/edits") else "submit_timeout_outcome_unknown_no_retry"
+            raise ClientError(message) from None
         except (requests.RequestException, ValueError):
             raise ClientError("submit_transport_or_response_error_outcome_unknown") from None
 

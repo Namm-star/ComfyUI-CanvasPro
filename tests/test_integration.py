@@ -134,6 +134,16 @@ class Handler(BaseHTTPRequestHandler):
 
 class Integration(unittest.TestCase):
     def setUp(self):
+        try:
+            from comfy_execution.graph_utils import ExecutionBlocker
+        except ImportError:
+            from types import ModuleType
+            graph_utils=ModuleType("comfy_execution.graph_utils")
+            class ExecutionBlocker:
+                def __init__(self,message):self.message=message
+            graph_utils.ExecutionBlocker=ExecutionBlocker
+            modules=patch.dict(sys.modules,{"comfy_execution":ModuleType("comfy_execution"),"comfy_execution.graph_utils":graph_utils})
+            modules.start();self.addCleanup(modules.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.service = Service()
@@ -141,6 +151,34 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_sync_timeout_blocks_only_images_and_preserves_original_batch(self):
+        import requests
+        task=nodes.PromptTask().execute('gpt-image-2.5-sunburst-W','timeout')[0]
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.client.requests.post',side_effect=requests.Timeout) as post:
+            result=nodes.BatchExecute().execute(task,'timeout-batch',wait_seconds=0,sync_timeout=900)['result']
+            again=nodes.BatchExecute().execute(task,'timeout-batch',wait_seconds=0)['result']
+        self.assertEqual(type(result[0][0]).__name__,'ExecutionBlocker')
+        self.assertIn('sync_submit_timeout_outcome_unknown_no_retry',result[1])
+        self.assertTrue(json.loads(result[1])['download']['no_images'])
+        self.assertEqual(result[2],again[2]);self.assertEqual(post.call_count,1)
+        self.assertEqual(post.call_args.kwargs['timeout'],900)
+
+    def test_sync_failed_download_retry_and_cache_without_regeneration(self):
+        from canvaspro.client import ClientError
+        task=nodes.PromptTask().execute('gpt-image-2.6-flare-W','sync-url')[0]
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            with patch.object(self.client,'download',side_effect=ClientError('download_transport_error')):
+                failed=nodes.BatchExecute().execute(task,'download-only',wait_seconds=0)['result']
+            self.assertEqual(type(failed[0][0]).__name__,'ExecutionBlocker')
+            self.assertIn('download_transport_error',failed[1])
+            recovered=nodes.BatchExecute().execute(task,'download-only',wait_seconds=0)['result']
+            self.assertEqual(len(recovered[0]),1);self.assertTrue(torch.is_tensor(recovered[0][0]))
+            with patch.object(self.client,'download',side_effect=AssertionError('cached image must not download')) as download:
+                cached=nodes.BatchExecute().execute(task,'download-only',wait_seconds=0)['result']
+                self.assertEqual(len(cached[0]),1);download.assert_not_called()
+        self.assertEqual(len(self.service.posts),1)
+        self.assertEqual(failed[2],recovered[2]);self.assertEqual(recovered[2],cached[2])
+
     def test_shared_imgbb_key_without_local_configuration_and_overrides(self):
         self.assertNotIn("imgbb_api_key",nodes.BatchExecute.INPUT_TYPES()["optional"])
         from canvaspro.image_host import host_key
@@ -242,7 +280,7 @@ class Integration(unittest.TestCase):
             batch=submit_batch(self.store,self.client,'lost-sync','gpt-image-2-SR',['p'],size='1024x1024')
             submit_batch(self.store,self.client,'lost-sync','gpt-image-2-SR',['p'],size='1024x1024')
             self.assertEqual(post.call_count,1)
-            self.assertEqual(post.call_args.kwargs['timeout'],120)
+            self.assertEqual(post.call_args.kwargs['timeout'],600)
             self.assertEqual(self.store.read(batch)[1][0]['status'],'submit_unknown')
         self.assertEqual(Client.normalize_aistars({'id':'123','status':'unknown'},'123')['status'],'unknown')
         self.assertEqual(build_request('即梦-23-gemini-nano-banana-2.1','p',size='1:1',image_size='2K',urls=['http://example.com/a.png'])[0],'/aistars/v1/images/edits')
@@ -295,7 +333,7 @@ class Integration(unittest.TestCase):
         pending = submit_batch(self.store,self.client,"pending-combined","gpt-image-2",["always-pending"])
         with patch.object(nodes, "runtime", return_value=(self.store,self.client)), patch.object(nodes,"interrupt"), patch.object(nodes,"progress",return_value=lambda n,t:None):
             images, info = nodes.WaitFetch().execute(self.store.handle(pending),1)["result"]
-            self.assertEqual(images,[])
+            self.assertEqual(type(images[0]).__name__,"ExecutionBlocker")
             self.assertIn("wait_timeout_query_again",info)
         self.assertEqual(len(self.service.posts),4)
 

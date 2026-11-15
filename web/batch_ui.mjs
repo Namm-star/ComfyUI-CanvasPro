@@ -27,7 +27,7 @@ export function syncTaskPorts(node) {
     for (let i=1; i<=count; i++) {
         if (!node.inputs?.some(input => input.name === `task_${i}`)) node.addInput(`task_${i}`, "CANVASPRO_TASKS");
     }
-    visibility(node, ["wait_seconds", "request_timeout"], Boolean(find(node,"advanced")?.value));
+    visibility(node, ["wait_seconds", "request_timeout", "sync_timeout"], Boolean(find(node,"advanced")?.value));
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }

@@ -12,6 +12,18 @@ from .protocol import MODELS, family, reference_limit, IMAGE_MODELS
 from .batch import submit_batch, submit_tasks, query_batch, run_parallel, report
 
 
+def image_output(images):
+    if images:
+        return images
+    try:
+        from comfy_execution.graph_utils import ExecutionBlocker
+    except ImportError:
+        from comfy_execution.graph import ExecutionBlocker
+    # Never pass [] into ComfyUI list mapping: it indexes the final element.
+    # Block only IMAGE consumers; report and task handles must still execute.
+    return [ExecutionBlocker(None)]
+
+
 def runtime(timeout=30, api_key=""):
     base, key = settings(api_key)
     return Store(), Client(base, key, timeout)
@@ -319,6 +331,8 @@ class Fetch:
                     with Image.open(io.BytesIO(blob)) as im:
                         im = ImageOps.exif_transpose(im).convert("RGB")
                         tensor = torch.from_numpy(np.array(im).astype(np.float32) / 255.0).unsqueeze(0)
+                    if task.get("image") is None and family(task["model"]) == "sync":
+                        store.update(batch,index,image=blob)
                     tensors.append(tensor)
                 results[index] = tensors
                 details[index] = {"index": index, "status": "downloaded", "sizes": [[t.shape[2], t.shape[1]] for t in tensors]}
@@ -329,8 +343,8 @@ class Fetch:
         run_parallel(tasks, worker, concurrency, interrupt, progress())
         images = [tensor for index in sorted(results) for tensor in results[index]]
         info = json.dumps({"batch_id": batch, "items": [details[i] for i in sorted(details)],
-            "output_indices": [i for i in sorted(results) for _ in results[i]]}, ensure_ascii=False)
-        return {"ui": {"text": [info]}, "result": (images, info)}
+            "output_indices": [i for i in sorted(results) for _ in results[i]], "no_images": not images}, ensure_ascii=False)
+        return {"ui": {"text": [info]}, "result": (image_output(images), info)}
 
 
 class WaitFetch(Fetch):
@@ -367,10 +381,13 @@ class BatchExecute(Fetch):
                 "request_timeout": ("INT", {"default": 30, "min": 1, "max": 120}),
                 "api_key": ("STRING", {"default": "", "multiline": False, "tooltip": "Enter your CanvasPro API Key here. Saved workflows may contain it; remove before sharing."}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 9007199254740991, "control_after_generate": True, "tooltip": "批次种子：fixed 保持同一批次，randomize 每次生成新批次（正常计费）；也可 increment/decrement。仅用于区分批次，不是模型的图像随机种子。"}),
+                "sync_timeout": ("INT", {"default":600,"min":1,"max":3600,"tooltip":"同步图片请求等待秒数，默认600。超时不自动重新提交。异步查询使用wait_seconds。"}),
                 **{f"task_{i}": ("CANVASPRO_TASKS",) for i in range(2, 257)}},
             "hidden": {"unique_id": "UNIQUE_ID"}}
 
-    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, api_key="", seed=None, imgbb_api_key="", **ports):
+    def execute(self, task_1, job_key, concurrency=3, advanced=False, wait_seconds=600, request_timeout=30, unique_id=None, api_key="", seed=None, imgbb_api_key="", sync_timeout=600, **ports):
+        if type(sync_timeout) is not int or not 1 <= sync_timeout <= 3600:
+            raise ValueError("sync_timeout must be 1-3600 seconds")
         original_job_key = job_key
         if seed is not None:
             if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed <= 9007199254740991:
@@ -381,6 +398,7 @@ class BatchExecute(Fetch):
             if ports.get(f"task_{i}") is not None:
                 items.extend(ports[f"task_{i}"])
         store, client = runtime(request_timeout, api_key) if api_key else runtime(request_timeout)
+        client.sync_timeout = sync_timeout
         phase = "提交"
         last_sent, last_check = None, 0.0
         def publish():
@@ -422,7 +440,8 @@ class BatchExecute(Fetch):
         publish()
         images, download_report = fetched["result"]
         info = json.dumps({"job_key": original_job_key, "seed": seed, "effective_job_key": job_key,
-            "query": json.loads(report(store, batch)), "download": json.loads(download_report)}, ensure_ascii=False)
+            "query": json.loads(report(store, batch)), "download": json.loads(download_report),
+            "guidance": "未取得可保存图片，已跳过保存。结果未知时请核对平台记录，不要自动更换seed重提；已有URL或缓存时保持原job_key和seed，设为fixed再运行可只重试下载。" if json.loads(download_report).get("no_images") else ""}, ensure_ascii=False)
         return {"ui": {"text": [info]}, "result": (images, info, handle)}
 
 

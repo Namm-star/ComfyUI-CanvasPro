@@ -13,7 +13,8 @@
       "job_key": "optimized-001",
       "concurrency": 3,
       "advanced": false,
-      "seed": 100001
+      "seed": 100001,
+      "sync_timeout": 600
     }
   },
   "4": {

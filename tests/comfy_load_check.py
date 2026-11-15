@@ -87,6 +87,22 @@ async def main():
             finally:
                 folder_paths.set_output_directory(original_output)
             assert len(service.posts) == 5
+            # Real ComfyUI regression: failed synchronous request must not feed [] to SaveImage.
+            failed_task = await invoke("CanvasProPromptTask",{"model":"gpt-image-2.5-sunburst-W","prompt":"bad-submit"})
+            failed=await invoke("CanvasProBatchExecute",{"task_1":failed_task[0][0],"job_key":"real-sync-failure","wait_seconds":0})
+            from comfy_execution.graph import ExecutionBlocker
+            assert len(failed[0])==1 and isinstance(failed[0][0],ExecutionBlocker)
+            from unittest.mock import patch
+            save=nodes.NODE_CLASS_MAPPINGS["SaveImage"]()
+            with patch.object(save,"save_images",side_effect=AssertionError("SaveImage must be skipped")) as save_call:
+                output,ui,_,_=await execution.get_output_data("canvaspro-check","blocked-save",save,{"images":failed[0],"filename_prefix":["blocked"]})
+                save_call.assert_not_called()
+            for slot in (1,2):
+                output,ui,_,_=await execution.get_output_data("canvaspro-check",f"failed-log-{slot}",nodes.NODE_CLASS_MAPPINGS["PreviewAny"](),{"source":[failed[slot][0]]})
+                assert ui["text"][0]==failed[slot][0]
+            assert "submit_http_503_outcome_unknown" in failed[1][0]
+            assert len(service.posts)==6
+            print("REAL COMFYUI EMPTY-IMAGE BLOCK + SaveImage SKIP + REPORT OUTPUT PASSED")
             print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (KR/Gemini/AIStars/W sync/KR25 mixed batch)")
         finally:
             service.shutdown()
