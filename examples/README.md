@@ -87,3 +87,15 @@ IMAGE与reference_urls二选一；URL方式不会上传ImgBB。图床上传失�
 没收到图片时只阻止图片分支，保存节点跳过，report/tasks_json正常显示超时或下载错误，不生成占位图。
 同步下载成功后缓存本地图片；原job_key和seed保持不变并设fixed，可恢复结果或重试原URL下载，不重新生图。
 submit_unknown且没有原始URL/Base64/任务号时，插件无法凭空恢复结果，请从平台记录获取原图；不要自动换seed重提。连接或上游网关仍可能提前中断，延长等待不承诺必定返回。
+
+
+## 再次获取结果（0.13.0）
+
+结果再次获取（0.13.0）：新增“CanvasPro · 再次获取结果（不重新生图）”节点。
+请另开专用结果恢复工作流，或只执行恢复节点，避免同时运行原提交工作流。将原 report / tasks_json 整段粘贴到 recovery，或填写 batch_id / effective_job_key；填自己的CanvasPro Key，images连接保存图像，再次运行仅查询/下载原任务，不重新提交。
+异步原网址失效时可启用refresh_urls，尝试从原任务号重新获取网址；平台若未保留制品仍可能无法恢复。
+同步已保存URL时可重试下载，收到Base64或下载成功后优先用本地缓存；没有收到任何结果的同步请求无法补查。
+日志包含resource_urls（完整资源网址）、task_id、cached_image及resources[].requires_api_key。需要鉴权的本站网址要用原账户有效Key下载；签名网址可能过期，分享日志前删除资源网址。
+恢复依赖原电脑的本地任务数据库，请保留user/canvaspro。所有型号成功下载后均缓存图片；只查看日志时不加载图片二进制。
+
+[结果恢复-Result-Recovery.json](结果恢复-Result-Recovery.json)：专用恢复示例，粘贴原报告后获取结果，不连接提交节点。

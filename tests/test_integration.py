@@ -151,6 +151,51 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_recovery_from_async_report_has_urls_and_never_posts(self):
+        batch=submit_batch(self.store,self.client,'recover-report','gpt-image-2',['recovery'])
+        query_batch(self.store,self.client,batch,0,.2,1)
+        record=json.dumps({'query':{'batch_id':batch}})
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            result=nodes.RecoverResults().execute(record,wait_seconds=5)['result']
+            self.assertEqual(len(result[0]),1)
+            data=json.loads(result[1]);item=data['query']['items'][0]
+            self.assertEqual(item['task_id'],'0');self.assertEqual(item['resource_urls'],[self.service.base+'/image/0'])
+            self.assertTrue(item['cached_image']);self.assertTrue(item['resources'][0]['requires_api_key'])
+            with patch.object(self.client,'query',side_effect=AssertionError('do not re-query completed')),patch.object(self.client,'download',side_effect=AssertionError('use cached data')):
+                again=nodes.RecoverResults().execute(batch,wait_seconds=0)['result']
+                self.assertEqual(len(again[0]),1)
+        self.assertEqual(len(self.service.posts),1)
+
+    def test_async_recovery_can_refresh_expired_resource_url(self):
+        batch=submit_batch(self.store,self.client,'expired','gpt-image-2',['recovery'])
+        self.store.update(batch,0,status='succeeded',urls=['https://expired.example.invalid/old.png'])
+        body={'task_id':'0','status':'succeeded','data':[{'url':self.service.base+'/image/0'}]}
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch.object(self.client,'query',return_value=body) as query:
+            recovered=nodes.RecoverResults().execute(batch,wait_seconds=0,refresh_urls=True)['result']
+            query.assert_called_once();self.assertTrue(torch.is_tensor(recovered[0][0]))
+            self.assertIn(self.service.base+'/image/0',recovered[1])
+        self.assertEqual(len(self.service.posts),1)
+
+    def test_refresh_does_not_erase_completed_resource(self):
+        batch=submit_batch(self.store,self.client,'keep-url','gpt-image-2',['recovery'])
+        original=self.service.base+'/image/0'
+        self.store.update(batch,0,status='succeeded',urls=[original])
+        with patch.object(self.client,'query',return_value={'task_id':'0','status':'queued'}):
+            query_batch(self.store,self.client,batch,0,.2,1,refresh_success=True)
+        saved=self.store.read(batch)[1][0]
+        self.assertEqual(saved['status'],'succeeded');self.assertEqual(saved['urls'],[original])
+
+    def test_sync_recovery_uses_url_or_cache_without_any_submit(self):
+        task=nodes.PromptTask().execute('gpt-image-2.6-flare-W','sync-url')[0]
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            result=nodes.BatchExecute().execute(task,'sync-recover',wait_seconds=0)['result']
+            data=json.loads(result[1]);self.assertTrue(data['query']['items'][0]['resource_urls'])
+            self.assertFalse(data['query']['items'][0]['resources'][0]['requires_api_key'])
+            with patch('canvaspro.client.requests.post',side_effect=AssertionError('recovery never submits')),patch.object(self.client,'download',side_effect=AssertionError('cached')):
+                recovered=nodes.RecoverResults().execute(result[1],wait_seconds=0)['result']
+                self.assertTrue(torch.is_tensor(recovered[0][0]))
+        self.assertEqual(len(self.service.posts),1)
+
     def test_sync_timeout_blocks_only_images_and_preserves_original_batch(self):
         import requests
         task=nodes.PromptTask().execute('gpt-image-2.5-sunburst-W','timeout')[0]
@@ -177,7 +222,7 @@ class Integration(unittest.TestCase):
                 cached=nodes.BatchExecute().execute(task,'download-only',wait_seconds=0)['result']
                 self.assertEqual(len(cached[0]),1);download.assert_not_called()
         self.assertEqual(len(self.service.posts),1)
-        self.assertEqual(failed[2],recovered[2]);self.assertEqual(recovered[2],cached[2])
+        self.assertEqual(json.loads(failed[2])["batch_id"],json.loads(recovered[2])["batch_id"]);self.assertEqual(recovered[2],cached[2])
 
     def test_shared_imgbb_key_without_local_configuration_and_overrides(self):
         self.assertNotIn("imgbb_api_key",nodes.BatchExecute.INPUT_TYPES()["optional"])

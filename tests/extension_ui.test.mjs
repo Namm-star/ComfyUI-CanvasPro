@@ -95,3 +95,14 @@ test("registered SR node shows numeric dimensions even after switching from Bana
  widget(n,'advanced').value=true;widget(n,'advanced').callback(true);
  assert.equal(widget(n,'quality').hidden,false);assert(widget(n,'quality').options.values.includes('max'));
 });
+
+test("recovery node masks API key without needing task inputs",async()=>{
+ globalThis.document={createElement:()=>({style:{}})};
+ class Recovery {
+  constructor(){this.widgets=[{name:'recovery',value:'batch-id'},{name:'api_key',value:'test-key'}];}
+  addDOMWidget(name,type,input,options){const w={name,type,inputEl:input};Object.defineProperty(w,'value',{get:options.getValue,set:options.setValue});this.widgets.push(w);return w;}
+ }
+ await extension.beforeRegisterNodeDef(Recovery,{name:'CanvasProRecoverResults'});
+ const n=new Recovery();n.onNodeCreated();assert.equal(widget(n,'api_key').inputEl.type,'password');assert.equal(widget(n,'recovery').value,'batch-id');
+ delete globalThis.document;
+});

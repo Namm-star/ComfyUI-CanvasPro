@@ -117,8 +117,8 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
     return batch
 
 
-def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, interrupt=lambda: None, progress=lambda n, total: None):
-    meta, tasks = store.read(batch)
+def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, interrupt=lambda: None, progress=lambda n, total: None, refresh_success=False):
+    meta, tasks = store.read(batch,include_images=False)
     if meta["base"] != client.base:
         raise ValueError("Saved task service differs from current settings")
     deadline = time.monotonic() + max(1, wait_seconds)
@@ -129,6 +129,8 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
     def worker(task, cancel):
         if not task["task_id"] or task["status"] == "failed":
             return
+        if task["status"]=="succeeded" and (task.get("image") is not None or (task["urls"] and not refresh_success)):
+            return
         interval = max(0.2, poll_interval)
         while not cancel.is_set() and time.monotonic() < deadline:
             try:
@@ -136,6 +138,9 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
                 if body.get("task_id") != task["task_id"]:
                     raise ClientError("query_task_id_mismatch")
                 status = body["status"]
+                if task["status"]=="succeeded" and task["urls"] and status!="succeeded":
+                    store.update(batch,task["position"],detail="refresh_did_not_return_success_original_resource_preserved")
+                    return
                 urls = []
                 if status == "succeeded":
                     data = body.get("data")
@@ -160,9 +165,10 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
 
 
 def report(store, batch):
-    _, tasks = store.read(batch)
+    _, tasks = store.read(batch,include_images=False)
     counts = {}
     for t in tasks:
         counts[t["status"]] = counts.get(t["status"], 0) + 1
+    resources=store.resources(batch)
     return json.dumps({"batch_id": batch, "counts": counts, "items": [
-        {"index": t["position"], "model": t["model"], "status": t["status"], "detail": t["detail"]} for t in tasks]}, ensure_ascii=False)
+        {**resources[i], "status": t["status"], "detail": t["detail"]} for i,t in enumerate(tasks)]}, ensure_ascii=False)

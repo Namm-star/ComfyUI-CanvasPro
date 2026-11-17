@@ -68,12 +68,13 @@ class Store:
         with self.connect() as db:
             db.execute("UPDATE tasks SET " + ",".join(k + "=?" for k in fields) + " WHERE batch=? AND position=?", (*fields.values(), batch, index))
 
-    def read(self, batch):
+    def read(self, batch, include_images=True):
         with self.connect() as db:
             meta = db.execute("SELECT * FROM batches WHERE id=?", (batch,)).fetchone()
             if not meta:
                 raise ValueError("Unknown batch: restore local database or import existing IDs")
-            tasks = [dict(r) for r in db.execute("SELECT * FROM tasks WHERE batch=? ORDER BY position", (batch,))]
+            columns="*" if include_images else "batch,position,status,task_id,detail,urls,model,CASE WHEN image IS NOT NULL THEN 1 ELSE NULL END AS image"
+            tasks = [dict(r) for r in db.execute("SELECT "+columns+" FROM tasks WHERE batch=? ORDER BY position", (batch,))]
         for t in tasks:
             t["model"] = t["model"] or meta["model"]
             t["urls"] = json.loads(t["urls"])
@@ -88,15 +89,28 @@ class Store:
             raise ValueError("No saved batch for job_key")
         return row[0]
 
+    def resources(self, batch):
+        from urllib.parse import urljoin, urlsplit
+        meta,tasks=self.read(batch,include_images=False)
+        result=[]
+        base=urlsplit(meta["base"])
+        for t in tasks:
+            urls=[urljoin(meta["base"]+"/",url) for url in t["urls"]]
+            result.append({"index":t["position"],"model":t["model"],"task_id":t["task_id"],
+                "resource_urls":urls,"cached_image":t.get("image") is not None,
+                "resources":[{"url":url,"requires_api_key":not t["model"].endswith("-W") and urlsplit(url).netloc==base.netloc and urlsplit(url).scheme==base.scheme} for url in urls]})
+        return result
+
     def handle(self, batch):
-        meta, tasks = self.read(batch)
+        meta, tasks = self.read(batch,include_images=False)
+        resources=self.resources(batch)
         return json.dumps({"schema": 1, "batch_id": batch, "model": meta["model"],
-            "tasks": [{k: t[k] for k in ("position", "model", "task_id", "status", "detail")} for t in tasks]}, ensure_ascii=False)
+            "tasks": [{**{k: t[k] for k in ("position", "model", "task_id", "status", "detail")}, **resources[i]} for i,t in enumerate(tasks)]}, ensure_ascii=False)
 
     def resolve(self, handle):
         value = json.loads(handle)
         if value.get("schema") != 1:
             raise ValueError("Unsupported task list schema")
         batch = value["batch_id"]
-        self.read(batch)
+        self.read(batch,include_images=False)
         return batch

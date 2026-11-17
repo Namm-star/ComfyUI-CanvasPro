@@ -753,8 +753,9 @@ app.registerExtension({
     name: "CanvasPro.ModelInputs",
     async beforeRegisterNodeDef(nodeType, nodeData) {
         const task = nodeData.name === "CanvasProPromptTask";
+        const recover = nodeData.name === "CanvasProRecoverResults";
         const batch = nodeData.name === "CanvasProBatchExecute";
-        if (!batch && !task && nodeData.name !== "CanvasProModelBatchSubmit") return;
+        if (!recover && !batch && !task && nodeData.name !== "CanvasProModelBatchSubmit") return;
         // Trim frontend definitions before ComfyUI constructs the node. The
         // backend retains every supported input for API validation/execution.
         if (task || batch) {
@@ -773,7 +774,7 @@ app.registerExtension({
         const created = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = created?.apply(this,args);
-            if (batch) {
+            if (batch || recover) {
                 for(const field of ["api_key"]) {
                 const old = this.widgets?.find(w => w.name === field);
                 if (old && this.addDOMWidget && typeof document !== "undefined") {
@@ -795,7 +796,7 @@ app.registerExtension({
                 }
                 }
             }
-            if (!batch) installModelUI(this,notify);
+            if (!batch && !recover) installModelUI(this,notify);
             if (task || batch) {
                 const advanced = this.widgets?.find(w => w.name === "advanced");
                 const callback = advanced?.callback;
@@ -820,7 +821,7 @@ app.registerExtension({
                 }
             }
             const result = configure?.apply(this,args);
-            if (!batch) restoreModelUI(this,notify);
+            if (!batch && !recover) restoreModelUI(this,notify);
             refresh(this);
             return result;
         };

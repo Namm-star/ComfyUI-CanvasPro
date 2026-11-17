@@ -331,7 +331,7 @@ class Fetch:
                     with Image.open(io.BytesIO(blob)) as im:
                         im = ImageOps.exif_transpose(im).convert("RGB")
                         tensor = torch.from_numpy(np.array(im).astype(np.float32) / 255.0).unsqueeze(0)
-                    if task.get("image") is None and family(task["model"]) == "sync":
+                    if task.get("image") is None:
                         store.update(batch,index,image=blob)
                     tensors.append(tensor)
                 results[index] = tensors
@@ -341,6 +341,8 @@ class Fetch:
             except Exception:
                 details[index] = {"index": index, "status": "download_failed", "detail": "invalid_image_or_local_decode_error"}
         run_parallel(tasks, worker, concurrency, interrupt, progress())
+        resources=store.resources(batch)
+        for index,detail in details.items():detail.update(resources[index])
         images = [tensor for index in sorted(results) for tensor in results[index]]
         info = json.dumps({"batch_id": batch, "items": [details[i] for i in sorted(details)],
             "output_indices": [i for i in sorted(results) for _ in results[i]], "no_images": not images}, ensure_ascii=False)
@@ -439,6 +441,7 @@ class BatchExecute(Fetch):
         phase, last_check = "本轮结束", 0.0
         publish()
         images, download_report = fetched["result"]
+        handle=store.handle(batch)
         info = json.dumps({"job_key": original_job_key, "seed": seed, "effective_job_key": job_key,
             "query": json.loads(report(store, batch)), "download": json.loads(download_report),
             "guidance": "未取得可保存图片，已跳过保存。结果未知时请核对平台记录，不要自动更换seed重提；已有URL或缓存时保持原job_key和seed，设为fixed再运行可只重试下载。" if json.loads(download_report).get("no_images") else ""}, ensure_ascii=False)
@@ -505,3 +508,37 @@ NODE_DISPLAY_NAME_MAPPINGS["CanvasProWaitFetch"] = "CanvasPro · 等待并获取
 
 NODE_CLASS_MAPPINGS["CanvasProBatchExecute"] = BatchExecute
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProBatchExecute"] = "CanvasPro · 批量执行"
+
+
+class RecoverResults(Fetch):
+    RETURN_TYPES=("IMAGE","STRING","STRING")
+    RETURN_NAMES=("images","report","tasks_json")
+    OUTPUT_IS_LIST=(True,False,False)
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required":{"recovery":("STRING",{"multiline":True,"default":"","tooltip":"粘贴原report、tasks_json、batch_id或完整effective_job_key。不连接任务提交节点，不会重新生图。"})},
+            "optional":{"api_key":("STRING",{"default":""}),"wait_seconds":("INT",{"default":600,"min":0,"max":86400}),
+                "request_timeout":("INT",{"default":60,"min":1,"max":120}),"refresh_urls":("BOOLEAN",{"default":False,"tooltip":"异步资源网址过期时，勾选后续查原任务号。不会重新提交；同步接口无查询入口。"})}}
+    def execute(self,recovery,api_key="",wait_seconds=600,request_timeout=60,refresh_urls=False):
+        store,client=runtime(request_timeout,api_key) if api_key else runtime(request_timeout)
+        text=recovery.strip()
+        if not text:raise ValueError("请粘贴原report、tasks_json、batch_id或完整effective_job_key")
+        if text.startswith("{"):
+            try:
+                value=json.loads(text)
+                batch=value.get("batch_id") or value.get("query",{}).get("batch_id") or value.get("download",{}).get("batch_id")
+                if not batch:batch=store.by_key(value["effective_job_key"])
+            except (ValueError,KeyError,TypeError,AttributeError):raise ValueError("无法识别恢复记录，请使用完整report或tasks_json") from None
+        else:
+            try:store.read(text);batch=text
+            except ValueError:batch=store.by_key(text)
+        store.read(batch)
+        query_batch(store,client,batch,wait_seconds,2.0,3,interrupt,progress(),refresh_success=refresh_urls)
+        handle=store.handle(batch)
+        fetched=Fetch().execute(handle,3,request_timeout,api_key)
+        info=json.dumps({"recovery_only":True,"batch_id":batch,"query":json.loads(report(store,batch)),"download":json.loads(fetched["result"][1]),
+            "guidance":"只查询和下载原任务，不会重新提交。同步请求若没有保存URL或图片内容，仍需从平台获取原图。资源网址可能需要API Key或有有效期，分享日志前请删除资源网址。"},ensure_ascii=False)
+        return {"ui":{"text":[info]},"result":(fetched["result"][0],info,store.handle(batch))}
+
+NODE_CLASS_MAPPINGS["CanvasProRecoverResults"]=RecoverResults
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProRecoverResults"]="CanvasPro · 再次获取结果（不重新生图）"

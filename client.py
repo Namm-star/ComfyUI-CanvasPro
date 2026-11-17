@@ -54,6 +54,12 @@ class Client:
         item=data[0]
         encoded=item.get("b64_json")
         url=item.get("url")
+        url_result=[]
+        if isinstance(url,str) and url and self.key not in url:
+            u=urlsplit(url)
+            local_test=origin(url)==origin(self.base) and u.hostname=="127.0.0.1"
+            if (u.scheme=="https" or local_test) and u.hostname and not u.username and not u.password:
+                url_result=[url]
         if isinstance(encoded,str) and encoded:
             if len(encoded)>90*1024**2:
                 raise ClientError("sync_image_too_large_outcome_unknown")
@@ -69,7 +75,7 @@ class Client:
                 with Image.open(io.BytesIO(blob)) as im: im.verify()
             except Exception:
                 raise ClientError("sync_invalid_image_outcome_unknown") from None
-            return {"urls":[],"image":blob}
+            return {"urls":url_result,"image":blob}
         if isinstance(url,str) and url and self.key not in url:
             u=urlsplit(url)
             local_test=origin(url)==origin(self.base) and u.hostname=="127.0.0.1"

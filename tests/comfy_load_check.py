@@ -21,7 +21,7 @@ async def main():
     assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_preview_any.py'))
     assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_primitive.py'))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
-    assert len(names) == 11, names
+    assert len(names) == 12, names
     for name in names:
         cls = nodes.NODE_CLASS_MAPPINGS[name]
         inputs = cls.INPUT_TYPES()
@@ -102,6 +102,10 @@ async def main():
                 assert ui["text"][0]==failed[slot][0]
             assert "submit_http_503_outcome_unknown" in failed[1][0]
             assert len(service.posts)==6
+            recovered=await invoke("CanvasProRecoverResults",{"recovery":fetched[2][0],"wait_seconds":0})
+            assert len(recovered[0])==5 and len(service.posts)==6
+            assert "resource_urls" in recovered[1][0]
+            print("REAL RECOVERY NODE + RESOURCE LOGS + NO NEW POST PASSED")
             print("REAL COMFYUI EMPTY-IMAGE BLOCK + SaveImage SKIP + REPORT OUTPUT PASSED")
             print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (KR/Gemini/AIStars/W sync/KR25 mixed batch)")
         finally:
