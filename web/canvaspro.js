@@ -749,12 +749,26 @@ function migrateTaskDimensions(values) {
     return migrated;
 }
 
+
+function syncQueryUI(node) {
+    const source=find(node,"tasks_json");
+    const text=String(source?.value || "").trim();
+    const record=!text || text.startsWith("{") || text.startsWith("[") || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text) || text.includes("::seed=") || /^(simple|async|query|import)-[0-9a-f]+$/i.test(text);
+    visibility(node,["model"],!record);
+    const model=find(node,"model");
+    if(model)model.label="手动任务号对应模型";
+    if(source){source.label="单独任务（可选，留空查询整个队列）";if(source.inputEl)source.inputEl.placeholder="通常留空：按queue_key自动查询队列内所有模型。仅查询单份报告或平台任务号时填写。";}
+    node.setSize?.([node.size?.[0] || 500,node.computeSize?.()[1] || 400]);
+    node.setDirtyCanvas?.(true,true);
+}
+
 app.registerExtension({
     name: "CanvasPro.ModelInputs",
     async beforeRegisterNodeDef(nodeType, nodeData) {
         const simple = ["CanvasProImageGenerate","CanvasProAsyncSubmit"].includes(nodeData.name);
         const task = nodeData.name === "CanvasProPromptTask" || simple;
         const recover = ["CanvasProRecoverResults","CanvasProAsyncQuery"].includes(nodeData.name);
+        const query = nodeData.name === "CanvasProAsyncQuery";
         const batch = nodeData.name === "CanvasProBatchExecute";
         if (!recover && !batch && !task && nodeData.name !== "CanvasProModelBatchSubmit") return;
         // Trim frontend definitions before ComfyUI constructs the node. The
@@ -769,7 +783,8 @@ app.registerExtension({
         }
         const notify = message => window.alert(message);
         const refresh = node => {
-            if (batch) syncTaskPorts(node);
+            if(query)syncQueryUI(node);
+            else if (batch) syncTaskPorts(node);
             else if (task) { autoImageCount(node); syncModelUI(node,notify,true); syncTaskAdvanced(node); if(simple){visibility(node,["wait_seconds","request_timeout","sync_timeout","concurrency"],Boolean(node.widgets?.find(w=>w.name==="advanced")?.value));node.setSize([node.size[0],node.computeSize()[1]]);node.setDirtyCanvas(true,true);} }
         };
         const created = nodeType.prototype.onNodeCreated;
@@ -796,6 +811,11 @@ app.registerExtension({
                     this.widgets.splice(index,1,key);
                 }
                 }
+            }
+            if(query){
+                const source=this.widgets?.find(w=>w.name==="tasks_json");
+                if(source){const previous=source.callback;source.callback=(...args)=>{previous?.apply(source,args);refresh(this);};source.inputEl?.addEventListener?.("input",()=>refresh(this));}
+                refresh(this);
             }
             if (!batch && !recover) installModelUI(this,notify);
             if (task || batch) {
@@ -829,7 +849,7 @@ app.registerExtension({
         const connections = nodeType.prototype.onConnectionsChange;
         nodeType.prototype.onConnectionsChange = function (...args) {
             const result = connections?.apply(this,args);
-            if ((task || batch) && !this.canvasproSyncPending) {
+            if ((task || batch || query) && !this.canvasproSyncPending) {
                 this.canvasproSyncPending = true;
                 queueMicrotask(() => { this.canvasproSyncPending=false; refresh(this); });
             }

@@ -151,6 +151,15 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_queue_query_never_filters_mixed_models_by_manual_model_parameter(self):
+        models=['gpt-image-2','T香蕉2.1','即梦-67-gpt-image-2.5-sunburst']
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            for seed,model in enumerate(models):nodes.AsyncSubmit().execute(model,'mixed',queue_key='mixed-query',seed=seed)
+            result=nodes.AsyncQuery().execute(queue_key='mixed-query',model='gpt-image-2',wait_seconds=10)['result']
+        self.assertEqual(len(result[0]),3)
+        returned={item['model'] for batch in json.loads(result[1])['batches'] for item in batch['query']['items']}
+        self.assertEqual(returned,set(models));self.assertEqual(len(self.service.posts),3)
+
     def test_query_skips_during_submit_stage_then_runs_after_submit_disabled(self):
         graph={'1':{'class_type':'CanvasProAsyncSubmit','inputs':{'queue_key':'step-queue'}}}
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):

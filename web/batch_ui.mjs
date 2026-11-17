@@ -71,3 +71,16 @@ export function migrateTaskDimensions(values) {
     if (values.length === 10) migrated.push(Number(match[1]),Number(match[2]));
     return migrated;
 }
+
+
+export function syncQueryUI(node) {
+    const source=find(node,"tasks_json");
+    const text=String(source?.value || "").trim();
+    const record=!text || text.startsWith("{") || text.startsWith("[") || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text) || text.includes("::seed=") || /^(simple|async|query|import)-[0-9a-f]+$/i.test(text);
+    visibility(node,["model"],!record);
+    const model=find(node,"model");
+    if(model)model.label="手动任务号对应模型";
+    if(source){source.label="单独任务（可选，留空查询整个队列）";if(source.inputEl)source.inputEl.placeholder="通常留空：按queue_key自动查询队列内所有模型。仅查询单份报告或平台任务号时填写。";}
+    node.setSize?.([node.size?.[0] || 500,node.computeSize?.()[1] || 400]);
+    node.setDirtyCanvas?.(true,true);
+}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { syncTaskPorts, syncTaskAdvanced, autoImageCount, migrateTaskDimensions } from "../web/batch_ui.mjs";
+import { syncTaskPorts, syncTaskAdvanced, autoImageCount, migrateTaskDimensions, syncQueryUI } from "../web/batch_ui.mjs";
 const make = () => ({size:[300,200], inputs:[], widgets:["advanced","wait_seconds","request_timeout","reference_count","quality","reference_urls","model"].map(name=>({name,value:name==="model"?"gpt-image-2":false,type:"text",options:{},computeSize:()=>[200,20]})), addInput(name,type){this.inputs.push({name,type,link:null});}, removeInput(i){this.inputs.splice(i,1);},computeSize(){return [300,200];},setSize(s){this.size=s;},setDirtyCanvas(){}});
 test("task ports grow beyond two and preserve sparse saved links",()=>{
     const n=make(); syncTaskPorts(n); assert.deepEqual(n.inputs.map(i=>i.name),["task_1","task_2"]);
@@ -41,4 +41,12 @@ test("sync timeout stays advanced and preserves configured wait",()=>{
  syncTaskPorts(n);assert.equal(n.widgets.at(-1).hidden,true);
  n.widgets.find(w=>w.name==='advanced').value=true;syncTaskPorts(n);
  assert.equal(n.widgets.at(-1).hidden,false);assert.equal(n.widgets.at(-1).value,900);
+});
+
+test("queue query hides model and complete metadata; bare task IDs reveal only manual model",()=>{
+ const n=make();n.widgets.push({name:'tasks_json',value:'',options:{},inputEl:{style:{}}});
+ const source=n.widgets.at(-1),model=n.widgets.find(w=>w.name==='model');model.value='T香蕉2.1';
+ for(const value of ['', '{"query":{"items":[{"model":"T香蕉2.1"},{"model":"gpt-image-2"}]}}','685778df-c714-4c2c-8ddc-993834db33e5','async-abcd::seed=123']){source.value=value;syncQueryUI(n);assert.equal(model.hidden,true);assert.equal(model.value,'T香蕉2.1');}
+ source.value='';n.inputs.push({name:'tasks_json',link:123});syncQueryUI(n);assert.equal(model.hidden,true);
+ source.value='task_abc\ntask_def';syncQueryUI(n);assert.equal(model.hidden,false);assert.equal(model.label,'手动任务号对应模型');
 });

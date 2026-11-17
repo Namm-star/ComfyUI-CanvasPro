@@ -618,8 +618,8 @@ class AsyncSubmit(ImageGenerate):
 class AsyncQuery(RecoverResults):
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required":{"queue_key":("STRING",{"default":"queue-001","tooltip":"与提交节点使用相同队列名，批量查询多次提交的全部任务；不重新生图。"})},
-            "optional":{"api_key":("STRING",{"default":""}),"tasks_json":("STRING",{"multiline":True,"default":"","tooltip":"可选：单独查询粘贴的report/tasks_json/平台任务号；留空则查询整个命名队列。"}),"model":(async_models(),{"tooltip":"仅手工填写平台任务号时需要选择；按队列查询会自动使用每批原有型号。"}),
+        return {"required":{"queue_key":("STRING",{"default":"queue-001","tooltip":"与提交节点使用相同队列名；自动查询该队列全部型号的任务，不按model筛选，不重新生图。"})},
+            "optional":{"api_key":("STRING",{"default":""}),"tasks_json":("STRING",{"multiline":True,"default":"","tooltip":"通常留空：按queue_key查询整个队列，包括混合模型。仅单独查询报告或平台任务号时填写。"}),"model":(async_models(),{"tooltip":"仅手动填写不带模型信息的纯任务号时需要选择。队列、完整报告、batch_id查询会自动使用原有型号，此参数不参与筛选。"}),
                 "wait_seconds":("INT",{"default":600,"min":0,"max":86400,"tooltip":"0仅查询一次；未完成可再次执行查询，不重新生图。"}),
                 "request_timeout":("INT",{"default":60,"min":1,"max":120}),"refresh_urls":("BOOLEAN",{"default":False})},"hidden":{"prompt":"PROMPT"}}
     def execute(self,queue_key="queue-001",api_key="",tasks_json="",model="gpt-image-2",wait_seconds=600,request_timeout=60,refresh_urls=False,prompt=None):
@@ -670,4 +670,4 @@ class AsyncQuery(RecoverResults):
 NODE_CLASS_MAPPINGS["CanvasProAsyncSubmit"]=AsyncSubmit
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncSubmit"]="CanvasPro · 异步提交 / Async Submit"
 NODE_CLASS_MAPPINGS["CanvasProAsyncQuery"]=AsyncQuery
-NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncQuery"]="CanvasPro · 异步查询下载 / Async Query"
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncQuery"]="CanvasPro · 队列批量查询 / Async Query"

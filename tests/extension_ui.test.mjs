@@ -138,3 +138,11 @@ test("async query masks key independently of submission",async()=>{
  class Query{constructor(){this.widgets=[{name:'queue_key',value:'queue-001'},{name:'api_key',value:'test-key'}];}addDOMWidget(name,type,input,options){const w={name,type,inputEl:input};Object.defineProperty(w,'value',{get:options.getValue,set:options.setValue});this.widgets.push(w);return w;}}
  await extension.beforeRegisterNodeDef(Query,{name:'CanvasProAsyncQuery'});const n=new Query();n.onNodeCreated();assert.equal(widget(n,'api_key').inputEl.type,'password');delete globalThis.document;
 });
+
+test("registered queue query hides misleading model after creation, edits and reload",async()=>{
+ class Query extends Task{constructor(){super();this.widgets.push({name:'tasks_json',value:'',options:{}});}}
+ await extension.beforeRegisterNodeDef(Query,{name:'CanvasProAsyncQuery'});const n=new Query();n.onNodeCreated();assert.equal(widget(n,'model').hidden,true);
+ const text=widget(n,'tasks_json');text.value='task_123';text.callback('task_123');assert.equal(widget(n,'model').hidden,false);
+ text.value='{"batch_id":"123"}';text.callback(text.value);assert.equal(widget(n,'model').hidden,true);
+ text.value='';n.onConfigure({});assert.equal(widget(n,'model').hidden,true);
+});
