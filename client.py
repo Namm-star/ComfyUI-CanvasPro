@@ -2,6 +2,7 @@
 import time
 import base64
 import binascii
+import re
 from urllib.parse import urljoin, urlsplit
 import requests
 
@@ -21,7 +22,9 @@ class Client:
         self.timeout = max(1, min(120, request_timeout))
         self.sync_timeout = max(1, min(3600, sync_timeout))
 
-    def submit(self, path, payload, uploads):
+    def submit(self, path, payload, uploads, receipt=None):
+        receipt = receipt if receipt is not None else {}
+        receipt["post_attempted"]=True
         kwargs = {"json": payload} if uploads is None else {"data": payload, "files": uploads}
         # URL-only KR edit still requires multipart: encode text as text parts.
         if uploads == []:
@@ -29,17 +32,25 @@ class Client:
         try:
             with requests.post(self.base + path, headers={"Authorization": "Bearer " + self.key},
                                timeout=self.sync_timeout if path in ("/v1/images/generations","/v1/images/edits") else self.timeout, allow_redirects=False, **kwargs) as r:
+                receipt["http_status"]=r.status_code
+                for name in ("x-request-id","x-oneapi-request-id","request-id","x-trace-id"):
+                    value=r.headers.get(name)
+                    if isinstance(value,str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}",value) and self.key not in value:
+                        receipt["request_id"]=value;break
                 if not 200 <= r.status_code < 300:
                     # No generic HTTP code proves upstream did not run/charge.
                     raise ClientError(f"submit_http_{r.status_code}_outcome_unknown")
                 body = r.json()
                 if path in ("/v1/images/generations", "/v1/images/edits"):
-                    return self.normalize_sync(body)
+                    result=self.normalize_sync(body)
+                    receipt["acknowledgement"]="sync_image_received"
+                    return result
                 task_id = body.get("id" if path.startswith("/aistars/") else "task_id") if isinstance(body, dict) else None
                 if not isinstance(task_id, str) or not task_id or len(task_id) > 256:
                     raise ClientError("submit_response_missing_task_id_outcome_unknown")
                 if self.key in task_id or any(c.isspace() for c in task_id):
                     raise ClientError("submit_response_invalid_task_id_outcome_unknown")
+                receipt["acknowledgement"]="task_id_received"
                 return task_id
         except requests.Timeout:
             message="sync_submit_timeout_outcome_unknown_no_retry" if path in ("/v1/images/generations","/v1/images/edits") else "submit_timeout_outcome_unknown_no_retry"

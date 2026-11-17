@@ -26,6 +26,8 @@ class Store:
             if "model" not in columns:
                 db.execute("ALTER TABLE tasks ADD COLUMN model TEXT")
 
+            if "submit_receipt" not in columns:
+                db.execute("ALTER TABLE tasks ADD COLUMN submit_receipt TEXT DEFAULT '{}'")
             if "image" not in columns:
                 db.execute("ALTER TABLE tasks ADD COLUMN image BLOB")
 
@@ -62,8 +64,9 @@ class Store:
             return cur.rowcount == 1
 
     def update(self, batch, index, **fields):
-        if not fields or not set(fields) <= {"status", "task_id", "detail", "urls", "image"}:
+        if not fields or not set(fields) <= {"status", "task_id", "detail", "urls", "image", "submit_receipt"}:
             raise ValueError("Invalid task update")
+        if "submit_receipt" in fields:fields["submit_receipt"]=json.dumps(fields["submit_receipt"],ensure_ascii=False)
         if "urls" in fields:
             fields["urls"] = json.dumps(fields["urls"])
         with self.connect() as db:
@@ -74,11 +77,12 @@ class Store:
             meta = db.execute("SELECT * FROM batches WHERE id=?", (batch,)).fetchone()
             if not meta:
                 raise ValueError("Unknown batch: restore local database or import existing IDs")
-            columns="*" if include_images else "batch,position,status,task_id,detail,urls,model,CASE WHEN image IS NOT NULL THEN 1 ELSE NULL END AS image"
+            columns="*" if include_images else "batch,position,status,task_id,detail,urls,model,submit_receipt,CASE WHEN image IS NOT NULL THEN 1 ELSE NULL END AS image"
             tasks = [dict(r) for r in db.execute("SELECT "+columns+" FROM tasks WHERE batch=? ORDER BY position", (batch,))]
         for t in tasks:
             t["model"] = t["model"] or meta["model"]
             t["urls"] = json.loads(t["urls"])
+            t["submit_receipt"]=json.loads(t.get("submit_receipt") or "{}")
             if t["status"] == "sending":
                 t["status"] = "submit_unknown"
         return dict(meta), tasks
@@ -108,7 +112,7 @@ class Store:
         for t in tasks:
             urls=[urljoin(meta["base"]+"/",url) for url in t["urls"]]
             result.append({"index":t["position"],"model":t["model"],"task_id":t["task_id"],
-                "resource_urls":urls,"cached_image":t.get("image") is not None,
+                "submission_receipt":t.get("submit_receipt",{}),"resource_urls":urls,"cached_image":t.get("image") is not None,
                 "resources":[{"url":url,"requires_api_key":not t["model"].endswith("-W") and urlsplit(url).netloc==base.netloc and urlsplit(url).scheme==base.scheme} for url in urls]})
         return result
 

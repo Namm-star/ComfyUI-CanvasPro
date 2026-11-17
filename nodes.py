@@ -401,6 +401,7 @@ class BatchExecute(Fetch):
                 items.extend(ports[f"task_{i}"])
         store, client = runtime(request_timeout, api_key) if api_key else runtime(request_timeout)
         client.sync_timeout = sync_timeout
+        submission={}
         phase = "提交"
         last_sent, last_check = None, 0.0
         def publish():
@@ -413,7 +414,7 @@ class BatchExecute(Fetch):
             except ValueError:
                 return
             counts = json.loads(report(store, saved))["counts"]
-            payload = {"node_id": str(unique_id), "phase": phase, "counts": counts}
+            payload = {"node_id": str(unique_id), "phase": phase, "counts": counts,"submission_mode":submission.get("mode")}
             if payload == last_sent:
                 return
             try:
@@ -426,7 +427,7 @@ class BatchExecute(Fetch):
             interrupt()
             publish()
         try:
-            batch = submit_tasks(store, client, job_key, items, concurrency, check, progress(), imgbb_api_key=imgbb_api_key)
+            batch = submit_tasks(store, client, job_key, items, concurrency, check, progress(), imgbb_api_key=imgbb_api_key,run_info=submission)
         except ValueError as error:
             if "job_key already belongs to different inputs" in str(error):
                 raise ValueError("该批次名称和 seed 已用于其他输入。请修改 seed，或将生成后控制设为 randomize 后修改 seed，再运行以创建新批次。") from None
@@ -442,7 +443,7 @@ class BatchExecute(Fetch):
         publish()
         images, download_report = fetched["result"]
         handle=store.handle(batch)
-        info = json.dumps({"job_key": original_job_key, "seed": seed, "effective_job_key": job_key,
+        info = json.dumps({"submission":submission,"job_key": original_job_key, "seed": seed, "effective_job_key": job_key,
             "query": json.loads(report(store, batch)), "download": json.loads(download_report),
             "guidance": "未取得可保存图片，已跳过保存。结果未知时请核对平台记录，不要自动更换seed重提；已有URL或缓存时保持原job_key和seed，设为fixed再运行可只重试下载。" if json.loads(download_report).get("no_images") else ""}, ensure_ascii=False)
         return {"ui": {"text": [info]}, "result": (images, info, handle)}
@@ -607,10 +608,21 @@ class AsyncSubmit(ImageGenerate):
         job_key="async-"+hashlib.sha256(json.dumps(identity,ensure_ascii=False,sort_keys=True).encode()).hexdigest()[:40]
         effective=f"{job_key}::seed={seed}"
         store,client=runtime(request_timeout,api_key) if api_key else runtime(request_timeout)
-        batch=submit_tasks(store,client,effective,items,concurrency,interrupt,progress(),queue_key=queue_key)
+        submission={}
+        batch=submit_tasks(store,client,effective,items,concurrency,interrupt,progress(),queue_key=queue_key,run_info=submission)
+        confirmed=submission.get("new_acknowledged",0)
+        if submission["mode"]=="restored_existing":message="本次复用旧批次，没有发送新的生图请求。要再次生成，请使用新seed；旧结果未知时先核对平台记录，避免重复计费。"
+        elif confirmed==count:message=f"平台已返回{confirmed}个任务号；这表示提交已受理，不表示生成成功。"
+        elif confirmed:message=f"平台返回{confirmed}/{count}个任务号，其余任务未确认；请查看每项状态与提交回执。"
+        else:message="本次未取得任何平台任务号，不能认定提交成功。请查看错误与提交回执，勿盲目重复提交。"
         handle=store.handle(batch)
-        info=json.dumps({"submit_only":True,"queue_key":queue_key.strip(),"queue_batches":store.queue_batches(queue_key),"queue_batch_count":len(store.queue_batches(queue_key)),"job_key":job_key,"seed":seed,"effective_job_key":effective,"query":json.loads(report(store,batch)),
-            "guidance":"任务已提交，本节点不等待生成、不下载。同一queue_key可连续提交多次；禁用提交节点后运行批量查询即可获取累计任务，不需要复制合并任务号。"},ensure_ascii=False)
+        info=json.dumps({"submission":submission,"submit_only":True,"queue_key":queue_key.strip(),"queue_batches":store.queue_batches(queue_key),"queue_batch_count":len(store.queue_batches(queue_key)),"job_key":job_key,"seed":seed,"effective_job_key":effective,"query":json.loads(report(store,batch)),
+            "guidance":message},ensure_ascii=False)
+        if unique_id is not None:
+            try:
+                from server import PromptServer
+                PromptServer.instance.send_sync("canvaspro.batch_status",{"node_id":str(unique_id),"submission_only":True,"submission_mode":submission["mode"],"acknowledged":confirmed,"expected":count})
+            except (ImportError,AttributeError,RuntimeError):pass
         ids="\n".join(t["task_id"] for t in store.read(batch,include_images=False)[1] if t["task_id"])
         return {"ui":{"text":[info]},"result":(handle,info,ids)}
 

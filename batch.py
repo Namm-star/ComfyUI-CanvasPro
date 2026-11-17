@@ -2,6 +2,7 @@ import hashlib
 import json
 import threading
 import time
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from .client import ClientError
 from .image_host import host_key, upload, UploadError
@@ -60,7 +61,7 @@ def submit_batch(store, client, job_key, model, prompts, size="", quality="", im
     return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress)
 
 
-def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda: None, progress=lambda n, total: None, imgbb_api_key="", queue_key=None):
+def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda: None, progress=lambda n, total: None, imgbb_api_key="", queue_key=None, run_info=None):
     if not items or len(items) > 256:
         raise ValueError("Batch requires 1-256 tasks")
     if not 1 <= concurrency <= 8:
@@ -72,10 +73,10 @@ def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda:
     fingerprint = hashlib.sha256(json.dumps({"items": [
         {**item, "files": [hashlib.sha256(b).hexdigest() for b in item["files"]]}
         for item in items]}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models, imgbb_api_key, queue_key)
+    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models, imgbb_api_key, queue_key, run_info)
 
 
-def submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models=None, imgbb_api_key="", queue_key=None):
+def submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models=None, imgbb_api_key="", queue_key=None, run_info=None):
     needs_host=any(isinstance(req[2],dict) for req in requests)
     key=""
     if needs_host:
@@ -83,6 +84,7 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
         except ValueError: key=host_key(imgbb_api_key)
     batch, created = store.create(job_key, fingerprint, client.base, model, len(requests), models)
     if queue_key is not None:store.add_queue(queue_key,batch)
+    if run_info is not None:run_info.update({"mode":"new_batch" if created else "restored_existing","new_post_attempts":0,"new_acknowledged":0})
     if not created:
         return batch  # Never replay a saved submit, including unknown/prepared records.
 
@@ -92,6 +94,7 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
         if cancel.is_set() or not store.claim(batch, index):
             return
         path, payload, uploads = requests[index]
+        receipt={"endpoint":client.base+path,"post_attempted":False,"http_status":None,"request_id":None,"acknowledgement":"none"}
         try:
             if isinstance(uploads,dict):
                 refs=[]
@@ -103,7 +106,9 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
                         refs.append(host_cache[digest])
                 payload={**payload,"images":refs};uploads=None
                 if cancel.is_set():raise UploadError("reference_upload_cancelled")
-            result = client.submit(path, payload, uploads)
+            receipt.update(post_attempted=True,attempted_at=datetime.now(timezone.utc).isoformat())
+            store.update(batch,index,submit_receipt=receipt)
+            result = client.submit(path, payload, uploads,receipt=receipt)
             if path in ("/v1/images/generations", "/v1/images/edits"):
                 store.update(batch,index,status="succeeded",urls=result["urls"],image=result["image"],detail="sync_completed_no_poll")
             else:
@@ -114,7 +119,13 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
             store.update(batch, index, status="submit_unknown", detail=str(error))
         except Exception:
             store.update(batch, index, status="submit_unknown", detail="submit_local_error_outcome_unknown")
+        finally:
+            store.update(batch,index,submit_receipt=receipt)
     run_parallel(list(range(len(requests))), worker, concurrency, interrupt, progress)
+    if run_info is not None:
+        receipts=[task["submit_receipt"] for task in store.read(batch,include_images=False)[1]]
+        run_info["new_post_attempts"]=sum(bool(x.get("post_attempted")) for x in receipts)
+        run_info["new_acknowledged"]=sum(x.get("acknowledgement") in ("task_id_received","sync_image_received") for x in receipts)
     return batch
 
 

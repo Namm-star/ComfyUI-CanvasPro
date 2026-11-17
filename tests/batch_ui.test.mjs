@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { syncTaskPorts, syncTaskAdvanced, autoImageCount, migrateTaskDimensions, syncQueryUI } from "../web/batch_ui.mjs";
+import { syncTaskPorts, syncTaskAdvanced, autoImageCount, migrateTaskDimensions, syncQueryUI, submissionTitle } from "../web/batch_ui.mjs";
 const make = () => ({size:[300,200], inputs:[], widgets:["advanced","wait_seconds","request_timeout","reference_count","quality","reference_urls","model"].map(name=>({name,value:name==="model"?"gpt-image-2":false,type:"text",options:{},computeSize:()=>[200,20]})), addInput(name,type){this.inputs.push({name,type,link:null});}, removeInput(i){this.inputs.splice(i,1);},computeSize(){return [300,200];},setSize(s){this.size=s;},setDirtyCanvas(){}});
 test("task ports grow beyond two and preserve sparse saved links",()=>{
     const n=make(); syncTaskPorts(n); assert.deepEqual(n.inputs.map(i=>i.name),["task_1","task_2"]);
@@ -49,4 +49,10 @@ test("queue query hides model and complete metadata; bare task IDs reveal only m
  for(const value of ['', '{"query":{"items":[{"model":"T香蕉2.1"},{"model":"gpt-image-2"}]}}','685778df-c714-4c2c-8ddc-993834db33e5','async-abcd::seed=123']){source.value=value;syncQueryUI(n);assert.equal(model.hidden,true);assert.equal(model.value,'T香蕉2.1');}
  source.value='';n.inputs.push({name:'tasks_json',link:123});syncQueryUI(n);assert.equal(model.hidden,true);
  source.value='task_abc\ntask_def';syncQueryUI(n);assert.equal(model.hidden,false);assert.equal(model.label,'手动任务号对应模型');
+});
+
+test("submission titles distinguish accepted, unconfirmed and restored",()=>{
+ assert.match(submissionTitle('restored_existing',0,1),/本次未新建/);
+ assert.match(submissionTitle('new_batch',0,1),/未取得平台任务号/);
+ assert.match(submissionTitle('new_batch',1,2),/1\/2.*非生成完成/);
 });

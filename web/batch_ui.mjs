@@ -84,3 +84,9 @@ export function syncQueryUI(node) {
     node.setSize?.([node.size?.[0] || 500,node.computeSize?.()[1] || 400]);
     node.setDirtyCanvas?.(true,true);
 }
+
+export function submissionTitle(mode,acknowledged,expected){
+ if(mode==='restored_existing')return 'CanvasPro · 复用旧批次（本次未新建）';
+ if(!acknowledged)return 'CanvasPro · 未取得平台任务号，请查看报告';
+ return `CanvasPro · 平台返回任务号 ${acknowledged}/${expected}（非生成完成）`;
+}

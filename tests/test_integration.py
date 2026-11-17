@@ -46,6 +46,7 @@ class Handler(BaseHTTPRequestHandler):
         blob = json.dumps(body).encode() if isinstance(body, dict) else body
         self.send_response(code)
         self.send_header("Content-Type", content_type)
+        if self.command=="POST":self.send_header("X-Request-Id","mock-request-1")
         self.send_header("Content-Length", str(len(blob)))
         self.end_headers()
         try:
@@ -151,6 +152,35 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_submit_report_distinguishes_new_acknowledgement_from_fixed_restore(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            new=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
+            old=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
+        first=json.loads(new[1]);second=json.loads(old[1])
+        self.assertEqual(first['submission']['new_post_attempts'],1);self.assertEqual(first['submission']['new_acknowledged'],1)
+        self.assertEqual(second['submission']['mode'],'restored_existing');self.assertEqual(second['submission']['new_post_attempts'],0)
+        self.assertIn('没有发送新的',second['guidance'])
+        receipt=first['query']['items'][0]['submission_receipt']
+        self.assertEqual(receipt['http_status'],200);self.assertEqual(receipt['request_id'],'mock-request-1')
+        self.assertEqual(receipt['acknowledgement'],'task_id_received');self.assertEqual(len(self.service.posts),1)
+        self.assertNotIn('fake-secret',new[0]+new[1])
+
+    def test_failed_or_missing_id_never_claims_submit_accepted(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            for seed,prompt,status in [(1,'bad-submit',503),(2,'missing-id',200)]:
+                result=nodes.AsyncSubmit().execute('gpt-image-2',prompt,seed=seed)['result']
+                info=json.loads(result[1]);self.assertEqual(info['submission']['new_acknowledged'],0)
+                self.assertIn('不能认定提交成功',info['guidance'])
+                receipt=info['query']['items'][0]['submission_receipt'];self.assertEqual(receipt['http_status'],status);self.assertEqual(receipt['acknowledgement'],'none')
+        self.assertEqual(len(self.service.posts),2)
+
+    def test_upload_failure_receipt_has_no_generation_post(self):
+        from canvaspro.image_host import UploadError
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.upload',side_effect=UploadError('upload_failed')):
+            result=nodes.AsyncSubmit().execute('即梦-67-gpt-image-2.5-sunburst','ref',seed=1,image_1=torch.zeros(1,4,4,3))['result']
+        info=json.loads(result[1]);self.assertEqual(info['submission']['new_post_attempts'],0)
+        self.assertFalse(info['query']['items'][0]['submission_receipt']['post_attempted']);self.assertEqual(self.service.posts,[])
+
     def test_queue_query_never_filters_mixed_models_by_manual_model_parameter(self):
         models=['gpt-image-2','T香蕉2.1','即梦-67-gpt-image-2.5-sunburst']
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
