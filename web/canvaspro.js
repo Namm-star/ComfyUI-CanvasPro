@@ -752,7 +752,8 @@ function migrateTaskDimensions(values) {
 app.registerExtension({
     name: "CanvasPro.ModelInputs",
     async beforeRegisterNodeDef(nodeType, nodeData) {
-        const task = nodeData.name === "CanvasProPromptTask";
+        const simple = nodeData.name === "CanvasProImageGenerate";
+        const task = nodeData.name === "CanvasProPromptTask" || simple;
         const recover = nodeData.name === "CanvasProRecoverResults";
         const batch = nodeData.name === "CanvasProBatchExecute";
         if (!recover && !batch && !task && nodeData.name !== "CanvasProModelBatchSubmit") return;
@@ -769,12 +770,12 @@ app.registerExtension({
         const notify = message => window.alert(message);
         const refresh = node => {
             if (batch) syncTaskPorts(node);
-            else if (task) { autoImageCount(node); syncModelUI(node,notify,true); syncTaskAdvanced(node); }
+            else if (task) { autoImageCount(node); syncModelUI(node,notify,true); syncTaskAdvanced(node); if(simple){visibility(node,["wait_seconds","request_timeout","sync_timeout","concurrency"],Boolean(node.widgets?.find(w=>w.name==="advanced")?.value));node.setSize([node.size[0],node.computeSize()[1]]);node.setDirtyCanvas(true,true);} }
         };
         const created = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = created?.apply(this,args);
-            if (batch || recover) {
+            if (batch || recover || simple) {
                 for(const field of ["api_key"]) {
                 const old = this.widgets?.find(w => w.name === field);
                 if (old && this.addDOMWidget && typeof document !== "undefined") {
@@ -840,7 +841,7 @@ app.registerExtension({
 api.addEventListener("canvaspro.batch_status", event => {
     const { node_id, phase, counts } = event.detail;
     const node = app.graph?.getNodeById(node_id);
-    if (!node || node.comfyClass !== "CanvasProBatchExecute") return;
+    if (!node || !["CanvasProBatchExecute","CanvasProImageGenerate"].includes(node.comfyClass)) return;
     const queued = (counts.prepared || 0) + (counts.sending || 0) + (counts.queued || 0);
     node.title = `CanvasPro · ${phase} | 排队 ${queued} · 处理中 ${counts.processing || 0} · 成功 ${counts.succeeded || 0} · 失败 ${counts.failed || 0}`;
     if (counts.submit_unknown) node.title += ` · 待确认 ${counts.submit_unknown}`;

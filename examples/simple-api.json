@@ -1,0 +1,41 @@
+{
+  "1": {
+    "class_type": "CanvasProImageGenerate",
+    "inputs": {
+      "model": "gpt-image-2",
+      "prompt": "一只蓝色小鸟，白色背景。",
+      "count": 1,
+      "seed": 123,
+      "width": 1024,
+      "height": 1024
+    }
+  },
+  "2": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "1",
+        0
+      ],
+      "filename_prefix": "CanvasPro-Simple"
+    }
+  },
+  "3": {
+    "class_type": "PreviewAny",
+    "inputs": {
+      "source": [
+        "1",
+        1
+      ]
+    }
+  },
+  "4": {
+    "class_type": "PreviewAny",
+    "inputs": {
+      "source": [
+        "1",
+        2
+      ]
+    }
+  }
+}

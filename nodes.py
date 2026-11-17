@@ -542,3 +542,39 @@ class RecoverResults(Fetch):
 
 NODE_CLASS_MAPPINGS["CanvasProRecoverResults"]=RecoverResults
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProRecoverResults"]="CanvasPro · 再次获取结果（不重新生图）"
+
+
+class ImageGenerate(PromptTask):
+    """One complete prompt to images, sharing the existing durable executor."""
+    RETURN_TYPES=("IMAGE","STRING","STRING")
+    RETURN_NAMES=("images","report","tasks_json")
+    OUTPUT_IS_LIST=(True,False,False)
+    OUTPUT_NODE=True
+    @classmethod
+    def INPUT_TYPES(cls):
+        task=PromptTask.INPUT_TYPES()
+        executor=BatchExecute.INPUT_TYPES()
+        params=task["optional"]
+        optional={"api_key":executor["optional"]["api_key"],"seed":executor["optional"]["seed"],
+            "count":("INT",{"default":1,"min":1,"max":8,"tooltip":"出图张数，每张作为独立请求计费；提示词中的换行保持为同一条提示词。"}),
+            "advanced":params["advanced"]}
+        for name in ("reference_count","size_mode","aspect_ratio","quality","image_size","reference_urls","width","height"):
+            optional[name]=params[name]
+        for name in ("wait_seconds","request_timeout","sync_timeout"):
+            optional[name]=executor["optional"][name]
+        optional["concurrency"]=executor["required"]["concurrency"]
+        for name,value in params.items():
+            if name not in optional:optional[name]=value
+        optional["seed"]=("INT",{**optional["seed"][1],"tooltip":"批次标识，不是模型图像种子。fixed且全部输入相同恢复已有结果；改变提示词、模型、参考图、count或seed会创建新收费任务。"})
+        return {"required":task["required"],"optional":optional,"hidden":{"unique_id":"UNIQUE_ID"}}
+    def execute(self,model,prompt,api_key="",seed=0,count=1,advanced=False,concurrency=3,
+                wait_seconds=600,request_timeout=30,sync_timeout=600,unique_id=None,**params):
+        if type(count) is not int or not 1<=count<=8:raise ValueError("count必须是1到8之间的整数，每张独立计费")
+        items=PromptTask().execute(model,prompt,advanced=advanced,**params)[0]*count
+        identity={"node":str(unique_id or "api"),"items":[{**item,"files":[hashlib.sha256(b).hexdigest() for b in item["files"]]} for item in items]}
+        job_key="simple-"+hashlib.sha256(json.dumps(identity,ensure_ascii=False,sort_keys=True).encode()).hexdigest()[:40]
+        return BatchExecute().execute(items,job_key,concurrency,advanced,wait_seconds,request_timeout,
+            unique_id=unique_id,api_key=api_key,seed=seed,sync_timeout=sync_timeout)
+
+NODE_CLASS_MAPPINGS["CanvasProImageGenerate"]=ImageGenerate
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProImageGenerate"]="CanvasPro · 简洁生图 / Image Generate"

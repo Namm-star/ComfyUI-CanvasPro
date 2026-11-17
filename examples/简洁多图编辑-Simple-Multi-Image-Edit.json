@@ -1,0 +1,365 @@
+{
+  "id": "a4439ff2-5f5d-4129-b017-1657ff30bf18",
+  "revision": 0,
+  "last_node_id": 7,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CanvasProImageGenerate",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        540,
+        570
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "CanvasProImageGenerate"
+      },
+      "widgets_values": [
+        "即梦-67-gpt-image-2.5-sunburst",
+        "将图2的服装穿在图1人物身上。\n保留图1人物的面部特征、发型和身体比例。\n参考图2服装的颜色、材质及剪裁，保持自然光影。",
+        "",
+        0,
+        "randomize",
+        1,
+        false,
+        3,
+        "pixels",
+        "9:16",
+        "",
+        "2K",
+        "",
+        1024,
+        1024,
+        600,
+        30,
+        600,
+        3
+      ],
+      "inputs": [
+        {
+          "name": "image_1",
+          "type": "IMAGE",
+          "link": 4,
+          "shape": 7
+        },
+        {
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": 5,
+          "shape": 7
+        },
+        {
+          "name": "image_3",
+          "type": "IMAGE",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            2
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "links": [
+            3
+          ],
+          "slot_index": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "SaveImage",
+      "pos": [
+        650,
+        0
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "CanvasPro"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "PreviewAny",
+      "title": "执行报告 · report",
+      "pos": [
+        650,
+        350
+      ],
+      "size": [
+        390,
+        340
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 4,
+      "type": "PreviewAny",
+      "title": "任务详情 · tasks_json",
+      "pos": [
+        650,
+        700
+      ],
+      "size": [
+        390,
+        340
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "Note",
+      "pos": [
+        0,
+        650
+      ],
+      "size": [
+        600,
+        490
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "CanvasPro简洁模式：填写自己的CanvasPro API Key（https://api.canvasproai.com/keys）。不接参考图为文生图，接入图片为编辑/融合；所有换行属于同一条完整提示词。\ncount为出图张数，1–8张，每张是独立收费请求。高级设置可改concurrency、质量和等待时间。\n模型参数自动适配：GPT使用宽高或auto，香蕉/即梦使用比例与清晰度；不支持的控件隐藏。即梦本地图自动上传共用ImgBB，3小时后删除，用户无需图床Key。\nseed是批次标识，不是上游图像种子。randomize可再次生成；fixed且所有输入相同恢复已有结果。改变提示词、模型、参考图、count或seed会创建新收费任务。\nreport显示执行阶段、错误、资源网址和缓存信息。下载失败时另开“结果恢复”示例，粘贴原report重试，不要同时运行原随机种子生成流程。资源网址可能有有效期，分享日志前请删除网址。"
+      ],
+      "title": "简洁模式说明 / Simple Mode Guide"
+    },
+    {
+      "id": 6,
+      "type": "LoadImage",
+      "pos": [
+        -430,
+        0
+      ],
+      "size": [
+        300,
+        270
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "reference-1.png",
+        "image"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "LoadImage",
+      "pos": [
+        -430,
+        520
+      ],
+      "size": [
+        300,
+        270
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "reference-2.png",
+        "image"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      1,
+      1,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      1,
+      2,
+      4,
+      0,
+      "STRING"
+    ],
+    [
+      4,
+      6,
+      0,
+      1,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      7,
+      0,
+      1,
+      1,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "canvaspro_version": "0.14.0",
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        500,
+        80
+      ]
+    }
+  },
+  "version": 0.4
+}

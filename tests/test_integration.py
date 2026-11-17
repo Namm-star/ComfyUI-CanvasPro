@@ -151,6 +151,41 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_simple_node_complete_prompt_count_concurrency_and_fixed_restore(self):
+        prompt='主体：陶瓷杯\n构图：俯拍\n背景：纯白'
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            first=nodes.ImageGenerate().execute('gpt-image-2.6-flare-W',prompt,count=3,concurrency=3,seed=123,unique_id='simple-1')['result']
+            again=nodes.ImageGenerate().execute('gpt-image-2.6-flare-W',prompt,count=3,seed=123,unique_id='simple-1')['result']
+            self.assertEqual(first[2],again[2]);self.assertEqual(len(first[0]),3);self.assertEqual(len(self.service.posts),3)
+            self.assertGreaterEqual(self.service.peak,2)
+            changed=nodes.ImageGenerate().execute('gpt-image-2.6-flare-W',prompt+' changed',count=1,seed=123,unique_id='simple-1')['result']
+            self.assertNotEqual(json.loads(first[2])['batch_id'],json.loads(changed[2])['batch_id'])
+        self.assertTrue(all(body['prompt']==prompt for _,body in self.service.posts[:3]))
+        self.assertNotIn('job_key',nodes.ImageGenerate.INPUT_TYPES()['optional'])
+
+    def test_simple_multireference_generation_uses_all_existing_protocol_families(self):
+        models=['gpt-image-2','T香蕉2.1','s-gpt-image-2','即梦-67-gpt-image-2.5-sunburst','gpt-image-2.6-flare-W','gpt-image-2.6-sunburst']
+        refs=dict(image_1=torch.zeros(1,12,8,3),image_2=torch.ones(1,9,5,3))
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.host_key',return_value='host-test'),patch('canvaspro.batch.upload',return_value='https://i.ibb.co/test/ref.png') as upload:
+            for model in models:
+                images,info,handle=nodes.ImageGenerate().execute(model,'keep subject\nchange background',seed=1,wait_seconds=8,**refs)['result']
+                self.assertTrue(torch.is_tensor(images[0]),info)
+                recovered=nodes.RecoverResults().execute(handle,wait_seconds=0)['result']
+                self.assertTrue(torch.is_tensor(recovered[0][0]))
+            self.assertEqual(upload.call_count,2)
+        self.assertEqual(len(self.service.posts),6)
+        paths=[path for path,_ in self.service.posts]
+        self.assertEqual(paths,['/kr/v1/images/edits','/kr/gemini/v1/images/generations','/hc/v1/images/edits/upload','/aistars/v1/images/edits','/v1/images/edits','/kr/gpt/v1/images/edits'])
+
+    def test_simple_validation_and_empty_result_remain_safe(self):
+        for value in [0,9,True,1.5]:
+            with self.assertRaises(ValueError):nodes.ImageGenerate().execute('gpt-image-2','p',count=value)
+        self.assertEqual(self.service.posts,[])
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            first=nodes.ImageGenerate().execute('gpt-image-2.6-flare-W','bad-submit',seed=77)['result']
+            again=nodes.ImageGenerate().execute('gpt-image-2.6-flare-W','bad-submit',seed=77)['result']
+        self.assertEqual(type(first[0][0]).__name__,'ExecutionBlocker');self.assertIn('submit_http_503',first[1]);self.assertEqual(first[2],again[2]);self.assertEqual(len(self.service.posts),1)
+
     def test_recovery_from_async_report_has_urls_and_never_posts(self):
         batch=submit_batch(self.store,self.client,'recover-report','gpt-image-2',['recovery'])
         query_batch(self.store,self.client,batch,0,.2,1)

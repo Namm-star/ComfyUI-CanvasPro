@@ -21,7 +21,7 @@ async def main():
     assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_preview_any.py'))
     assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_primitive.py'))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
-    assert len(names) == 12, names
+    assert len(names) == 13, names
     for name in names:
         cls = nodes.NODE_CLASS_MAPPINGS[name]
         inputs = cls.INPUT_TYPES()
@@ -106,6 +106,16 @@ async def main():
             assert len(recovered[0])==5 and len(service.posts)==6
             assert "resource_urls" in recovered[1][0]
             print("REAL RECOVERY NODE + RESOURCE LOGS + NO NEW POST PASSED")
+            simple=await invoke('CanvasProImageGenerate',{'model':'gpt-image-2.6-flare-W','prompt':'simple complete\\nprompt','count':2,'seed':123,'unique_id':'simple-check'})
+            assert len(simple[0])==2 and len(service.posts)==8
+            again=await invoke('CanvasProImageGenerate',{'model':'gpt-image-2.6-flare-W','prompt':'simple complete\\nprompt','count':2,'seed':123,'unique_id':'simple-check'})
+            assert len(again[0])==2 and len(service.posts)==8
+            folder_paths.set_output_directory(str(Path(temp)/'simple-output'))
+            try:
+                await execution.get_output_data('canvaspro-check','simple-save',nodes.NODE_CLASS_MAPPINGS['SaveImage'](),{'images':simple[0],'filename_prefix':['canvaspro-simple-check']})
+            finally:
+                folder_paths.set_output_directory(original_output)
+            print("REAL SIMPLE GENERATE + SaveImage + FIXED RESTORE PASSED")
             print("REAL COMFYUI EMPTY-IMAGE BLOCK + SaveImage SKIP + REPORT OUTPUT PASSED")
             print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (KR/Gemini/AIStars/W sync/KR25 mixed batch)")
         finally:

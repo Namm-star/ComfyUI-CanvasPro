@@ -1,10 +1,19 @@
-# ComfyUI CanvasPro 0.13.0
+# ComfyUI CanvasPro 0.14.0
+
+推荐使用新增的 **简洁生图 → 保存图像** 模式：一个节点完成文生图、多图编辑及1–8张并发出图，继续使用CanvasPro API。原批量模式及结果恢复节点保持兼容。
+
+- [简洁文生图](examples/简洁文生图-Simple-Text-to-Image.json)
+- [简洁多图编辑](examples/简洁多图编辑-Simple-Multi-Image-Edit.json)
+- [简洁多张并发](examples/简洁多张并发-Simple-Multi-Image-Batch.json)
+
+简洁节点不需要手动填写job_key。fixed且全部输入相同会恢复缓存；修改提示词、模型、参考图、count或seed会创建新的收费任务。seed仍是批次标识，不是上游图像随机种子。三个新示例已连接report/tasks_json日志，Key留空，填写自己的CanvasPro Key即可。
+
 
 **独立任务 → 批量执行 → 保存图像**。支持完整多行提示词、混合模型、自动增加任务及参考图入口。每批最多 256 个任务，提交并发数 1～8；重复运行同一批次不会重新提交收费。
 
 ## 最新示例工作流
 
-旧示例已删除，当前只保留以下三个界面工作流：
+原批量模式示例继续保留：
 
 - [普通多任务](examples/多任务并发-Multi-Task-Batch.json)：多个独立任务直接连接批量执行，无需合并节点。
 - [混合模型](examples/混合模型并发-Mixed-Model-Batch.json)：GPT Image、香蕉、SR 同步和即梦 Seedream 四个任务一起执行。

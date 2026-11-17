@@ -106,3 +106,22 @@ test("recovery node masks API key without needing task inputs",async()=>{
  const n=new Recovery();n.onNodeCreated();assert.equal(widget(n,'api_key').inputEl.type,'password');assert.equal(widget(n,'recovery').value,'batch-id');
  delete globalThis.document;
 });
+
+test("simple generation has automatic image ports and model parameters",async()=>{
+ class Simple extends Task{constructor(){super();for(const [name,value] of [['api_key',''],['seed',123],['count',2],['concurrency',3],['wait_seconds',600],['request_timeout',30],['sync_timeout',600]])this.widgets.push({name,value,type:'text',options:{}});}}
+ const optional=Object.fromEntries(Array.from({length:16},(_,i)=>[`image_${i+1}`,['IMAGE']]));
+ await extension.beforeRegisterNodeDef(Simple,{name:'CanvasProImageGenerate',input:{optional}});
+ assert.deepEqual(Object.keys(optional),['image_1','image_2']);
+ const n=new Simple();n.onNodeCreated();assert.equal(n.inputs.filter(i=>i.type==='IMAGE').length,2);assert.equal(widget(n,'concurrency').hidden,true);assert.equal(widget(n,'count').value,2);
+ widget(n,'model').value='T香蕉2.1';widget(n,'model').callback('T香蕉2.1');assert.equal(widget(n,'width').hidden,true);assert.equal(widget(n,'image_size').hidden,false);
+ widget(n,'advanced').value=true;widget(n,'advanced').callback(true);assert.equal(widget(n,'concurrency').hidden,false);
+});
+
+test("simple generation masks direct CanvasPro key",async()=>{
+ globalThis.document={createElement:()=>({style:{}})};
+ class Simple extends Task{constructor(){super();this.widgets.push({name:'api_key',value:'simple-test-key',options:{}});}
+ addDOMWidget(name,type,input,options){const w={name,type,inputEl:input};Object.defineProperty(w,'value',{get:options.getValue,set:options.setValue});this.widgets.push(w);return w;}}
+ await extension.beforeRegisterNodeDef(Simple,{name:'CanvasProImageGenerate',input:{optional:{}}});
+ const n=new Simple();n.onNodeCreated();assert.equal(widget(n,'api_key').inputEl.type,'password');assert.equal(widget(n,'api_key').value,'simple-test-key');
+ delete globalThis.document;
+});

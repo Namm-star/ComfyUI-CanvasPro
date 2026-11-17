@@ -105,3 +105,12 @@ submit_unknown且没有原始URL/Base64/任务号时，插件无法凭空恢复�
 同步已保存URL时可重试下载，收到Base64或下载成功后优先用本地缓存；没有收到任何结果的同步请求无法补查。
 日志包含resource_urls（完整资源网址）、task_id、cached_image及resources[].requires_api_key。需要鉴权的本站网址要用原账户有效Key下载；签名网址可能过期，分享日志前删除资源网址。
 恢复依赖原电脑的本地任务数据库，请保留user/canvaspro。所有型号成功下载后均缓存图片；只查看日志时不加载图片二进制。
+
+
+## 简洁生成节点（0.14.0 / 2026-11-17）
+
+CanvasProImageGenerate复用PromptTask的参数校验与BatchExecute的提交、查询、缓存、图床和恢复实现；仅提供新的统一输入界面，全部接口仍为CanvasPro。参考GrsAI项目的单节点使用方式重新实现，没有使用其服务端地址或要求GrsAI Key。
+
+count=1–8，每张是n=1的独立收费任务，完整多行prompt不会按行拆分。concurrency默认3，高级设置可调1–8。输入与节点标识的SHA256自动构建job_key；批次seed仍通过现有执行器参与幂等键。fixed+相同输入恢复；改变提示词、模型、参数、参考图、count或seed创建新收费任务。seed不是上游图像随机种子，不保证画面复现。
+
+新节点名称独立，旧节点schema不变。前端仍复用精确型号合同、自动参考图端口、数字宽高/连线覆盖和密码框。三份简洁界面示例与simple-api.json均不包含用户CanvasPro Key。结果失败输出与再次获取方式和原批量模式一致，不自动重试POST。
