@@ -751,6 +751,9 @@ function migrateTaskDimensions(values) {
 
 
 function syncQueryUI(node) {
+    visibility(node,["wait_seconds"],false);
+    const timeout=find(node,"request_timeout");
+    if(timeout)timeout.label="单次请求超时（秒）";
     const source=find(node,"tasks_json");
     const text=String(source?.value || "").trim();
     const record=!text || text.startsWith("{") || text.startsWith("[") || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text) || text.includes("::seed=") || /^(simple|async|query|import)-[0-9a-f]+$/i.test(text);
@@ -766,6 +769,17 @@ function submissionTitle(mode,acknowledged,expected){
  if(mode==='restored_existing')return 'CanvasPro · 复用旧批次（本次未新建）';
  if(!acknowledged)return 'CanvasPro · 未取得平台任务号，请查看报告';
  return `CanvasPro · 平台返回任务号 ${acknowledged}/${expected}（非生成完成）`;
+}
+
+function applyExecutionStatus(node,message){
+ const submission=message?.canvaspro_submission?.[0];
+ const query=message?.canvaspro_query?.[0];
+ if(submission)node.title=submissionTitle(submission.mode,submission.acknowledged,submission.expected);
+ else if(query){
+  const c=query.counts || {};
+  node.title=query.query_skipped?'CanvasPro · 提交阶段，未查询':`CanvasPro · 当前状态 | 排队 ${c.queued || 0} · 处理中 ${c.processing || 0} · 完成 ${c.succeeded || 0} · 失败 ${c.failed || 0} · 待确认 ${(c.submit_unknown || 0)+(c.unknown || 0)+(c.prepared || 0)+(c.sending || 0)}`;
+ }else return;
+ node.setDirtyCanvas?.(true,true);
 }
 
 app.registerExtension({
@@ -793,6 +807,14 @@ app.registerExtension({
             else if (batch) syncTaskPorts(node);
             else if (task) { autoImageCount(node); syncModelUI(node,notify,true); syncTaskAdvanced(node); if(simple){visibility(node,["wait_seconds","request_timeout","sync_timeout","concurrency"],Boolean(node.widgets?.find(w=>w.name==="advanced")?.value));node.setSize([node.size[0],node.computeSize()[1]]);node.setDirtyCanvas(true,true);} }
         };
+        if(query || nodeData.name === "CanvasProAsyncSubmit"){
+            const executed=nodeType.prototype.onExecuted;
+            nodeType.prototype.onExecuted=function(message){
+                const result=executed?.apply(this,arguments);
+                applyExecutionStatus(this,message);
+                return result;
+            };
+        }
         const created = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = created?.apply(this,args);

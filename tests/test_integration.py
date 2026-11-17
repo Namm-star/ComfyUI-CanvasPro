@@ -77,6 +77,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond(503, {"error": "Bearer fake-secret"})
             elif prompt == "missing-id":
                 self.respond(200, {"status": "queued"})
+            elif prompt == "html-submit":
+                self.respond(200,b"<html>gateway fake-secret</html>","text/html")
             elif self.path in ("/v1/images/generations","/v1/images/edits"):
                 import base64
                 if prompt=="invalid-sync": self.respond(200,{"data":[{"b64_json":"bad!"}]})
@@ -152,6 +154,64 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_edit_transport_failure_and_text_success_are_distinct_and_not_replayed(self):
+        import requests
+        post=requests.post
+        def transport(url,**kwargs):
+            if url.endswith('/edits'):raise requests.ConnectionError('fake-secret connection reset')
+            return post(url,**kwargs)
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.upload',return_value='https://i.ibb.co/mock.png'),patch('canvaspro.batch.host_key',return_value='fake-host'),patch('canvaspro.client.requests.post',side_effect=transport) as request:
+            edit=nodes.AsyncSubmit().execute('即梦-46-gpt-image-2.5-flare','edit',queue_key='two-jobs',seed=0,unique_id='1',image_1=torch.zeros(1,4,4,3))
+            text=nodes.AsyncSubmit().execute('即梦-46-gpt-image-2.5-flare','text',queue_key='two-jobs',seed=0,unique_id='1')
+            replay=nodes.AsyncSubmit().execute('即梦-46-gpt-image-2.5-flare','edit',queue_key='two-jobs',seed=0,unique_id='1',image_1=torch.zeros(1,4,4,3))
+            self.assertEqual(request.call_count,2)
+            query=nodes.AsyncQuery().execute(queue_key='two-jobs')['result']
+        self.assertEqual(len(self.store.queue_batches('two-jobs')),2);self.assertEqual(len(self.service.posts),1)
+        self.assertEqual(edit['ui']['canvaspro_submission'][0]['acknowledged'],0)
+        self.assertEqual(text['ui']['canvaspro_submission'][0]['acknowledged'],1)
+        self.assertIn('submit_connection_error_outcome_unknown',edit['result'][1])
+        self.assertEqual(replay['ui']['canvaspro_submission'][0]['mode'],'restored_existing')
+        self.assertNotIn('fake-secret',edit['result'][1]);self.assertEqual(json.loads(query[1])['counts'],{'submit_unknown':1,'succeeded':1})
+
+    def test_edit_and_text_each_post_with_same_seed_and_queue(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.upload',return_value='https://i.ibb.co/mock.png'),patch('canvaspro.batch.host_key',return_value='fake-host'):
+            edit=nodes.AsyncSubmit().execute('即梦-46-gpt-image-2.5-flare','same prompt',queue_key='two',seed=0,unique_id='1',image_1=torch.zeros(1,4,4,3))
+            text=nodes.AsyncSubmit().execute('即梦-46-gpt-image-2.5-flare','same prompt',queue_key='two',seed=0,unique_id='1')
+        self.assertEqual(len(self.service.posts),2)
+        self.assertEqual({p.rsplit('/',1)[-1] for p,b in self.service.posts},{'edits','generations'})
+        self.assertNotEqual(edit['result'][2],text['result'][2])
+        self.assertTrue(all(x['ui']['canvaspro_submission'][0]['acknowledged']==1 for x in (edit,text)))
+
+    def test_non_json_receipt_preserves_http_status_without_response_body(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            result=nodes.AsyncSubmit().execute('gpt-image-2','html-submit')['result']
+        info=json.loads(result[1]);receipt=info['query']['items'][0]['submission_receipt']
+        self.assertEqual(receipt['http_status'],200);self.assertEqual(receipt['error_code'],'submit_response_not_json_outcome_unknown')
+        self.assertEqual(info['submission']['new_acknowledged'],0);self.assertNotIn('fake-secret',result[1]);self.assertEqual(len(self.service.posts),1)
+
+    def test_query_snapshot_ignores_legacy_wait_and_never_polls_until_done(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            submitted=nodes.AsyncSubmit().execute('gpt-image-2','always-pending',queue_key='snapshot',count=8)
+            for expected in (8,16):
+                result=nodes.AsyncQuery().execute(queue_key='snapshot',wait_seconds=600)
+                self.assertEqual(len(self.service.gets),expected)
+                self.assertEqual(json.loads(result['result'][1])['counts'],{'processing':8})
+                self.assertEqual(result['ui']['canvaspro_query'][0]['counts'],{'processing':8})
+                self.assertEqual(json.loads(result['result'][1])['query_mode'],'snapshot')
+            single=nodes.AsyncQuery().execute(tasks_json=submitted['result'][0],wait_seconds=600)
+            self.assertEqual(len(self.service.gets),24);self.assertEqual(json.loads(single['result'][1])['counts'],{'processing':8})
+        self.assertEqual(len(self.service.posts),8)
+
+    def test_query_snapshot_error_returns_then_manual_query_gets_result(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            nodes.AsyncSubmit().execute('gpt-image-2','query-retry',queue_key='retry')
+            first=nodes.AsyncQuery().execute(queue_key='retry')['result']
+            self.assertEqual(len(self.service.gets),1);self.assertIn('query_http_503',first[1])
+            self.assertEqual(type(first[0][0]).__name__,'ExecutionBlocker')
+            second=nodes.AsyncQuery().execute(queue_key='retry')['result']
+            self.assertEqual(len(self.service.gets),2);self.assertTrue(torch.is_tensor(second[0][0]))
+        self.assertEqual(len(self.service.posts),1)
+
     def test_submit_report_distinguishes_new_acknowledgement_from_fixed_restore(self):
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             new=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
@@ -185,6 +245,7 @@ class Integration(unittest.TestCase):
         models=['gpt-image-2','T香蕉2.1','即梦-67-gpt-image-2.5-sunburst']
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             for seed,model in enumerate(models):nodes.AsyncSubmit().execute(model,'mixed',queue_key='mixed-query',seed=seed)
+            nodes.AsyncQuery().execute(queue_key='mixed-query')
             result=nodes.AsyncQuery().execute(queue_key='mixed-query',model='gpt-image-2',wait_seconds=10)['result']
         self.assertEqual(len(result[0]),3)
         returned={item['model'] for batch in json.loads(result[1])['batches'] for item in batch['query']['items']}
@@ -232,6 +293,7 @@ class Integration(unittest.TestCase):
         batch=submit_batch(self.store,self.client,'source','gpt-image-2',['p'])
         task_id=self.store.read(batch)[1][0]['task_id']
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.client.requests.post',side_effect=AssertionError('no POST')):
+            nodes.AsyncQuery().execute(tasks_json=task_id,model='gpt-image-2')
             result=nodes.AsyncQuery().execute(tasks_json=task_id,model='gpt-image-2',wait_seconds=5)['result']
             self.assertTrue(torch.is_tensor(result[0][0]));self.assertIn('resource_urls',result[1])
         self.assertEqual(len(self.service.posts),1)

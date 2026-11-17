@@ -116,6 +116,7 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
         except UploadError as error:
             store.update(batch,index,status="failed",detail="reference_upload_failed_no_generation: "+str(error))
         except ClientError as error:
+            receipt["error_code"]=str(error)
             store.update(batch, index, status="submit_unknown", detail=str(error))
         except Exception:
             store.update(batch, index, status="submit_unknown", detail="submit_local_error_outcome_unknown")
@@ -135,8 +136,6 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
         raise ValueError("Saved task service differs from current settings")
     deadline = time.monotonic() + max(1, wait_seconds)
     query_once = wait_seconds == 0
-    if query_once:
-        deadline = time.monotonic() + client.timeout * 3 + 4
 
     def worker(task, cancel):
         if not task["task_id"] or task["status"] == "failed":
@@ -144,9 +143,12 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
         if task["status"]=="succeeded" and (task.get("image") is not None or (task["urls"] and not refresh_success)):
             return
         interval = max(0.2, poll_interval)
-        while not cancel.is_set() and time.monotonic() < deadline:
+        # Snapshot requests get their own timeout when a worker becomes available.
+        # A slow earlier group must not consume later tasks' one query opportunity.
+        task_deadline = time.monotonic() + client.timeout if query_once else deadline
+        while not cancel.is_set() and time.monotonic() < task_deadline:
             try:
-                body = client.query(query_path(task["model"], task["task_id"]), cancel, deadline)
+                body = client.query(query_path(task["model"], task["task_id"]), cancel, task_deadline, single_attempt=query_once)
                 if body.get("task_id") != task["task_id"]:
                     raise ClientError("query_task_id_mismatch")
                 status = body["status"]
@@ -169,7 +171,7 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
                 store.update(batch, task["position"], detail=str(error))
                 if query_once:
                     return
-            cancel.wait(min(interval, max(0, deadline-time.monotonic())))
+            cancel.wait(min(interval, max(0, task_deadline-time.monotonic())))
             interval = min(interval * 1.5, 15)
         store.update(batch, task["position"], detail="wait_cancelled" if cancel.is_set() else "wait_timeout_query_again")
     run_parallel(tasks, worker, concurrency, interrupt, progress)

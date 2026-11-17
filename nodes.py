@@ -624,7 +624,8 @@ class AsyncSubmit(ImageGenerate):
                 PromptServer.instance.send_sync("canvaspro.batch_status",{"node_id":str(unique_id),"submission_only":True,"submission_mode":submission["mode"],"acknowledged":confirmed,"expected":count})
             except (ImportError,AttributeError,RuntimeError):pass
         ids="\n".join(t["task_id"] for t in store.read(batch,include_images=False)[1] if t["task_id"])
-        return {"ui":{"text":[info]},"result":(handle,info,ids)}
+        status={"mode":submission["mode"],"acknowledged":confirmed,"expected":count}
+        return {"ui":{"text":[info],"canvaspro_submission":[status]},"result":(handle,info,ids)}
 
 
 class AsyncQuery(RecoverResults):
@@ -632,14 +633,24 @@ class AsyncQuery(RecoverResults):
     def INPUT_TYPES(cls):
         return {"required":{"queue_key":("STRING",{"default":"queue-001","tooltip":"与提交节点使用相同队列名；自动查询该队列全部型号的任务，不按model筛选，不重新生图。"})},
             "optional":{"api_key":("STRING",{"default":""}),"tasks_json":("STRING",{"multiline":True,"default":"","tooltip":"通常留空：按queue_key查询整个队列，包括混合模型。仅单独查询报告或平台任务号时填写。"}),"model":(async_models(),{"tooltip":"仅手动填写不带模型信息的纯任务号时需要选择。队列、完整报告、batch_id查询会自动使用原有型号，此参数不参与筛选。"}),
-                "wait_seconds":("INT",{"default":600,"min":0,"max":86400,"tooltip":"0仅查询一次；未完成可再次执行查询，不重新生图。"}),
+                "wait_seconds":("INT",{"default":0,"min":0,"max":86400,"tooltip":"旧工作流兼容字段，已停用；本节点始终只查询当前状态，不等待生成完成。"}),
                 "request_timeout":("INT",{"default":60,"min":1,"max":120}),"refresh_urls":("BOOLEAN",{"default":False})},"hidden":{"prompt":"PROMPT"}}
-    def execute(self,queue_key="queue-001",api_key="",tasks_json="",model="gpt-image-2",wait_seconds=600,request_timeout=60,refresh_urls=False,prompt=None):
+    def execute(self,queue_key="queue-001",api_key="",tasks_json="",model="gpt-image-2",wait_seconds=0,request_timeout=60,refresh_urls=False,prompt=None):
+        # Ignore legacy wait_seconds values, including 600 saved by old workflows.
+        def snapshot_result(info,images,handle):
+            counts={}
+            queries=[entry["query"] for entry in info["batches"]] if "batches" in info else [info["query"]]
+            for query in queries:
+                for status,n in query["counts"].items():counts[status]=counts.get(status,0)+n
+            info.update(query_mode="snapshot",counts=counts,
+                guidance="本次仅查询当前状态，不等待生成完成，不重新提交。排队或处理中可稍后再次运行；已完成图片会下载，下载失败可再次获取。无平台任务号的提交结果未知，不能通过查询补交，请先核对平台记录。")
+            text=json.dumps(info,ensure_ascii=False)
+            return {"ui":{"text":[text],"canvaspro_query":[{"counts":counts}]},"result":(images,text,handle)}
         if not tasks_json.strip() and isinstance(prompt,dict):
             active=[node for node in prompt.values() if isinstance(node,dict) and node.get("class_type")=="CanvasProAsyncSubmit" and (node.get("inputs",{}).get("queue_key","queue-001")==queue_key or isinstance(node.get("inputs",{}).get("queue_key"),list))]
             if active:
                 info=json.dumps({"queue_key":queue_key,"query_skipped":True,"guidance":"当前是提交阶段：同一队列的提交节点仍启用。可连续提交多次，禁用提交节点后再运行，本查询节点将批量获取累计任务。"},ensure_ascii=False)
-                return {"ui":{"text":[info]},"result":(image_output([]),info,json.dumps({"queue_key":queue_key,"batches":[],"query_skipped":True},ensure_ascii=False))}
+                return {"ui":{"text":[info],"canvaspro_query":[{"query_skipped":True}]},"result":(image_output([]),info,json.dumps({"queue_key":queue_key,"batches":[],"query_skipped":True},ensure_ascii=False))}
         text=tasks_json.strip()
         if text.startswith("{"):
             try:
@@ -651,19 +662,17 @@ class AsyncQuery(RecoverResults):
             batches=store.queue_batches(queue_key)
             if not batches:raise ValueError("此队列没有已提交任务，请先提交或检查队列名称")
             images=[];reports=[];handles=[];output_map=[]
-            deadline=time.monotonic()+max(0,wait_seconds)
             for batch in batches:
                 interrupt()
-                query_batch(store,client,batch,max(0,int(deadline-time.monotonic())),2.0,3,interrupt,progress(),refresh_success=refresh_urls)
+                query_batch(store,client,batch,0,2.0,3,interrupt,progress(),refresh_success=refresh_urls)
                 fetched=Fetch().execute(store.handle(batch),3,request_timeout,api_key)
                 if not json.loads(fetched["result"][1]).get("no_images"):
                     images.extend(fetched["result"][0])
                     output_map.extend({"batch_id":batch,"index":index} for index in json.loads(fetched["result"][1])["output_indices"])
                 reports.append({"batch_id":batch,"query":json.loads(report(store,batch)),"download":json.loads(fetched["result"][1])})
                 handles.append(json.loads(store.handle(batch)))
-            info=json.dumps({"query_only":True,"queue_key":queue_key.strip(),"batch_count":len(batches),"batches":reports,"output_map":output_map,
-                "guidance":"仅查询已有任务和下载，不重新提交。提交节点禁用后可反复运行查询；未完成或下载失败可稍后重试。"},ensure_ascii=False)
-            return {"ui":{"text":[info]},"result":(image_output(images),info,json.dumps({"queue_key":queue_key.strip(),"batches":handles},ensure_ascii=False))}
+            info={"query_only":True,"queue_key":queue_key.strip(),"batch_count":len(batches),"batches":reports,"output_map":output_map}
+            return snapshot_result(info,image_output(images),json.dumps({"queue_key":queue_key.strip(),"batches":handles},ensure_ascii=False))
         if not text.startswith("{"):
             try:store.read(text,include_images=False)
             except ValueError:
@@ -677,7 +686,8 @@ class AsyncQuery(RecoverResults):
                     for task in store.read(batch,include_images=False)[1]:
                         if not task['task_id']:store.update(batch,task['position'],status='queued',task_id=ids[task['position']])
                     text=store.handle(batch)
-        return RecoverResults().execute(text,api_key,wait_seconds,request_timeout,refresh_urls)
+        fetched=RecoverResults().execute(text,api_key,0,request_timeout,refresh_urls)["result"]
+        return snapshot_result(json.loads(fetched[1]),fetched[0],fetched[2])
 
 NODE_CLASS_MAPPINGS["CanvasProAsyncSubmit"]=AsyncSubmit
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncSubmit"]="CanvasPro · 异步提交 / Async Submit"

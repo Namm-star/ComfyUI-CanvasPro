@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { syncTaskPorts, syncTaskAdvanced, autoImageCount, migrateTaskDimensions, syncQueryUI, submissionTitle } from "../web/batch_ui.mjs";
+import { syncTaskPorts, syncTaskAdvanced, autoImageCount, migrateTaskDimensions, syncQueryUI, submissionTitle, applyExecutionStatus } from "../web/batch_ui.mjs";
 const make = () => ({size:[300,200], inputs:[], widgets:["advanced","wait_seconds","request_timeout","reference_count","quality","reference_urls","model"].map(name=>({name,value:name==="model"?"gpt-image-2":false,type:"text",options:{},computeSize:()=>[200,20]})), addInput(name,type){this.inputs.push({name,type,link:null});}, removeInput(i){this.inputs.splice(i,1);},computeSize(){return [300,200];},setSize(s){this.size=s;},setDirtyCanvas(){}});
 test("task ports grow beyond two and preserve sparse saved links",()=>{
     const n=make(); syncTaskPorts(n); assert.deepEqual(n.inputs.map(i=>i.name),["task_1","task_2"]);
@@ -55,4 +55,19 @@ test("submission titles distinguish accepted, unconfirmed and restored",()=>{
  assert.match(submissionTitle('restored_existing',0,1),/本次未新建/);
  assert.match(submissionTitle('new_batch',0,1),/未取得平台任务号/);
  assert.match(submissionTitle('new_batch',1,2),/1\/2.*非生成完成/);
+});
+
+
+test('snapshot query hides legacy wait without shifting stored widgets',()=>{
+ const n=make(),wait=n.widgets.find(w=>w.name==='wait_seconds');wait.value=600;
+ syncQueryUI(n);assert.equal(wait.hidden,true);assert.equal(wait.value,600);
+ assert.equal(n.widgets.find(w=>w.name==='request_timeout').label,'单次请求超时（秒）');
+});
+
+test('executed UI preserves unconfirmed submission and snapshot status titles',()=>{
+ const n=make();applyExecutionStatus(n,{canvaspro_submission:[{mode:'new_batch',acknowledged:0,expected:1}]});
+ assert.match(n.title,/未取得平台任务号/);
+ applyExecutionStatus(n,{canvaspro_query:[{counts:{processing:2,succeeded:1,submit_unknown:1}}]});
+ assert.match(n.title,/处理中 2.*完成 1.*待确认 1/);
+ applyExecutionStatus(n,{canvaspro_query:[{query_skipped:true}]});assert.match(n.title,/未查询/);
 });

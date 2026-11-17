@@ -40,7 +40,10 @@ class Client:
                 if not 200 <= r.status_code < 300:
                     # No generic HTTP code proves upstream did not run/charge.
                     raise ClientError(f"submit_http_{r.status_code}_outcome_unknown")
-                body = r.json()
+                try:
+                    body = r.json()
+                except ValueError:
+                    raise ClientError("submit_response_not_json_outcome_unknown") from None
                 if path in ("/v1/images/generations", "/v1/images/edits"):
                     result=self.normalize_sync(body)
                     receipt["acknowledgement"]="sync_image_received"
@@ -55,8 +58,13 @@ class Client:
         except requests.Timeout:
             message="sync_submit_timeout_outcome_unknown_no_retry" if path in ("/v1/images/generations","/v1/images/edits") else "submit_timeout_outcome_unknown_no_retry"
             raise ClientError(message) from None
-        except (requests.RequestException, ValueError):
-            raise ClientError("submit_transport_or_response_error_outcome_unknown") from None
+        except requests.RequestException as error:
+            kind = ("proxy_error" if isinstance(error, requests.exceptions.ProxyError) else
+                    "tls_error" if isinstance(error, requests.exceptions.SSLError) else
+                    "connection_error" if isinstance(error, requests.ConnectionError) else "transport_error")
+            raise ClientError(f"submit_{kind}_outcome_unknown") from None
+        except ValueError:
+            raise ClientError("submit_response_parse_error_outcome_unknown") from None
 
     def normalize_sync(self, body):
         data=body.get("data") if isinstance(body,dict) else None
@@ -94,9 +102,9 @@ class Client:
                 return {"urls":[url],"image":None}
         raise ClientError("sync_missing_result_outcome_unknown")
 
-    def query(self, path, cancel, deadline):
+    def query(self, path, cancel, deadline, single_attempt=False):
         last = "query_unavailable"
-        for attempt in range(3):
+        for attempt in range(1 if single_attempt else 3):
             if cancel.is_set() or time.monotonic() >= deadline:
                 raise ClientError("wait_cancelled_or_timed_out")
             try:
@@ -119,7 +127,8 @@ class Client:
                         raise ClientError(last)
             except (requests.RequestException, ValueError):
                 last = "query_transport_or_response_error"
-            cancel.wait(min(0.5 * 2**attempt, max(0, deadline - time.monotonic())))
+            if not single_attempt:
+                cancel.wait(min(0.5 * 2**attempt, max(0, deadline - time.monotonic())))
         raise ClientError(last)
 
     @staticmethod
