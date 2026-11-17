@@ -21,7 +21,7 @@ async def main():
     assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_preview_any.py'))
     assert await nodes.load_custom_node(str(comfy_root / 'comfy_extras/nodes_primitive.py'))
     names = [name for name in nodes.NODE_CLASS_MAPPINGS if name.startswith("CanvasPro")]
-    assert len(names) == 15, names
+    assert len(names) == 16, names
     for name in names:
         cls = nodes.NODE_CLASS_MAPPINGS[name]
         inputs = cls.INPUT_TYPES()
@@ -130,6 +130,10 @@ async def main():
                 assert len(ui['images'])==3
             finally:folder_paths.set_output_directory(original_output)
             print("REAL THREE SUBMISSIONS + BATCH QUERY + NO REPOST + STAGE SWITCH PASSED")
+            cache=await invoke('CanvasProCacheManager',{'action':'查看占用 / Inspect','limit_mb':1024,'max_age_days':7})
+            assert json.loads(cache[0][0])['policy']=={'limit_mb':1024,'max_age_days':7}
+            assert len(service.posts)==11
+            print("REAL CACHE MANAGER + NO KEY + NO GENERATION PASSED")
             print("REAL COMFYUI EMPTY-IMAGE BLOCK + SaveImage SKIP + REPORT OUTPUT PASSED")
             print("REAL COMFYUI VALIDATION + NODE LIST EXECUTION + SaveImage PASSED (KR/Gemini/AIStars/W sync/KR25 mixed batch)")
         finally:

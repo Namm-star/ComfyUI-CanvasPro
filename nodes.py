@@ -304,7 +304,7 @@ class Fetch:
     def IS_CHANGED(cls, **kwargs):
         return float("nan")
 
-    def execute(self, tasks_json, concurrency, request_timeout, api_key="", positions=None):
+    def execute(self, tasks_json, concurrency, request_timeout, api_key="", positions=None, track_output=True):
         store, client = runtime(request_timeout, api_key) if api_key else runtime(request_timeout)
         batch = store.resolve(tasks_json)
         meta, tasks = store.read(batch,positions=positions)
@@ -324,6 +324,7 @@ class Fetch:
                 if task.get("image") is not None:
                     blobs = [task["image"]]
                 else:
+                    if not task["urls"]:raise ClientError("cache_unavailable_no_resource_url_use_saved_output")
                     blobs = (client.download(url, authorize=not task["model"].endswith("-W")) for url in task["urls"])
                 for blob in blobs:
                     if cancel.is_set():
@@ -344,8 +345,9 @@ class Fetch:
         resources={item["index"]:item for item in store.resources(batch,positions=positions)}
         for index,detail in details.items():detail.update(resources[index])
         images = [tensor for index in sorted(results) for tensor in results[index]]
+        cache=store.mark_output([(batch,index) for index in results if results[index]]) if images and track_output else None
         info = json.dumps({"batch_id": batch, "items": [details[i] for i in sorted(details)],
-            "output_indices": [i for i in sorted(results) for _ in results[i]], "no_images": not images}, ensure_ascii=False)
+            "output_indices": [i for i in sorted(results) for _ in results[i]], "no_images": not images,"cache":cache}, ensure_ascii=False)
         return {"ui": {"text": [info]}, "result": (image_output(images), info)}
 
 
@@ -671,7 +673,7 @@ class AsyncQuery(RecoverResults):
             for batch,positions in batches.items():
                 interrupt()
                 query_batch(store,client,batch,0,2.0,3,interrupt,progress(),refresh_success=refresh_urls,positions=positions)
-                fetched=Fetch().execute(store.handle(batch,positions=positions),3,request_timeout,api_key,positions=positions)
+                fetched=Fetch().execute(store.handle(batch,positions=positions),3,request_timeout,api_key,positions=positions,track_output=False)
                 if not json.loads(fetched["result"][1]).get("no_images"):
                     images.extend(fetched["result"][0])
                     output_map.extend({"batch_id":batch,"index":index} for index in json.loads(fetched["result"][1])["output_indices"])
@@ -681,11 +683,12 @@ class AsyncQuery(RecoverResults):
                     if task["status"]=="failed" or not task["task_id"]:notices.append((batch,task["position"],task["status"]))
             interrupt()
             accepted=store.record_queue_run(queue_key,[(item["batch_id"],item["index"]) for item in output_map],notices,include_history)
+            cache=store.mark_output(accepted)
             selected=[(im,item) for im,item in zip(images,output_map) if (item["batch_id"],item["index"]) in accepted]
             images=[im for im,item in selected];output_map=[item for im,item in selected]
             info={"query_only":True,"query_scope":"all_history" if include_history else "pending","queue_key":queue_key.strip(),
                 "batch_count":len(batches),"batches":reports,"output_map":output_map,"new_output_count":len(images),
-                "skipped_task_count":summary["total_tasks"]-sum(map(len,batches.values())),"queue_summary":store.queue_summary(queue_key)}
+                "skipped_task_count":summary["total_tasks"]-sum(map(len,batches.values())),"queue_summary":store.queue_summary(queue_key),"cache":cache}
             return snapshot_result(info,image_output(images),json.dumps({"queue_key":queue_key.strip(),"batches":handles},ensure_ascii=False))
         if not text.startswith("{"):
             try:store.read(text,include_images=False)
@@ -707,3 +710,36 @@ NODE_CLASS_MAPPINGS["CanvasProAsyncSubmit"]=AsyncSubmit
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncSubmit"]="CanvasPro · 异步提交 / Async Submit"
 NODE_CLASS_MAPPINGS["CanvasProAsyncQuery"]=AsyncQuery
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncQuery"]="CanvasPro · 队列批量查询 / Async Query"
+
+
+class CacheManager:
+    CATEGORY="CanvasPro/管理"
+    FUNCTION="execute"
+    RETURN_TYPES=("STRING",)
+    RETURN_NAMES=("report",)
+    OUTPUT_NODE=True
+    ACTIONS=["查看占用 / Inspect","应用设置 / Save settings","清理已输出缓存 / Clear output cache"]
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required":{"action":(cls.ACTIONS,),
+            "limit_mb":("INT",{"default":1024,"min":1,"max":65536,"tooltip":"图片缓存容量目标，单位MiB。未输出结果受到保护，可能暂时超限；不限制保存图像节点的成品目录。"}),
+            "max_age_days":("INT",{"default":7,"min":0,"max":3650,"tooltip":"已输出缓存距最后使用超过此天数时清理；0关闭按天清理，容量限制仍有效。"})}}
+    @classmethod
+    def IS_CHANGED(cls,**kwargs):return float("nan")
+    def execute(self,action,limit_mb=1024,max_age_days=7):
+        if action not in self.ACTIONS:raise ValueError("无效缓存管理操作")
+        store=Store()
+        if action==self.ACTIONS[0]:info=store.cache_info()
+        elif action==self.ACTIONS[1]:
+            store.set_cache_policy(limit_mb,max_age_days)
+            info=store.maintain_cache()
+        else:info=store.maintain_cache(clear_all=True)
+        info.update(action=action,
+            guidance="只管理插件图片缓存，任务号、网址、错误记录和保存图像节点的成品文件保留。未输出或其他队列尚未获取的结果受到保护，可能超过容量目标。清理后历史图片需原网址有效；异步可续查原任务，同步无网址结果请读取已保存成品图。旧版未标记输出的缓存也会受到保护。查看操作不清理；清理操作不修改已保存的容量与天数设置。")
+        if info.get("over_limit"):info["warning"]="缓存仍超限：未取回/本轮正在输出的结果受到保护。请先获取并保存结果，之后再清理。"
+        if info.get("compaction")=="manual_compaction_required":info["warning"]="旧数据库需要整理以回收磁盘空间，请运行清理已输出缓存操作。"
+        text=json.dumps(info,ensure_ascii=False)
+        return {"ui":{"text":[text]},"result":(text,)}
+
+NODE_CLASS_MAPPINGS["CanvasProCacheManager"]=CacheManager
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProCacheManager"]="CanvasPro · 缓存管理 / Cache Manager"

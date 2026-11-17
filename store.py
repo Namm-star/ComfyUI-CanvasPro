@@ -5,14 +5,17 @@ import time
 import uuid
 from contextlib import contextmanager
 from .config import data_dir
+from .cache import CacheStore
 
 
-class Store:
+class Store(CacheStore):
     def __init__(self, root=None):
         self.root = root or data_dir()
         self.root.mkdir(parents=True, exist_ok=True)
         self.path = self.root / "tasks.sqlite3"
         with self.connect() as db:
+            if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table'").fetchone():
+                db.execute("PRAGMA auto_vacuum=INCREMENTAL")
             db.executescript("""
             CREATE TABLE IF NOT EXISTS batches (
               id TEXT PRIMARY KEY, job_key TEXT UNIQUE, fingerprint TEXT, base TEXT, model TEXT, created REAL);
@@ -36,6 +39,7 @@ class Store:
                 # Pre-upgrade cached images have already been obtained. Keep them
                 # in history instead of emitting them all on the first new query.
                 db.execute("INSERT INTO queue_progress SELECT q.queue_key,t.batch,t.position,1,'' FROM task_queues q JOIN tasks t ON t.batch=q.batch WHERE t.status='succeeded' AND t.image IS NOT NULL")
+            self.init_cache(db)
 
     @contextmanager
     def connect(self):
@@ -77,6 +81,8 @@ class Store:
             fields["urls"] = json.dumps(fields["urls"])
         with self.connect() as db:
             db.execute("UPDATE tasks SET " + ",".join(k + "=?" for k in fields) + " WHERE batch=? AND position=?", (*fields.values(), batch, index))
+            if fields.get("image") is not None:
+                db.execute("INSERT INTO cache_entries VALUES (?,?,?,NULL) ON CONFLICT(batch,position) DO UPDATE SET cached_at=excluded.cached_at",(batch,index,time.time()))
 
     def read(self, batch, include_images=True, positions=None):
         with self.connect() as db:

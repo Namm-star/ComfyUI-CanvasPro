@@ -304,6 +304,18 @@ class Integration(unittest.TestCase):
         self.assertEqual(self.store.record_queue_run('one',[(batch,0)],[],True),{(batch,0)})
         self.assertEqual(len(self.service.posts),1)
 
+    def test_cache_clear_preserves_queue_history_and_redownloads_without_generation(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            nodes.AsyncSubmit().execute('gpt-image-2','cache recovery',queue_key='cache')
+            nodes.AsyncQuery().execute(queue_key='cache')
+            done=nodes.AsyncQuery().execute(queue_key='cache')['result'];self.assertTrue(torch.is_tensor(done[0][0]))
+            with patch.object(nodes,'Store',return_value=self.store):
+                cleared=nodes.CacheManager().execute(nodes.CacheManager.ACTIONS[2]);self.assertEqual(json.loads(cleared['result'][0])['removed_images'],1)
+            with patch('canvaspro.client.requests.post',side_effect=AssertionError('cache never resubmits')):
+                empty=nodes.AsyncQuery().execute(queue_key='cache')['result'];self.assertEqual(type(empty[0][0]).__name__,'ExecutionBlocker')
+                restored=nodes.AsyncQuery().execute(queue_key='cache',include_history=True)['result'];self.assertTrue(torch.is_tensor(restored[0][0]))
+        self.assertEqual(len(self.service.posts),1)
+
     def test_submit_report_distinguishes_new_acknowledgement_from_fixed_restore(self):
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             new=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
@@ -1088,6 +1100,101 @@ print(batch)
             os.environ.clear()
             os.environ.update(old_env)
             nodes.interrupt, nodes.progress = old_interrupt, old_progress
+
+
+class CacheBudget(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name)
+        self.store=Store(self.root)
+    def tearDown(self):self.tmp.cleanup()
+    def cached(self,name,size=1024**2,output=True,model='gpt-image-2'):
+        batch,_=self.store.create(name,name,'https://api.canvasproai.com',model,1)
+        self.store.update(batch,0,status='succeeded',task_id='task_'+name,urls=['https://images.example.com/'+name+'.png'],image=b'x'*size)
+        if output:self.store.mark_output([(batch,0)])
+        return batch
+
+    def test_quota_evicts_oldest_output_and_shrinks_physical_database(self):
+        ids=[self.cached(str(i)) for i in range(3)]
+        with self.store.connect() as db:
+            for i,b in enumerate(ids):db.execute('UPDATE cache_entries SET output_at=? WHERE batch=?',(time.time()-100+i,b))
+        before=self.store.path.stat().st_size;self.store.set_cache_policy(1,0)
+        info=self.store.maintain_cache();self.assertEqual(info['removed_images'],2);self.assertEqual(info['cache_bytes'],1024**2)
+        self.assertLess(self.store.path.stat().st_size,before)
+        for i,b in enumerate(ids):
+            task=self.store.read(b)[1][0];self.assertEqual(task['task_id'],'task_'+str(i));self.assertTrue(task['urls'])
+            self.assertEqual(task['image'] is not None,i==2)
+
+    def test_expiry_uses_last_output_and_can_be_disabled(self):
+        old=self.cached('old');recent=self.cached('recent')
+        with self.store.connect() as db:db.execute('UPDATE cache_entries SET output_at=? WHERE batch=?',(time.time()-8*86400,old))
+        self.store.set_cache_policy(1024,0);self.assertEqual(self.store.maintain_cache()['removed_images'],0)
+        self.store.set_cache_policy(1024,7);self.assertEqual(self.store.maintain_cache()['removed_images'],1)
+        self.assertIsNotNone(self.store.read(recent)[1][0]['image'])
+
+    def test_unretrieved_and_other_pending_queues_are_protected_even_when_over_limit(self):
+        unread=self.cached('unread',output=False);queued=self.cached('queued')
+        self.store.add_queue('still-pending',queued)
+        old=self.cached('clearable');self.store.set_cache_policy(1,0)
+        info=self.store.maintain_cache(clear_all=True)
+        self.assertEqual(info['removed_images'],1);self.assertTrue(info['over_limit']);self.assertEqual(info['protected_bytes'],2*1024**2)
+        for b in (unread,queued):self.assertIsNotNone(self.store.read(b)[1][0]['image'])
+        self.assertIsNone(self.store.read(old)[1][0]['image'])
+
+    def test_current_output_is_deferred_instead_of_deleted_before_return(self):
+        old=self.cached('old');current=self.cached('current',size=2*1024**2,output=False)
+        self.store.set_cache_policy(1,0);info=self.store.mark_output([(current,0)])
+        self.assertIsNone(self.store.read(old)[1][0]['image']);self.assertIsNotNone(self.store.read(current)[1][0]['image'])
+        self.assertTrue(info['over_limit']);self.assertEqual(info['current_output_protected_bytes'],2*1024**2)
+        self.assertEqual(self.store.maintain_cache()['removed_images'],1)
+
+    def test_manager_inspect_is_read_only_and_clear_keeps_output_files_and_settings(self):
+        batch=self.cached('managed');self.store.set_cache_policy(512,14)
+        saved=self.root/'saved-output.png';saved.write_bytes(b'keep saved result')
+        with patch.object(nodes,'Store',return_value=self.store):
+            before=self.store.path.stat().st_size
+            inspected=json.loads(nodes.CacheManager().execute(nodes.CacheManager.ACTIONS[0],1,1)['result'][0])
+            self.assertEqual(inspected['cached_images'],1);self.assertEqual(self.store.path.stat().st_size,before)
+            info=json.loads(nodes.CacheManager().execute(nodes.CacheManager.ACTIONS[2],1,1)['result'][0]);self.assertEqual(info['removed_images'],1)
+        self.assertEqual(self.store.cache_policy(),{'limit_mb':512,'max_age_days':14})
+        self.assertEqual(saved.read_bytes(),b'keep saved result');self.assertEqual(self.store.read(batch)[1][0]['status'],'succeeded')
+
+    def test_manager_settings_persist_and_invalid_settings_do_not_change_policy(self):
+        with patch.object(nodes,'Store',return_value=self.store):nodes.CacheManager().execute(nodes.CacheManager.ACTIONS[1],256,0)
+        self.assertEqual(Store(self.root).cache_policy(),{'limit_mb':256,'max_age_days':0})
+        for limit,days in ((0,7),(True,7),(1024,-1),(65537,1)):
+            with self.assertRaises(ValueError):self.store.set_cache_policy(limit,days)
+        self.assertEqual(self.store.cache_policy(),{'limit_mb':256,'max_age_days':0})
+
+    def test_legacy_unmarked_blobs_stay_protected_and_queue_outputs_can_be_cleared(self):
+        legacy=self.cached('legacy',output=False);known=self.cached('known')
+        self.store.add_queue('q',known);self.store.record_queue_run('q',[(known,0)],[])
+        with self.store.connect() as db:db.execute('DROP TABLE cache_entries')
+        migrated=Store(self.root);info=migrated.maintain_cache(clear_all=True)
+        self.assertEqual(info['removed_images'],1);self.assertIsNotNone(migrated.read(legacy)[1][0]['image'])
+        self.assertEqual(migrated.queue_work('q'),{});self.assertEqual(migrated.queue_summary('q')['already_output'],1)
+
+    def test_legacy_database_compaction_migrates_to_incremental_reclamation(self):
+        import sqlite3
+        self.cached('legacy-size',size=2*1024**2)
+        db=sqlite3.connect(self.store.path,isolation_level=None);db.execute('PRAGMA auto_vacuum=NONE');db.execute('VACUUM');db.close()
+        before=self.store.path.stat().st_size;info=self.store.maintain_cache(clear_all=True)
+        self.assertEqual(info['compaction'],'completed');self.assertLess(self.store.path.stat().st_size,before)
+        with self.store.connect() as db:self.assertEqual(db.execute('PRAGMA auto_vacuum').fetchone()[0],2)
+
+    def test_automatic_maintenance_failure_does_not_fail_output(self):
+        import sqlite3
+        batch=self.cached('deferred',output=False)
+        with patch.object(self.store,'maintain_cache',side_effect=sqlite3.OperationalError('database busy')):
+            info=self.store.mark_output([(batch,0)])
+        self.assertEqual(info,{'maintenance':'deferred_storage_error'});self.assertIsNotNone(self.store.read(batch)[1][0]['image'])
+
+    def test_cleared_sync_blob_without_url_reports_saved_output_needed(self):
+        batch=self.cached('sync-only',model='gpt-image-2.6-flare-W');self.store.update(batch,0,task_id=None,urls=[])
+        self.store.maintain_cache(clear_all=True)
+        client=Client('https://api.canvasproai.com','fake-secret')
+        with patch.object(nodes,'runtime',return_value=(self.store,client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch.object(nodes,'image_output',side_effect=lambda images:images),patch('canvaspro.client.requests.post',side_effect=AssertionError('never generate')):
+            result=nodes.Fetch().execute(self.store.handle(batch),1,30)['result']
+        self.assertIn('cache_unavailable_no_resource_url_use_saved_output',result[1]);self.assertEqual(result[0],[])
 
 
 if __name__ == "__main__":
