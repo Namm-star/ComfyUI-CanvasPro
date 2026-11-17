@@ -54,6 +54,7 @@ test("queue query hides model and complete metadata; bare task IDs reveal only m
 test("submission titles distinguish accepted, unconfirmed and restored",()=>{
  assert.match(submissionTitle('restored_existing',0,1),/本次未新建/);
  assert.match(submissionTitle('new_batch',0,1),/未取得平台任务号/);
+ assert.match(submissionTitle('new_batch',0,1,1),/参考图上传失败.*未提交生图/);
  assert.match(submissionTitle('new_batch',1,2),/1\/2.*非生成完成/);
 });
 

@@ -316,6 +316,37 @@ class Integration(unittest.TestCase):
                 restored=nodes.AsyncQuery().execute(queue_key='cache',include_history=True)['result'];self.assertTrue(torch.is_tensor(restored[0][0]))
         self.assertEqual(len(self.service.posts),1)
 
+    def test_temporary_host_failure_retries_upload_but_generates_only_once(self):
+        import requests
+        from unittest.mock import MagicMock
+        real=requests.post;attempts=[]
+        response=MagicMock();response.status_code=200;response.__enter__.return_value=response
+        response.json.return_value={'success':True,'data':{'expiration':'10800','url':'https://i.ibb.co/mock.png'}}
+        def transport(url,**kwargs):
+            if url=='https://api.imgbb.com/1/upload':
+                attempts.append(1)
+                if len(attempts)==1:raise requests.exceptions.SSLError('host-secret transient TLS')
+                return response
+            return real(url,**kwargs)
+        refs=dict(image_1=torch.zeros(1,4,4,3))
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.host_key',return_value='host-secret'),patch('canvaspro.image_host.requests.post',side_effect=transport):
+            result=nodes.AsyncSubmit().execute('即梦-67-gpt-image-2.5-sunburst','host retry',seed=99,**refs)['result']
+            nodes.AsyncSubmit().execute('即梦-67-gpt-image-2.5-sunburst','host retry',seed=99,**refs)
+        info=json.loads(result[1]);note=info['query']['items'][0]['submission_receipt']['reference_uploads'][0]
+        self.assertEqual(note['attempts'],2);self.assertEqual(note['history'][0]['error_code'],'imgbb_tls_error');self.assertEqual(note['status'],'succeeded')
+        self.assertEqual(info['submission']['new_post_attempts'],1);self.assertEqual(len(self.service.posts),1);self.assertEqual(len(attempts),2)
+        self.assertNotIn('host-secret',result[0]+result[1])
+
+    def test_failed_shared_host_upload_has_three_attempts_and_zero_generation_posts(self):
+        import requests
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.host_key',return_value='host-secret'),patch('canvaspro.image_host.requests.post',side_effect=requests.ConnectionError('host-secret unreachable')) as post:
+            result=nodes.AsyncSubmit().execute('即梦-67-gpt-image-2.5-sunburst','host failure',seed=1,count=3,image_1=torch.zeros(1,4,4,3))
+        info=json.loads(result['result'][1]);self.assertEqual(post.call_count,3);self.assertEqual(self.service.posts,[])
+        self.assertEqual(info['submission']['new_post_attempts'],0);self.assertEqual(info['query']['counts'],{'failed':3})
+        self.assertIn('本批未向CanvasPro提交',info['guidance']);self.assertEqual(result['ui']['canvaspro_submission'][0]['reference_failed'],3)
+        notes=[x['submission_receipt']['reference_uploads'][0] for x in info['query']['items']]
+        self.assertEqual(sorted(n['attempts'] for n in notes),[0,0,3]);self.assertNotIn('host-secret',result['result'][1])
+
     def test_submit_report_distinguishes_new_acknowledgement_from_fixed_restore(self):
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             new=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
@@ -533,7 +564,7 @@ class Integration(unittest.TestCase):
         refs=dict(image_1=torch.zeros(1,12,8,3),image_2=torch.ones(1,10,6,3))
         tasks=nodes.PromptTask().execute(model,'edit',**refs)[0]*2
         calls=[]
-        def hosted(blob,key):
+        def hosted(blob,key,**kwargs):
             self.assertEqual(key,'host-secret');calls.append(blob);return f'https://i.ibb.co/fake/{len(calls)}.png'
         with patch('canvaspro.batch.upload',side_effect=hosted),patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             result=nodes.BatchExecute().execute(tasks,'hosted',wait_seconds=5,imgbb_api_key='host-secret')['result']
@@ -1100,6 +1131,62 @@ print(batch)
             os.environ.clear()
             os.environ.update(old_env)
             nodes.interrupt, nodes.progress = old_interrupt, old_progress
+
+
+class HostUploadDiagnostics(unittest.TestCase):
+    def response(self,status=200,body=None):
+        from unittest.mock import MagicMock
+        r=MagicMock();r.status_code=status;r.__enter__.return_value=r
+        r.json.return_value=body if body is not None else {'success':True,'data':{'expiration':'10800','url':'https://i.ibb.co/mock.png'}}
+        return r
+    def test_tls_retry_is_bounded_and_never_exposes_key_or_disables_verification(self):
+        import requests
+        from canvaspro.image_host import upload
+        receipt={}
+        with patch('canvaspro.image_host.requests.post',side_effect=[requests.exceptions.SSLError('host-secret'),requests.exceptions.SSLError('host-secret'),self.response()]) as post,patch('canvaspro.image_host.time.sleep'):
+            self.assertEqual(upload(b'image','host-secret',receipt=receipt),'https://i.ibb.co/mock.png')
+        self.assertEqual(post.call_count,3);self.assertEqual(receipt['attempts'],3);self.assertEqual(receipt['status'],'succeeded')
+        self.assertNotIn('host-secret',json.dumps(receipt));self.assertEqual(len(receipt['history']),3)
+        for call in post.call_args_list:
+            self.assertNotIn('verify',call.kwargs);self.assertEqual(call.kwargs['data']['expiration'],'10800')
+    def test_transient_http_retries_preserve_each_status(self):
+        from canvaspro.image_host import upload
+        receipt={}
+        with patch('canvaspro.image_host.requests.post',side_effect=[self.response(503),self.response(429),self.response()]),patch('canvaspro.image_host.time.sleep'):
+            upload(b'image','host-secret',receipt)
+        self.assertEqual([h['http_status'] for h in receipt['history']],[503,429,200]);self.assertEqual(receipt['http_status'],200)
+    def test_permission_errors_are_not_retried(self):
+        from canvaspro.image_host import upload,UploadError
+        for status in (400,401,403):
+            receipt={}
+            with patch('canvaspro.image_host.requests.post',return_value=self.response(status,{'error':'host-secret'})) as post:
+                with self.assertRaises(UploadError):upload(b'image','host-secret',receipt)
+            self.assertEqual(post.call_count,1);self.assertEqual(receipt['error_code'],'imgbb_http_'+str(status));self.assertNotIn('host-secret',json.dumps(receipt))
+    def test_non_json_response_retries_then_reports_parse_problem(self):
+        from canvaspro.image_host import upload,UploadError
+        receipt={};r=self.response();r.json.side_effect=ValueError('host-secret HTML')
+        with patch('canvaspro.image_host.requests.post',return_value=r) as post,patch('canvaspro.image_host.time.sleep'):
+            with self.assertRaises(UploadError):upload(b'image','host-secret',receipt)
+        self.assertEqual(post.call_count,3);self.assertEqual(receipt['error_code'],'imgbb_response_not_json');self.assertEqual(receipt['http_status'],200)
+    def test_unconfirmed_expiration_and_invalid_url_do_not_retry(self):
+        from canvaspro.image_host import upload,UploadError
+        for data,code in [({'expiration':'0','url':'https://i.ibb.co/x.png'},'imgbb_expiration_not_confirmed'),({'expiration':'10800','url':'https://evil.example.com/x.png'},'imgbb_invalid_image_url')]:
+            receipt={}
+            with patch('canvaspro.image_host.requests.post',return_value=self.response(body={'success':True,'data':data})) as post:
+                with self.assertRaises(UploadError):upload(b'image','host-secret',receipt)
+            self.assertEqual(post.call_count,1);self.assertEqual(receipt['error_code'],code)
+    def test_cancelled_upload_never_sends_request(self):
+        from canvaspro.image_host import upload,UploadError
+        cancel=threading.Event();cancel.set();receipt={}
+        with patch('canvaspro.image_host.requests.post') as post:
+            with self.assertRaises(UploadError):upload(b'image','host-secret',receipt,cancel)
+        post.assert_not_called();self.assertEqual(receipt['attempts'],0);self.assertEqual(receipt['error_code'],'reference_upload_cancelled')
+    def test_api_rejection_is_distinct_from_transport_failure(self):
+        from canvaspro.image_host import upload,UploadError
+        receipt={}
+        with patch('canvaspro.image_host.requests.post',return_value=self.response(body={'success':False,'error':{'message':'host-secret'}})) as post:
+            with self.assertRaises(UploadError):upload(b'image','host-secret',receipt)
+        self.assertEqual(post.call_count,1);self.assertEqual(receipt['error_code'],'imgbb_api_rejected');self.assertNotIn('host-secret',json.dumps(receipt))
 
 
 class CacheBudget(unittest.TestCase):

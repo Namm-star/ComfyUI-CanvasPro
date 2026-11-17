@@ -767,8 +767,9 @@ function syncQueryUI(node) {
     node.setDirtyCanvas?.(true,true);
 }
 
-function submissionTitle(mode,acknowledged,expected){
+function submissionTitle(mode,acknowledged,expected,referenceFailed=0){
  if(mode==='restored_existing')return 'CanvasPro · 复用旧批次（本次未新建）';
+ if(!acknowledged && referenceFailed>0)return 'CanvasPro · 参考图上传失败（未提交生图）';
  if(!acknowledged)return 'CanvasPro · 未取得平台任务号，请查看报告';
  return `CanvasPro · 平台返回任务号 ${acknowledged}/${expected}（非生成完成）`;
 }
@@ -776,7 +777,7 @@ function submissionTitle(mode,acknowledged,expected){
 function applyExecutionStatus(node,message){
  const submission=message?.canvaspro_submission?.[0];
  const query=message?.canvaspro_query?.[0];
- if(submission)node.title=submissionTitle(submission.mode,submission.acknowledged,submission.expected);
+ if(submission)node.title=submissionTitle(submission.mode,submission.acknowledged,submission.expected,submission.reference_failed);
  else if(query){
   const c=query.counts || {};
   node.title=query.query_skipped?'CanvasPro · 提交阶段，未查询':`CanvasPro · 当前状态 | 排队 ${c.queued || 0} · 处理中 ${c.processing || 0} · 完成 ${c.succeeded || 0} · 失败 ${c.failed || 0} · 待确认 ${(c.submit_unknown || 0)+(c.unknown || 0)+(c.prepared || 0)+(c.sending || 0)}`;
@@ -890,10 +891,10 @@ app.registerExtension({
 });
 
 api.addEventListener("canvaspro.batch_status", event => {
-    const { node_id, phase, counts, submission_mode, submission_only, acknowledged, expected } = event.detail;
+    const { node_id, phase, counts, submission_mode, submission_only, acknowledged, expected, reference_failed } = event.detail;
     const node = app.graph?.getNodeById(node_id);
     if (!node || !["CanvasProBatchExecute","CanvasProImageGenerate","CanvasProAsyncSubmit"].includes(node.comfyClass)) return;
-    if(submission_only){node.title=submissionTitle(submission_mode,acknowledged,expected);node.setDirtyCanvas(true,true);return;}
+    if(submission_only){node.title=submissionTitle(submission_mode,acknowledged,expected,reference_failed);node.setDirtyCanvas(true,true);return;}
     const queued = (counts.prepared || 0) + (counts.sending || 0) + (counts.queued || 0);
     node.title = `CanvasPro · ${submission_mode==='restored_existing'?'复用旧批次（本次未新建） · ':''}${phase} | 排队 ${queued} · 处理中 ${counts.processing || 0} · 成功 ${counts.succeeded || 0} · 失败 ${counts.failed || 0}`;
     if (counts.submit_unknown) node.title += ` · 待确认 ${counts.submit_unknown}`;

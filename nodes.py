@@ -613,7 +613,10 @@ class AsyncSubmit(ImageGenerate):
         submission={}
         batch=submit_tasks(store,client,effective,items,concurrency,interrupt,progress(),queue_key=queue_key,run_info=submission)
         confirmed=submission.get("new_acknowledged",0)
-        if submission["mode"]=="restored_existing":message="本次复用旧批次，没有发送新的生图请求。要再次生成，请使用新seed；旧结果未知时先核对平台记录，避免重复计费。"
+        host_failed=sum(task["detail"].startswith("reference_upload_failed_no_generation:") for task in store.read(batch,include_images=False)[1])
+        if submission["mode"]=="restored_existing" and host_failed==count:message="复用之前的图床上传失败记录，本批未提交生图。请先修复图床连接或改用公网参考图网址，再更换seed重新提交。"
+        elif submission["mode"]=="restored_existing":message="本次复用旧批次，没有发送新的生图请求。要再次生成，请使用新seed；旧结果未知时先核对平台记录，避免重复计费。"
+        elif host_failed==count:message="参考图上传图床失败，本批未向CanvasPro提交生图请求。请查看reference_uploads中的图床错误；修复连接或改用公网参考图网址后，更换seed重新提交。"
         elif confirmed==count:message=f"平台已返回{confirmed}个任务号；这表示提交已受理，不表示生成成功。"
         elif confirmed:message=f"平台返回{confirmed}/{count}个任务号，其余任务未确认；请查看每项状态与提交回执。"
         else:message="本次未取得任何平台任务号，不能认定提交成功。请查看错误与提交回执，勿盲目重复提交。"
@@ -623,10 +626,10 @@ class AsyncSubmit(ImageGenerate):
         if unique_id is not None:
             try:
                 from server import PromptServer
-                PromptServer.instance.send_sync("canvaspro.batch_status",{"node_id":str(unique_id),"submission_only":True,"submission_mode":submission["mode"],"acknowledged":confirmed,"expected":count})
+                PromptServer.instance.send_sync("canvaspro.batch_status",{"node_id":str(unique_id),"submission_only":True,"submission_mode":submission["mode"],"acknowledged":confirmed,"expected":count,"reference_failed":host_failed})
             except (ImportError,AttributeError,RuntimeError):pass
         ids="\n".join(t["task_id"] for t in store.read(batch,include_images=False)[1] if t["task_id"])
-        status={"mode":submission["mode"],"acknowledged":confirmed,"expected":count}
+        status={"mode":submission["mode"],"acknowledged":confirmed,"expected":count,"reference_failed":host_failed}
         return {"ui":{"text":[info],"canvaspro_submission":[status]},"result":(handle,info,ids)}
 
 

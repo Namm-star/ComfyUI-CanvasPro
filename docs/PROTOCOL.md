@@ -176,3 +176,16 @@ count=1–8，每张是n=1的独立收费任务，完整多行prompt不会按行
 新数据库支持增量回收空闲页，避免只清空图片字段却让磁盘文件保持增长。旧数据库在条件允许时整理后切换为增量回收；超过256 MiB的旧数据库不会在自动维护时进行完整重建，报告manual_compaction_required，手动清理可触发。空间不足或数据库忙时延后整理，空闲页仍可供后续写入复用。自动维护异常不会把已获取的图片改成生成失败。
 
 实现依据：[SQLite空闲页回收](https://www.sqlite.org/pragma.html#pragma_auto_vacuum)、[VACUUM磁盘空间要求](https://www.sqlite.org/lang_vacuum.html)。
+
+
+## 参考图上传诊断（0.15.6）
+
+AIStars即梦本地参考图先上传到ImgBB，拿到3小时临时图片网址后才提交CanvasPro。reference_upload_failed_no_generation与post_attempted=false表示图床阶段失败，未调用CanvasPro生图接口，不应按生图结果未知处理。
+
+临时上传错误（超时、TLS/代理/连接异常、408/429/5xx、非JSON响应）最多尝试3次；同批相同图片的成功/失败都复用，避免多任务反复上传。同样的生成请求仍只提交一次，图床自动删除仍固定10800秒，保持TLS证书验证。
+
+submission_receipt.reference_uploads按参考图记录attempts、history、http_status、error_code；只记录固定错误代码，不记录Key、原始响应正文或参考图网址。400/401/403、图床API拒绝、无效图片网址、未确认3小时删除不自动重试。不能根据旧的imgbb_upload_transport_or_response_error直接归咎于用户网络或Key。
+
+异步提交节点会明确提示“参考图上传失败（未提交生图）”。修复图床连接后更换seed重新提交；fixed复用旧失败记录不会自动补交。也可以断开IMAGE输入，在reference_urls填写上游可直接访问的公网图片URL，绕过ImgBB。不要同时连接本地图片和填写URL；query不能补交从未提交的任务。
+
+依据：[ImgBB官方上传接口](https://api.imgbb.com/)（二进制上传、32MB限制、expiration按秒指定）。

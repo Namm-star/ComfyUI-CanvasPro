@@ -89,6 +89,7 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
         return batch  # Never replay a saved submit, including unknown/prepared records.
 
     host_cache={}
+    host_failures={}
     host_lock=threading.Lock()
     def worker(index, cancel):
         if cancel.is_set() or not store.claim(batch, index):
@@ -98,11 +99,22 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
         try:
             if isinstance(uploads,dict):
                 refs=[]
-                for blob in uploads["imgbb_files"]:
+                receipt["reference_uploads"]=[]
+                for image_index,blob in enumerate(uploads["imgbb_files"]):
                     if cancel.is_set(): raise UploadError("reference_upload_cancelled")
                     digest=hashlib.sha256(blob).hexdigest()
                     with host_lock:
-                        if digest not in host_cache:host_cache[digest]=upload(blob,key)
+                        note={"image_index":image_index}
+                        receipt["reference_uploads"].append(note)
+                        if digest in host_failures:
+                            note.update(host_failures[digest],status="failed_reused_in_batch",attempts=0)
+                            raise UploadError(note["error_code"])
+                        if digest not in host_cache:
+                            try:host_cache[digest]=upload(blob,key,receipt=note,cancel=cancel)
+                            except UploadError as error:
+                                host_failures[digest]={"error_code":str(error),"source_attempts":note.get("attempts",0),"http_status":note.get("http_status")}
+                                raise
+                        else:note.update(status="reused_in_batch",attempts=0)
                         refs.append(host_cache[digest])
                 payload={**payload,"images":refs};uploads=None
                 if cancel.is_set():raise UploadError("reference_upload_cancelled")
@@ -114,6 +126,7 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
             else:
                 store.update(batch, index, status="queued", task_id=result, detail="")
         except UploadError as error:
+            receipt["error_code"]=str(error)
             store.update(batch,index,status="failed",detail="reference_upload_failed_no_generation: "+str(error))
         except ClientError as error:
             receipt["error_code"]=str(error)
