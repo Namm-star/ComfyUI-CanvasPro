@@ -77,13 +77,15 @@ export function syncQueryUI(node) {
     visibility(node,["wait_seconds"],false);
     const timeout=find(node,"request_timeout");
     if(timeout)timeout.label="单次请求超时（秒）";
+    const history=find(node,"include_history");
+    if(history)history.label="包含历史结果（会重复输出）";
     const source=find(node,"tasks_json");
     const text=String(source?.value || "").trim();
     const record=!text || text.startsWith("{") || text.startsWith("[") || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text) || text.includes("::seed=") || /^(simple|async|query|import)-[0-9a-f]+$/i.test(text);
     visibility(node,["model"],!record);
     const model=find(node,"model");
     if(model)model.label="手动任务号对应模型";
-    if(source){source.label="单独任务（可选，留空查询整个队列）";if(source.inputEl)source.inputEl.placeholder="通常留空：按queue_key自动查询队列内所有模型。仅查询单份报告或平台任务号时填写。";}
+    if(source){source.label="单独任务（可选，留空处理队列待办）";if(source.inputEl)source.inputEl.placeholder="通常留空：按queue_key处理尚未完成或尚未输出的任务。仅单独获取旧报告或平台任务号时填写。";}
     node.setSize?.([node.size?.[0] || 500,node.computeSize?.()[1] || 400]);
     node.setDirtyCanvas?.(true,true);
 }
@@ -101,6 +103,7 @@ export function applyExecutionStatus(node,message){
  else if(query){
   const c=query.counts || {};
   node.title=query.query_skipped?'CanvasPro · 提交阶段，未查询':`CanvasPro · 当前状态 | 排队 ${c.queued || 0} · 处理中 ${c.processing || 0} · 完成 ${c.succeeded || 0} · 失败 ${c.failed || 0} · 待确认 ${(c.submit_unknown || 0)+(c.unknown || 0)+(c.prepared || 0)+(c.sending || 0)}`;
+  if(!query.query_skipped && query.output_count!=null)node.title+=` · 本次出图 ${query.output_count} · 跳过历史 ${query.skipped || 0}`;
  }else return;
  node.setDirtyCanvas?.(true,true);
 }

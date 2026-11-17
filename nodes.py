@@ -304,10 +304,10 @@ class Fetch:
     def IS_CHANGED(cls, **kwargs):
         return float("nan")
 
-    def execute(self, tasks_json, concurrency, request_timeout, api_key=""):
+    def execute(self, tasks_json, concurrency, request_timeout, api_key="", positions=None):
         store, client = runtime(request_timeout, api_key) if api_key else runtime(request_timeout)
         batch = store.resolve(tasks_json)
-        meta, tasks = store.read(batch)
+        meta, tasks = store.read(batch,positions=positions)
         if meta["base"] != client.base:
             raise ValueError("Saved task service differs from current settings")
         results, details = {}, {}
@@ -341,7 +341,7 @@ class Fetch:
             except Exception:
                 details[index] = {"index": index, "status": "download_failed", "detail": "invalid_image_or_local_decode_error"}
         run_parallel(tasks, worker, concurrency, interrupt, progress())
-        resources=store.resources(batch)
+        resources={item["index"]:item for item in store.resources(batch,positions=positions)}
         for index,detail in details.items():detail.update(resources[index])
         images = [tensor for index in sorted(results) for tensor in results[index]]
         info = json.dumps({"batch_id": batch, "items": [details[i] for i in sorted(details)],
@@ -631,11 +631,12 @@ class AsyncSubmit(ImageGenerate):
 class AsyncQuery(RecoverResults):
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required":{"queue_key":("STRING",{"default":"queue-001","tooltip":"与提交节点使用相同队列名；自动查询该队列全部型号的任务，不按model筛选，不重新生图。"})},
-            "optional":{"api_key":("STRING",{"default":""}),"tasks_json":("STRING",{"multiline":True,"default":"","tooltip":"通常留空：按queue_key查询整个队列，包括混合模型。仅单独查询报告或平台任务号时填写。"}),"model":(async_models(),{"tooltip":"仅手动填写不带模型信息的纯任务号时需要选择。队列、完整报告、batch_id查询会自动使用原有型号，此参数不参与筛选。"}),
+        return {"required":{"queue_key":("STRING",{"default":"queue-001","tooltip":"与提交节点使用相同队列名；默认只处理该队列未完成/未成功输出的任务，支持混合模型，不重新生图。"})},
+            "optional":{"api_key":("STRING",{"default":""}),"tasks_json":("STRING",{"multiline":True,"default":"","tooltip":"通常留空：按queue_key处理待办，已输出图片默认跳过。单独获取历史报告或平台任务号时填写。"}),"model":(async_models(),{"tooltip":"仅手动填写不带模型信息的纯任务号时需要选择。队列、完整报告、batch_id查询会自动使用原有型号，此参数不参与筛选。"}),
                 "wait_seconds":("INT",{"default":0,"min":0,"max":86400,"tooltip":"旧工作流兼容字段，已停用；本节点始终只查询当前状态，不等待生成完成。"}),
-                "request_timeout":("INT",{"default":60,"min":1,"max":120}),"refresh_urls":("BOOLEAN",{"default":False})},"hidden":{"prompt":"PROMPT"}}
-    def execute(self,queue_key="queue-001",api_key="",tasks_json="",model="gpt-image-2",wait_seconds=0,request_timeout=60,refresh_urls=False,prompt=None):
+                "request_timeout":("INT",{"default":60,"min":1,"max":120}),"refresh_urls":("BOOLEAN",{"default":False}),
+                "include_history":("BOOLEAN",{"default":False,"tooltip":"默认只处理待完成/未成功输出的任务；开启后重新输出历史图片。仅表示图片已由查询节点输出，不代表下游保存成功；保存失败时可开启本项再次获取。"})},"hidden":{"prompt":"PROMPT"}}
+    def execute(self,queue_key="queue-001",api_key="",tasks_json="",model="gpt-image-2",wait_seconds=0,request_timeout=60,refresh_urls=False,prompt=None,include_history=False):
         # Ignore legacy wait_seconds values, including 600 saved by old workflows.
         def snapshot_result(info,images,handle):
             counts={}
@@ -644,8 +645,12 @@ class AsyncQuery(RecoverResults):
                 for status,n in query["counts"].items():counts[status]=counts.get(status,0)+n
             info.update(query_mode="snapshot",counts=counts,
                 guidance="本次仅查询当前状态，不等待生成完成，不重新提交。排队或处理中可稍后再次运行；已完成图片会下载，下载失败可再次获取。无平台任务号的提交结果未知，不能通过查询补交，请先核对平台记录。")
+            if "queue_summary" in info:
+                info["guidance"]+=" 默认跳过已输出的图片，下载失败会保留；失败/无任务号仅首次展示详情，历史状态见queue_summary。需要旧图片或完整旧日志时开启include_history，或使用再次获取结果节点。图片输出不等于下游保存成功。"
             text=json.dumps(info,ensure_ascii=False)
-            return {"ui":{"text":[text],"canvaspro_query":[{"counts":counts}]},"result":(images,text,handle)}
+            status={"counts":counts}
+            if "new_output_count" in info:status.update(output_count=info["new_output_count"],skipped=info["skipped_task_count"])
+            return {"ui":{"text":[text],"canvaspro_query":[status]},"result":(images,text,handle)}
         if not tasks_json.strip() and isinstance(prompt,dict):
             active=[node for node in prompt.values() if isinstance(node,dict) and node.get("class_type")=="CanvasProAsyncSubmit" and (node.get("inputs",{}).get("queue_key","queue-001")==queue_key or isinstance(node.get("inputs",{}).get("queue_key"),list))]
             if active:
@@ -659,19 +664,28 @@ class AsyncQuery(RecoverResults):
             except (ValueError,AttributeError):pass
         store,client=runtime(request_timeout,api_key) if api_key else runtime(request_timeout)
         if not text:
-            batches=store.queue_batches(queue_key)
-            if not batches:raise ValueError("此队列没有已提交任务，请先提交或检查队列名称")
-            images=[];reports=[];handles=[];output_map=[]
-            for batch in batches:
+            summary=store.queue_summary(queue_key)
+            if not summary["total_tasks"]:raise ValueError("此队列没有已提交任务，请先提交或检查队列名称")
+            batches=store.queue_work(queue_key,include_history)
+            images=[];reports=[];handles=[];output_map=[];notices=[]
+            for batch,positions in batches.items():
                 interrupt()
-                query_batch(store,client,batch,0,2.0,3,interrupt,progress(),refresh_success=refresh_urls)
-                fetched=Fetch().execute(store.handle(batch),3,request_timeout,api_key)
+                query_batch(store,client,batch,0,2.0,3,interrupt,progress(),refresh_success=refresh_urls,positions=positions)
+                fetched=Fetch().execute(store.handle(batch,positions=positions),3,request_timeout,api_key,positions=positions)
                 if not json.loads(fetched["result"][1]).get("no_images"):
                     images.extend(fetched["result"][0])
                     output_map.extend({"batch_id":batch,"index":index} for index in json.loads(fetched["result"][1])["output_indices"])
-                reports.append({"batch_id":batch,"query":json.loads(report(store,batch)),"download":json.loads(fetched["result"][1])})
-                handles.append(json.loads(store.handle(batch)))
-            info={"query_only":True,"queue_key":queue_key.strip(),"batch_count":len(batches),"batches":reports,"output_map":output_map}
+                reports.append({"batch_id":batch,"query":json.loads(report(store,batch,positions=positions)),"download":json.loads(fetched["result"][1])})
+                handles.append(json.loads(store.handle(batch,positions=positions)))
+                for task in store.read(batch,include_images=False,positions=positions)[1]:
+                    if task["status"]=="failed" or not task["task_id"]:notices.append((batch,task["position"],task["status"]))
+            interrupt()
+            accepted=store.record_queue_run(queue_key,[(item["batch_id"],item["index"]) for item in output_map],notices,include_history)
+            selected=[(im,item) for im,item in zip(images,output_map) if (item["batch_id"],item["index"]) in accepted]
+            images=[im for im,item in selected];output_map=[item for im,item in selected]
+            info={"query_only":True,"query_scope":"all_history" if include_history else "pending","queue_key":queue_key.strip(),
+                "batch_count":len(batches),"batches":reports,"output_map":output_map,"new_output_count":len(images),
+                "skipped_task_count":summary["total_tasks"]-sum(map(len,batches.values())),"queue_summary":store.queue_summary(queue_key)}
             return snapshot_result(info,image_output(images),json.dumps({"queue_key":queue_key.strip(),"batches":handles},ensure_ascii=False))
         if not text.startswith("{"):
             try:store.read(text,include_images=False)

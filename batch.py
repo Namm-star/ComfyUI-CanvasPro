@@ -130,8 +130,8 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
     return batch
 
 
-def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, interrupt=lambda: None, progress=lambda n, total: None, refresh_success=False):
-    meta, tasks = store.read(batch,include_images=False)
+def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, interrupt=lambda: None, progress=lambda n, total: None, refresh_success=False, positions=None):
+    meta, tasks = store.read(batch,include_images=False,positions=positions)
     if meta["base"] != client.base:
         raise ValueError("Saved task service differs from current settings")
     deadline = time.monotonic() + max(1, wait_seconds)
@@ -178,11 +178,11 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
     return batch
 
 
-def report(store, batch):
-    _, tasks = store.read(batch,include_images=False)
+def report(store, batch, positions=None):
+    _, tasks = store.read(batch,include_images=False,positions=positions)
     counts = {}
     for t in tasks:
         counts[t["status"]] = counts.get(t["status"], 0) + 1
-    resources=store.resources(batch)
+    resources=store.resources(batch,positions=positions)
     return json.dumps({"batch_id": batch, "counts": counts, "items": [
         {**resources[i], "status": t["status"], "detail": t["detail"]} for i,t in enumerate(tasks)]}, ensure_ascii=False)

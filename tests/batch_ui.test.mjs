@@ -60,14 +60,17 @@ test("submission titles distinguish accepted, unconfirmed and restored",()=>{
 
 test('snapshot query hides legacy wait without shifting stored widgets',()=>{
  const n=make(),wait=n.widgets.find(w=>w.name==='wait_seconds');wait.value=600;
+ n.widgets.push({name:'include_history',value:false});
  syncQueryUI(n);assert.equal(wait.hidden,true);assert.equal(wait.value,600);
+ assert.equal(n.widgets.at(-1).label,'包含历史结果（会重复输出）');assert.equal(n.widgets.at(-1).value,false);
  assert.equal(n.widgets.find(w=>w.name==='request_timeout').label,'单次请求超时（秒）');
 });
 
 test('executed UI preserves unconfirmed submission and snapshot status titles',()=>{
  const n=make();applyExecutionStatus(n,{canvaspro_submission:[{mode:'new_batch',acknowledged:0,expected:1}]});
  assert.match(n.title,/未取得平台任务号/);
- applyExecutionStatus(n,{canvaspro_query:[{counts:{processing:2,succeeded:1,submit_unknown:1}}]});
+ applyExecutionStatus(n,{canvaspro_query:[{counts:{processing:2,succeeded:1,submit_unknown:1},output_count:1,skipped:10}]});
  assert.match(n.title,/处理中 2.*完成 1.*待确认 1/);
+ assert.match(n.title,/本次出图 1.*跳过历史 10/);
  applyExecutionStatus(n,{canvaspro_query:[{query_skipped:true}]});assert.match(n.title,/未查询/);
 });

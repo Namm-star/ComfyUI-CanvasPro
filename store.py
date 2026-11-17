@@ -30,6 +30,12 @@ class Store:
                 db.execute("ALTER TABLE tasks ADD COLUMN submit_receipt TEXT DEFAULT '{}'")
             if "image" not in columns:
                 db.execute("ALTER TABLE tasks ADD COLUMN image BLOB")
+            tracking = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='queue_progress'").fetchone()
+            db.execute("CREATE TABLE IF NOT EXISTS queue_progress (queue_key TEXT,batch TEXT,position INTEGER,delivered INTEGER DEFAULT 0,reported_status TEXT DEFAULT '',PRIMARY KEY(queue_key,batch,position))")
+            if not tracking:
+                # Pre-upgrade cached images have already been obtained. Keep them
+                # in history instead of emitting them all on the first new query.
+                db.execute("INSERT INTO queue_progress SELECT q.queue_key,t.batch,t.position,1,'' FROM task_queues q JOIN tasks t ON t.batch=q.batch WHERE t.status='succeeded' AND t.image IS NOT NULL")
 
     @contextmanager
     def connect(self):
@@ -72,13 +78,18 @@ class Store:
         with self.connect() as db:
             db.execute("UPDATE tasks SET " + ",".join(k + "=?" for k in fields) + " WHERE batch=? AND position=?", (*fields.values(), batch, index))
 
-    def read(self, batch, include_images=True):
+    def read(self, batch, include_images=True, positions=None):
         with self.connect() as db:
             meta = db.execute("SELECT * FROM batches WHERE id=?", (batch,)).fetchone()
             if not meta:
                 raise ValueError("Unknown batch: restore local database or import existing IDs")
             columns="*" if include_images else "batch,position,status,task_id,detail,urls,model,submit_receipt,CASE WHEN image IS NOT NULL THEN 1 ELSE NULL END AS image"
-            tasks = [dict(r) for r in db.execute("SELECT "+columns+" FROM tasks WHERE batch=? ORDER BY position", (batch,))]
+            params=[batch]
+            where=""
+            if positions is not None:
+                where=" AND position IN ("+",".join("?" for _ in positions)+")" if positions else " AND 0"
+                params.extend(positions)
+            tasks = [dict(r) for r in db.execute("SELECT "+columns+" FROM tasks WHERE batch=?"+where+" ORDER BY position", params)]
         for t in tasks:
             t["model"] = t["model"] or meta["model"]
             t["urls"] = json.loads(t["urls"])
@@ -104,9 +115,47 @@ class Store:
             rows=db.execute("SELECT batch FROM task_queues WHERE queue_key=? ORDER BY added,batch",(queue_key.strip(),)).fetchall()
         return [row[0] for row in rows]
 
-    def resources(self, batch):
+    def queue_work(self,queue_key,include_history=False):
+        where="" if include_history else """AND (
+            (t.status='succeeded' AND COALESCE(p.delivered,0)=0) OR
+            (t.status!='succeeded' AND t.status!='failed' AND t.task_id IS NOT NULL) OR
+            ((t.status='failed' OR t.task_id IS NULL) AND t.status!='succeeded'
+             AND COALESCE(p.reported_status,'')!=CASE WHEN t.status='sending' THEN 'submit_unknown' ELSE t.status END))"""
+        with self.connect() as db:
+            rows=db.execute("""SELECT t.batch,t.position FROM task_queues q JOIN tasks t ON t.batch=q.batch
+                LEFT JOIN queue_progress p ON p.queue_key=q.queue_key AND p.batch=t.batch AND p.position=t.position
+                WHERE q.queue_key=? """+where+" ORDER BY q.added,q.batch,t.position",(queue_key.strip(),)).fetchall()
+        batches={}
+        for row in rows:batches.setdefault(row["batch"],[]).append(row["position"])
+        return batches
+
+    def queue_summary(self,queue_key):
+        with self.connect() as db:
+            rows=db.execute("""SELECT t.status,COUNT(*) n,SUM(COALESCE(p.delivered,0)) delivered
+                FROM task_queues q JOIN tasks t ON t.batch=q.batch
+                LEFT JOIN queue_progress p ON p.queue_key=q.queue_key AND p.batch=t.batch AND p.position=t.position
+                WHERE q.queue_key=? GROUP BY t.status""",(queue_key.strip(),)).fetchall()
+        counts={}
+        for row in rows:
+            status="submit_unknown" if row["status"]=="sending" else row["status"]
+            counts[status]=counts.get(status,0)+row["n"]
+        return {"total_tasks":sum(counts.values()),"already_output":sum(row["delivered"] for row in rows),"counts":counts}
+
+    def record_queue_run(self,queue_key,outputs,notices,include_history=False):
+        accepted=[]
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            for batch,index in outputs:
+                old=db.execute("SELECT delivered FROM queue_progress WHERE queue_key=? AND batch=? AND position=?",(queue_key.strip(),batch,index)).fetchone()
+                if include_history or not old or not old["delivered"]:accepted.append((batch,index))
+                db.execute("INSERT INTO queue_progress VALUES (?,?,?,1,'') ON CONFLICT(queue_key,batch,position) DO UPDATE SET delivered=1",(queue_key.strip(),batch,index))
+            for batch,index,status in notices:
+                db.execute("INSERT INTO queue_progress VALUES (?,?,?,0,?) ON CONFLICT(queue_key,batch,position) DO UPDATE SET reported_status=excluded.reported_status",(queue_key.strip(),batch,index,status))
+        return set(accepted)
+
+    def resources(self, batch, positions=None):
         from urllib.parse import urljoin, urlsplit
-        meta,tasks=self.read(batch,include_images=False)
+        meta,tasks=self.read(batch,include_images=False,positions=positions)
         result=[]
         base=urlsplit(meta["base"])
         for t in tasks:
@@ -116,9 +165,9 @@ class Store:
                 "resources":[{"url":url,"requires_api_key":not t["model"].endswith("-W") and urlsplit(url).netloc==base.netloc and urlsplit(url).scheme==base.scheme} for url in urls]})
         return result
 
-    def handle(self, batch):
-        meta, tasks = self.read(batch,include_images=False)
-        resources=self.resources(batch)
+    def handle(self, batch, positions=None):
+        meta, tasks = self.read(batch,include_images=False,positions=positions)
+        resources=self.resources(batch,positions=positions)
         return json.dumps({"schema": 1, "batch_id": batch, "model": meta["model"],
             "tasks": [{**{k: t[k] for k in ("position", "model", "task_id", "status", "detail")}, **resources[i]} for i,t in enumerate(tasks)]}, ensure_ascii=False)
 

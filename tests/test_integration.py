@@ -212,6 +212,98 @@ class Integration(unittest.TestCase):
             self.assertEqual(len(self.service.gets),2);self.assertTrue(torch.is_tensor(second[0][0]))
         self.assertEqual(len(self.service.posts),1)
 
+    def test_incremental_queue_emits_sparse_new_results_and_retains_history(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            submitted=nodes.AsyncSubmit().execute('gpt-image-2','incremental',queue_key='inc',count=3)
+            task_ids=[task['task_id'] for task in json.loads(submitted['result'][0])['tasks']]
+            def response(path,*args,**kwargs):
+                i=path.rsplit('/',1)[-1]
+                return {'task_id':i,'status':'processing'} if i==task_ids[1] else {'task_id':i,'status':'succeeded','data':[{'url':self.service.base+'/image/'+i}]}
+            with patch.object(self.client,'query',side_effect=response) as query:
+                first=nodes.AsyncQuery().execute(queue_key='inc')['result']
+                self.assertEqual([x['index'] for x in json.loads(first[1])['output_map']],[0,2]);self.assertEqual(query.call_count,3)
+                query.reset_mock()
+                second=nodes.AsyncQuery().execute(queue_key='inc')['result']
+                self.assertEqual(query.call_count,1);self.assertEqual(type(second[0][0]).__name__,'ExecutionBlocker')
+                info=json.loads(second[1]);self.assertEqual([x['index'] for x in info['batches'][0]['query']['items']],[1]);self.assertEqual(info['skipped_task_count'],2)
+            with patch.object(self.client,'query',return_value={'task_id':task_ids[1],'status':'succeeded','data':[{'url':self.service.base+'/image/'+task_ids[1]}]}):
+                third=nodes.AsyncQuery().execute(queue_key='inc')['result']
+                self.assertEqual([x['index'] for x in json.loads(third[1])['output_map']],[1]);self.assertEqual(len(third[0]),1)
+            resumed=Store(self.root)
+            with patch.object(nodes,'runtime',return_value=(resumed,self.client)),patch.object(self.client,'query',side_effect=AssertionError('completed history must not poll')),patch.object(self.client,'download',side_effect=AssertionError('completed history must not download')):
+                empty=nodes.AsyncQuery().execute(queue_key='inc')['result'];info=json.loads(empty[1])
+                self.assertEqual(info['batches'],[]);self.assertEqual(info['new_output_count'],0);self.assertEqual(info['queue_summary']['already_output'],3)
+                history=nodes.AsyncQuery().execute(queue_key='inc',include_history=True)['result'];self.assertEqual(len(history[0]),3)
+                manual=nodes.RecoverResults().execute(submitted['result'][0],wait_seconds=0)['result'];self.assertEqual(len(manual[0]),3)
+        self.assertEqual(len(self.service.posts),3)
+
+    def test_incremental_download_failure_stays_pending_and_only_failed_item_retries(self):
+        from canvaspro.client import ClientError
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            handle=nodes.AsyncSubmit().execute('gpt-image-2','download retry',queue_key='downloads',count=2)['result'][0]
+            batch=json.loads(handle)['batch_id']
+            for i in range(2):self.store.update(batch,i,status='succeeded',urls=[self.service.base+'/image/'+str(i)])
+            real=self.client.download
+            def download(url,**kwargs):
+                if url.endswith('/1'):raise ClientError('download_unavailable')
+                return real(url,**kwargs)
+            with patch.object(self.client,'download',side_effect=download):
+                first=nodes.AsyncQuery().execute(queue_key='downloads')['result'];self.assertEqual(len(first[0]),1)
+            with patch.object(self.client,'query',side_effect=AssertionError('saved URLs need no query')),patch.object(self.client,'download',wraps=real) as fetch:
+                second=nodes.AsyncQuery().execute(queue_key='downloads')['result'];self.assertEqual(len(second[0]),1)
+                self.assertEqual([x['index'] for x in json.loads(second[1])['output_map']],[1]);self.assertEqual(fetch.call_count,1)
+            self.assertEqual(self.store.queue_work('downloads'),{})
+
+    def test_terminal_notices_report_once_and_remain_available_in_history(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            nodes.AsyncSubmit().execute('gpt-image-2','bad-submit',queue_key='notices',seed=1)
+            nodes.AsyncSubmit().execute('gpt-image-2','fail',queue_key='notices',seed=2)
+            first=json.loads(nodes.AsyncQuery().execute(queue_key='notices')['result'][1]);self.assertEqual(first['batch_count'],2)
+            second=json.loads(nodes.AsyncQuery().execute(queue_key='notices')['result'][1]);self.assertEqual(second['batch_count'],1);self.assertEqual(second['counts'],{'failed':1})
+            third=json.loads(nodes.AsyncQuery().execute(queue_key='notices')['result'][1]);self.assertEqual(third['batches'],[])
+            self.assertEqual(third['queue_summary']['counts'],{'failed':1,'submit_unknown':1})
+            queries=len(self.service.gets)
+            history=json.loads(nodes.AsyncQuery().execute(queue_key='notices',include_history=True)['result'][1]);self.assertEqual(history['batch_count'],2)
+            self.assertEqual(len(self.service.gets),queries)
+        self.assertEqual(len(self.service.posts),2)
+
+    def test_upgrade_treats_previous_cached_images_as_history_without_deleting_data(self):
+        batch=submit_batch(self.store,self.client,'old-cached','gpt-image-2',['cached','not-downloaded'])
+        self.store.add_queue('old',batch)
+        blob=io.BytesIO();Image.new('RGB',(3,3)).save(blob,format='PNG')
+        self.store.update(batch,0,status='succeeded',image=blob.getvalue())
+        self.store.update(batch,1,status='succeeded',urls=[self.service.base+'/image/1'])
+        with self.store.connect() as db:db.execute('DROP TABLE queue_progress')
+        upgraded=Store(self.root)
+        self.assertEqual(upgraded.queue_work('old'),{batch:[1]});self.assertEqual(upgraded.queue_work('old',True),{batch:[0,1]})
+        self.assertEqual(upgraded.read(batch)[1][0]['image'],blob.getvalue())
+
+    def test_interrupted_queue_run_does_not_consume_earlier_downloads(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            for i in range(2):
+                handle=nodes.AsyncSubmit().execute('gpt-image-2','interrupted',queue_key='interrupt',seed=i)['result'][0]
+                self.store.update(json.loads(handle)['batch_id'],0,status='succeeded',urls=[self.service.base+'/image/'+str(i)])
+            real=nodes.Fetch.execute;calls=[]
+            def fetch(obj,*args,**kwargs):
+                calls.append(1)
+                if len(calls)==2:raise RuntimeError('interrupted test run')
+                return real(obj,*args,**kwargs)
+            with patch.object(nodes.Fetch,'execute',new=fetch):
+                with self.assertRaises(RuntimeError):nodes.AsyncQuery().execute(queue_key='interrupt')
+            self.assertEqual(self.store.queue_summary('interrupt')['already_output'],0)
+            retry=nodes.AsyncQuery().execute(queue_key='interrupt')['result'];self.assertEqual(len(retry[0]),2)
+            self.assertEqual(self.store.queue_work('interrupt'),{})
+
+    def test_output_tracking_is_per_queue_and_atomic(self):
+        batch=submit_batch(self.store,self.client,'shared','gpt-image-2',['shared'])
+        self.store.add_queue('one',batch);self.store.add_queue('two',batch)
+        self.store.update(batch,0,status='succeeded',urls=[self.service.base+'/image/0'])
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            for key in ('one','two'):self.assertEqual(len(nodes.AsyncQuery().execute(queue_key=key)['result'][0]),1)
+        self.assertEqual(self.store.record_queue_run('one',[(batch,0)],[]),set())
+        self.assertEqual(self.store.record_queue_run('one',[(batch,0)],[],True),{(batch,0)})
+        self.assertEqual(len(self.service.posts),1)
+
     def test_submit_report_distinguishes_new_acknowledgement_from_fixed_restore(self):
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             new=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
@@ -246,7 +338,7 @@ class Integration(unittest.TestCase):
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             for seed,model in enumerate(models):nodes.AsyncSubmit().execute(model,'mixed',queue_key='mixed-query',seed=seed)
             nodes.AsyncQuery().execute(queue_key='mixed-query')
-            result=nodes.AsyncQuery().execute(queue_key='mixed-query',model='gpt-image-2',wait_seconds=10)['result']
+            result=nodes.AsyncQuery().execute(queue_key='mixed-query',model='gpt-image-2',wait_seconds=10,include_history=True)['result']
         self.assertEqual(len(result[0]),3)
         returned={item['model'] for batch in json.loads(result[1])['batches'] for item in batch['query']['items']}
         self.assertEqual(returned,set(models));self.assertEqual(len(self.service.posts),3)
@@ -280,7 +372,7 @@ class Integration(unittest.TestCase):
                 self.assertEqual(len(json.loads(done[1])['output_map']),3)
                 with patch.object(self.client,'query',side_effect=AssertionError('cached tasks do not poll')):
                     again=nodes.AsyncQuery().execute(tasks_json=done[2],wait_seconds=0)['result']
-                    self.assertEqual(len(again[0]),3)
+                    self.assertEqual(type(again[0][0]).__name__,'ExecutionBlocker')
         self.assertEqual(len(self.service.posts),3)
 
     def test_async_submit_rejects_sync_models_and_invalid_queues_before_post(self):
