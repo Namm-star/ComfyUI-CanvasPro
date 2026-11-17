@@ -20,6 +20,7 @@ class Store:
               batch TEXT, position INTEGER, status TEXT, task_id TEXT, detail TEXT,
               urls TEXT DEFAULT '[]', PRIMARY KEY(batch, position));
             """)
+            db.execute("CREATE TABLE IF NOT EXISTS task_queues (queue_key TEXT, batch TEXT, added REAL, PRIMARY KEY(queue_key,batch))")
             db.execute("BEGIN IMMEDIATE")
             columns = {row[1] for row in db.execute("PRAGMA table_info(tasks)")}
             if "model" not in columns:
@@ -88,6 +89,16 @@ class Store:
         if not row:
             raise ValueError("No saved batch for job_key")
         return row[0]
+
+    def add_queue(self,queue_key,batch):
+        if not isinstance(queue_key,str) or not queue_key.strip() or len(queue_key)>128:raise ValueError("队列名称须为1–128个字符")
+        with self.connect() as db:
+            db.execute("INSERT OR IGNORE INTO task_queues VALUES (?,?,?)",(queue_key.strip(),batch,time.time()))
+
+    def queue_batches(self,queue_key):
+        with self.connect() as db:
+            rows=db.execute("SELECT batch FROM task_queues WHERE queue_key=? ORDER BY added,batch",(queue_key.strip(),)).fetchall()
+        return [row[0] for row in rows]
 
     def resources(self, batch):
         from urllib.parse import urljoin, urlsplit

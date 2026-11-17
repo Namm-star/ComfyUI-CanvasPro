@@ -578,3 +578,96 @@ class ImageGenerate(PromptTask):
 
 NODE_CLASS_MAPPINGS["CanvasProImageGenerate"]=ImageGenerate
 NODE_DISPLAY_NAME_MAPPINGS["CanvasProImageGenerate"]="CanvasPro · 简洁生图 / Image Generate"
+
+
+def async_models():
+    return [m for m in MODELS if family(m)!="sync"]
+
+
+class AsyncSubmit(ImageGenerate):
+    RETURN_TYPES=("STRING","STRING","STRING")
+    RETURN_NAMES=("tasks_json","report","task_ids")
+    OUTPUT_IS_LIST=(False,False,False)
+    @classmethod
+    def INPUT_TYPES(cls):
+        schema=super().INPUT_TYPES()
+        schema["required"]["model"]=(async_models(),)
+        schema["required"]["queue_key"]=("STRING",{"default":"queue-001","tooltip":"多次提交使用同一队列名；查询节点填写相同名字即可批量查询全部已提交任务。"})
+        for name in ("wait_seconds","sync_timeout"):schema["optional"].pop(name,None)
+        return schema
+    def execute(self,model,prompt,queue_key="queue-001",api_key="",seed=0,count=1,advanced=False,concurrency=3,request_timeout=30,unique_id=None,**params):
+        if not isinstance(queue_key,str) or not queue_key.strip() or len(queue_key)>128:raise ValueError("请填写1–128字符队列名称")
+        actual=params.get("model_input") or model
+        if not isinstance(actual,str):raise ValueError("模型名称必须是字符串")
+        if family(actual.strip())=="sync":raise ValueError("此模型为同步接口，不能返回可轮询任务号；请使用简洁生图节点")
+        if type(count) is not int or not 1<=count<=8:raise ValueError("count必须是1到8之间的整数")
+        if type(seed) is not int or not 0<=seed<=9007199254740991:raise ValueError("无效批次seed")
+        items=PromptTask().execute(model,prompt,advanced=advanced,**params)[0]*count
+        identity={"node":str(unique_id or "api"),"items":[{**item,"files":[hashlib.sha256(b).hexdigest() for b in item["files"]]} for item in items]}
+        job_key="async-"+hashlib.sha256(json.dumps(identity,ensure_ascii=False,sort_keys=True).encode()).hexdigest()[:40]
+        effective=f"{job_key}::seed={seed}"
+        store,client=runtime(request_timeout,api_key) if api_key else runtime(request_timeout)
+        batch=submit_tasks(store,client,effective,items,concurrency,interrupt,progress(),queue_key=queue_key)
+        handle=store.handle(batch)
+        info=json.dumps({"submit_only":True,"queue_key":queue_key.strip(),"queue_batches":store.queue_batches(queue_key),"queue_batch_count":len(store.queue_batches(queue_key)),"job_key":job_key,"seed":seed,"effective_job_key":effective,"query":json.loads(report(store,batch)),
+            "guidance":"任务已提交，本节点不等待生成、不下载。同一queue_key可连续提交多次；禁用提交节点后运行批量查询即可获取累计任务，不需要复制合并任务号。"},ensure_ascii=False)
+        ids="\n".join(t["task_id"] for t in store.read(batch,include_images=False)[1] if t["task_id"])
+        return {"ui":{"text":[info]},"result":(handle,info,ids)}
+
+
+class AsyncQuery(RecoverResults):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required":{"queue_key":("STRING",{"default":"queue-001","tooltip":"与提交节点使用相同队列名，批量查询多次提交的全部任务；不重新生图。"})},
+            "optional":{"api_key":("STRING",{"default":""}),"tasks_json":("STRING",{"multiline":True,"default":"","tooltip":"可选：单独查询粘贴的report/tasks_json/平台任务号；留空则查询整个命名队列。"}),"model":(async_models(),{"tooltip":"仅手工填写平台任务号时需要选择；按队列查询会自动使用每批原有型号。"}),
+                "wait_seconds":("INT",{"default":600,"min":0,"max":86400,"tooltip":"0仅查询一次；未完成可再次执行查询，不重新生图。"}),
+                "request_timeout":("INT",{"default":60,"min":1,"max":120}),"refresh_urls":("BOOLEAN",{"default":False})},"hidden":{"prompt":"PROMPT"}}
+    def execute(self,queue_key="queue-001",api_key="",tasks_json="",model="gpt-image-2",wait_seconds=600,request_timeout=60,refresh_urls=False,prompt=None):
+        if not tasks_json.strip() and isinstance(prompt,dict):
+            active=[node for node in prompt.values() if isinstance(node,dict) and node.get("class_type")=="CanvasProAsyncSubmit" and (node.get("inputs",{}).get("queue_key","queue-001")==queue_key or isinstance(node.get("inputs",{}).get("queue_key"),list))]
+            if active:
+                info=json.dumps({"queue_key":queue_key,"query_skipped":True,"guidance":"当前是提交阶段：同一队列的提交节点仍启用。可连续提交多次，禁用提交节点后再运行，本查询节点将批量获取累计任务。"},ensure_ascii=False)
+                return {"ui":{"text":[info]},"result":(image_output([]),info,json.dumps({"queue_key":queue_key,"batches":[],"query_skipped":True},ensure_ascii=False))}
+        text=tasks_json.strip()
+        if text.startswith("{"):
+            try:
+                grouped=json.loads(text)
+                if grouped.get("queue_key") and "batches" in grouped:queue_key=grouped["queue_key"];text=""
+            except (ValueError,AttributeError):pass
+        store,client=runtime(request_timeout,api_key) if api_key else runtime(request_timeout)
+        if not text:
+            batches=store.queue_batches(queue_key)
+            if not batches:raise ValueError("此队列没有已提交任务，请先提交或检查队列名称")
+            images=[];reports=[];handles=[];output_map=[]
+            deadline=time.monotonic()+max(0,wait_seconds)
+            for batch in batches:
+                interrupt()
+                query_batch(store,client,batch,max(0,int(deadline-time.monotonic())),2.0,3,interrupt,progress(),refresh_success=refresh_urls)
+                fetched=Fetch().execute(store.handle(batch),3,request_timeout,api_key)
+                if not json.loads(fetched["result"][1]).get("no_images"):
+                    images.extend(fetched["result"][0])
+                    output_map.extend({"batch_id":batch,"index":index} for index in json.loads(fetched["result"][1])["output_indices"])
+                reports.append({"batch_id":batch,"query":json.loads(report(store,batch)),"download":json.loads(fetched["result"][1])})
+                handles.append(json.loads(store.handle(batch)))
+            info=json.dumps({"query_only":True,"queue_key":queue_key.strip(),"batch_count":len(batches),"batches":reports,"output_map":output_map,
+                "guidance":"仅查询已有任务和下载，不重新提交。提交节点禁用后可反复运行查询；未完成或下载失败可稍后重试。"},ensure_ascii=False)
+            return {"ui":{"text":[info]},"result":(image_output(images),info,json.dumps({"queue_key":queue_key.strip(),"batches":handles},ensure_ascii=False))}
+        if not text.startswith("{"):
+            try:store.read(text,include_images=False)
+            except ValueError:
+                try:store.by_key(text)
+                except ValueError:
+                    if family(model)=="sync":raise ValueError("同步模型没有轮询接口")
+                    ids=[line.strip() for line in text.splitlines() if line.strip()]
+                    if not ids or len(ids)>256 or any(len(x)>256 or any(c.isspace() for c in x) or client.key in x for x in ids):raise ValueError("任务号格式无效")
+                    fingerprint=hashlib.sha256(json.dumps([client.base,model,ids]).encode()).hexdigest()
+                    batch,_=store.create("query-"+fingerprint,fingerprint,client.base,model,len(ids))
+                    for task in store.read(batch,include_images=False)[1]:
+                        if not task['task_id']:store.update(batch,task['position'],status='queued',task_id=ids[task['position']])
+                    text=store.handle(batch)
+        return RecoverResults().execute(text,api_key,wait_seconds,request_timeout,refresh_urls)
+
+NODE_CLASS_MAPPINGS["CanvasProAsyncSubmit"]=AsyncSubmit
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncSubmit"]="CanvasPro · 异步提交 / Async Submit"
+NODE_CLASS_MAPPINGS["CanvasProAsyncQuery"]=AsyncQuery
+NODE_DISPLAY_NAME_MAPPINGS["CanvasProAsyncQuery"]="CanvasPro · 异步查询下载 / Async Query"

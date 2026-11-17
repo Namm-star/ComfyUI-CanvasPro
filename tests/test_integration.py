@@ -151,6 +151,60 @@ class Integration(unittest.TestCase):
         self.thread.start()
         self.store = Store(self.root)
         self.client = Client(self.service.base, "fake-secret", 1)
+    def test_query_skips_during_submit_stage_then_runs_after_submit_disabled(self):
+        graph={'1':{'class_type':'CanvasProAsyncSubmit','inputs':{'queue_key':'step-queue'}}}
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            skipped=nodes.AsyncQuery().execute(queue_key='step-queue',prompt=graph)['result']
+            self.assertTrue(json.loads(skipped[1])['query_skipped']);self.assertEqual(self.service.gets,[])
+            for seed in [1,2,3]:nodes.AsyncSubmit().execute('gpt-image-2','p',queue_key='step-queue',seed=seed)
+            self.assertEqual(self.service.gets,[])
+            nodes.AsyncQuery().execute(queue_key='step-queue',wait_seconds=0,prompt={})
+            result=nodes.AsyncQuery().execute(queue_key='step-queue',wait_seconds=5,prompt={})['result']
+            self.assertEqual(len(result[0]),3)
+        self.assertEqual(len(self.service.posts),3)
+
+    def test_async_three_submissions_accumulate_and_query_without_reposting(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            for seed in [11,12,13]:
+                result=nodes.AsyncSubmit().execute('gpt-image-2','queued prompt',queue_key='my-queue',seed=seed)['result']
+                self.assertTrue(result[2]);self.assertTrue(json.loads(result[1])['submit_only'])
+            nodes.AsyncSubmit().execute('gpt-image-2','queued prompt',queue_key='my-queue',seed=13)
+            self.assertEqual(len(self.service.posts),3);self.assertEqual(self.service.gets,[])
+            self.assertEqual(len(self.store.queue_batches('my-queue')),3)
+            resumed_store=Store(self.root)
+            with patch.object(nodes,'runtime',return_value=(resumed_store,self.client)),patch('canvaspro.client.requests.post',side_effect=AssertionError('queries never submit')):
+                pending=nodes.AsyncQuery().execute(queue_key='my-queue',wait_seconds=0)['result']
+                self.assertEqual(type(pending[0][0]).__name__,'ExecutionBlocker')
+                done=nodes.AsyncQuery().execute(queue_key='my-queue',wait_seconds=5)['result']
+                self.assertEqual(len(done[0]),3);self.assertEqual(json.loads(done[1])['batch_count'],3)
+                self.assertEqual(len(json.loads(done[1])['output_map']),3)
+                with patch.object(self.client,'query',side_effect=AssertionError('cached tasks do not poll')):
+                    again=nodes.AsyncQuery().execute(tasks_json=done[2],wait_seconds=0)['result']
+                    self.assertEqual(len(again[0]),3)
+        self.assertEqual(len(self.service.posts),3)
+
+    def test_async_submit_rejects_sync_models_and_invalid_queues_before_post(self):
+        for opts in [dict(model='gpt-image-2.6-flare-W'),dict(model='gpt-image-2',model_input='gpt-image-2-SR'),dict(model='gpt-image-2',queue_key=''),dict(model='gpt-image-2',queue_key='x'*129)]:
+            with self.assertRaises(ValueError):nodes.AsyncSubmit().execute(prompt='p',**opts)
+        self.assertTrue(all(not m.endswith(('-W','-SR','-FULL')) for m in nodes.async_models()))
+        self.assertEqual(self.service.posts,[])
+
+    def test_async_query_imports_original_platform_ids_without_submit(self):
+        batch=submit_batch(self.store,self.client,'source','gpt-image-2',['p'])
+        task_id=self.store.read(batch)[1][0]['task_id']
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.client.requests.post',side_effect=AssertionError('no POST')):
+            result=nodes.AsyncQuery().execute(tasks_json=task_id,model='gpt-image-2',wait_seconds=5)['result']
+            self.assertTrue(torch.is_tensor(result[0][0]));self.assertIn('resource_urls',result[1])
+        self.assertEqual(len(self.service.posts),1)
+
+    def test_async_unknown_submission_is_retained_in_queue_without_replay(self):
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            first=nodes.AsyncSubmit().execute('gpt-image-2','bad-submit',queue_key='unknown',seed=99)['result']
+            again=nodes.AsyncSubmit().execute('gpt-image-2','bad-submit',queue_key='unknown',seed=99)['result']
+            queried=nodes.AsyncQuery().execute(queue_key='unknown',wait_seconds=0)['result']
+        self.assertEqual(first[0],again[0]);self.assertEqual(len(self.service.posts),1)
+        self.assertEqual(len(self.store.queue_batches('unknown')),1);self.assertIn('submit_unknown',queried[1])
+
     def test_simple_node_complete_prompt_count_concurrency_and_fixed_restore(self):
         prompt='主体：陶瓷杯\n构图：俯拍\n背景：纯白'
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):

@@ -125,3 +125,16 @@ test("simple generation masks direct CanvasPro key",async()=>{
  const n=new Simple();n.onNodeCreated();assert.equal(widget(n,'api_key').inputEl.type,'password');assert.equal(widget(n,'api_key').value,'simple-test-key');
  delete globalThis.document;
 });
+
+test("async submit gets simple reference ports",async()=>{
+ class Submit extends Task{}
+ const optional=Object.fromEntries(Array.from({length:16},(_,i)=>[`image_${i+1}`,['IMAGE']]));
+ await extension.beforeRegisterNodeDef(Submit,{name:'CanvasProAsyncSubmit',input:{optional}});
+ assert.deepEqual(Object.keys(optional),['image_1','image_2']);const n=new Submit();n.onNodeCreated();assert.equal(n.inputs.filter(i=>i.type==='IMAGE').length,2);
+});
+
+test("async query masks key independently of submission",async()=>{
+ globalThis.document={createElement:()=>({style:{}})};
+ class Query{constructor(){this.widgets=[{name:'queue_key',value:'queue-001'},{name:'api_key',value:'test-key'}];}addDOMWidget(name,type,input,options){const w={name,type,inputEl:input};Object.defineProperty(w,'value',{get:options.getValue,set:options.setValue});this.widgets.push(w);return w;}}
+ await extension.beforeRegisterNodeDef(Query,{name:'CanvasProAsyncQuery'});const n=new Query();n.onNodeCreated();assert.equal(widget(n,'api_key').inputEl.type,'password');delete globalThis.document;
+});

@@ -60,7 +60,7 @@ def submit_batch(store, client, job_key, model, prompts, size="", quality="", im
     return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress)
 
 
-def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda: None, progress=lambda n, total: None, imgbb_api_key=""):
+def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda: None, progress=lambda n, total: None, imgbb_api_key="", queue_key=None):
     if not items or len(items) > 256:
         raise ValueError("Batch requires 1-256 tasks")
     if not 1 <= concurrency <= 8:
@@ -72,16 +72,17 @@ def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda:
     fingerprint = hashlib.sha256(json.dumps({"items": [
         {**item, "files": [hashlib.sha256(b).hexdigest() for b in item["files"]]}
         for item in items]}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models, imgbb_api_key)
+    return submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models, imgbb_api_key, queue_key)
 
 
-def submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models=None, imgbb_api_key=""):
+def submit_requests(store, client, job_key, model, requests, fingerprint, concurrency, interrupt, progress, models=None, imgbb_api_key="", queue_key=None):
     needs_host=any(isinstance(req[2],dict) for req in requests)
     key=""
     if needs_host:
         try: store.by_key(job_key)
         except ValueError: key=host_key(imgbb_api_key)
     batch, created = store.create(job_key, fingerprint, client.base, model, len(requests), models)
+    if queue_key is not None:store.add_queue(queue_key,batch)
     if not created:
         return batch  # Never replay a saved submit, including unknown/prepared records.
 

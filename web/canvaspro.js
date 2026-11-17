@@ -752,9 +752,9 @@ function migrateTaskDimensions(values) {
 app.registerExtension({
     name: "CanvasPro.ModelInputs",
     async beforeRegisterNodeDef(nodeType, nodeData) {
-        const simple = nodeData.name === "CanvasProImageGenerate";
+        const simple = ["CanvasProImageGenerate","CanvasProAsyncSubmit"].includes(nodeData.name);
         const task = nodeData.name === "CanvasProPromptTask" || simple;
-        const recover = nodeData.name === "CanvasProRecoverResults";
+        const recover = ["CanvasProRecoverResults","CanvasProAsyncQuery"].includes(nodeData.name);
         const batch = nodeData.name === "CanvasProBatchExecute";
         if (!recover && !batch && !task && nodeData.name !== "CanvasProModelBatchSubmit") return;
         // Trim frontend definitions before ComfyUI constructs the node. The
