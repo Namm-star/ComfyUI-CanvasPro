@@ -1,0 +1,267 @@
+{
+  "id": "158ac53b-26ed-4678-9f3b-44399732460a",
+  "revision": 0,
+  "last_node_id": 5,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CanvasProImageGenerate",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        540,
+        570
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "CanvasProImageGenerate"
+      },
+      "widgets_values": [
+        "gpt-image-2-HC",
+        "一个玻璃香水瓶，透明背景，柔和摄影灯光",
+        "",
+        0,
+        "randomize",
+        1,
+        false,
+        2,
+        "pixels",
+        "1:1",
+        "",
+        "1K",
+        "",
+        1024,
+        1024,
+        600,
+        30,
+        600,
+        3,
+        "transparent",
+        "png"
+      ],
+      "inputs": [
+        {
+          "name": "image_1",
+          "type": "IMAGE",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "model_input",
+          "type": "STRING",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            2
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "tasks_json",
+          "type": "STRING",
+          "links": [
+            3
+          ],
+          "slot_index": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "SaveImage",
+      "pos": [
+        650,
+        0
+      ],
+      "size": [
+        330,
+        220
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "CanvasPro"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "PreviewAny",
+      "title": "执行报告 · report",
+      "pos": [
+        650,
+        350
+      ],
+      "size": [
+        390,
+        340
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 4,
+      "type": "PreviewAny",
+      "title": "任务详情 · tasks_json",
+      "pos": [
+        650,
+        700
+      ],
+      "size": [
+        390,
+        340
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "Note",
+      "pos": [
+        0,
+        650
+      ],
+      "size": [
+        600,
+        490
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "HC普通/SVIP Token与2.6扩展（2026-11-20）\n模型下拉新增10款HC型号。宽高分别填写，总像素严格小于8294400；不使用1K/2K/4K档。\nbackground选择transparent时，output_format必须显式png或webp；结果保留透明通道。2.6仅auto/low/medium/high质量，2.5另有xhigh/max。\n最多15张参考图，本地图自动临时上传，也可使用公网HTTPS图片直链。\ncount仍表示独立请求数，每次请求n=1；文档中的单请求n=2~4本版未开放。\n普通/SVIP Token系列按实际Token分项计费，有预留额度要求，不是每图固定价；s-gpt-image-2.6-*-HC按实际输出张计费。\nAPI Key申请：https://api.canvasproai.com/ 。填写自己的Key，勿在分享文件中保留。\nreport与tasks_json已连接；异步查询和恢复只获取已有任务，不重新生图。"
+      ],
+      "title": "简洁模式说明 / Simple Mode Guide"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      1,
+      1,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      1,
+      2,
+      4,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "canvaspro_version": "0.16.0",
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        500,
+        80
+      ]
+    }
+  },
+  "version": 0.4
+}

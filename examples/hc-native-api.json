@@ -1,0 +1,25 @@
+{
+  "1": {
+    "class_type": "CanvasProImageGenerate",
+    "inputs": {
+      "model": "gpt-image-2-HC",
+      "prompt": "transparent perfume bottle",
+      "width": 1024,
+      "height": 1024,
+      "background": "transparent",
+      "output_format": "png",
+      "count": 1,
+      "seed": 0
+    }
+  },
+  "2": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "1",
+        0
+      ],
+      "filename_prefix": "CanvasPro-HC"
+    }
+  }
+}

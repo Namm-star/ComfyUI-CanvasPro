@@ -1,4 +1,4 @@
-"""CanvasPro native image contracts updated 2026-11-14; see docs evidence."""
+"""CanvasPro native image contracts updated 2026-11-20; see docs evidence."""
 import base64
 import re
 import json
@@ -9,20 +9,21 @@ IMAGE_MODELS = json.loads((Path(__file__).with_name("image_models.json")).read_t
 AISTARS = IMAGE_MODELS["aistars"]
 SYNC = IMAGE_MODELS["sync"]
 KR25 = IMAGE_MODELS["kr25"]
-MODELS = ("gpt-image-2", "T香蕉2", "T香蕉2.1", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst", *AISTARS, *SYNC, *KR25)
+HC_NATIVE = IMAGE_MODELS["hc_native"]
+MODELS = ("gpt-image-2", "T香蕉2", "T香蕉2.1", "T香蕉pro", "s-gpt-image-2", "s-gpt-image-2.5-flare", "s-gpt-image-2.5-sunburst", *AISTARS, *SYNC, *KR25, *HC_NATIVE)
 RATIOS = ("1:1", "3:4", "4:3", "9:16", "16:9")
 
 def ratios(model):
     return tuple(AISTARS[model]["ratios"] if model in AISTARS else IMAGE_MODELS["banana_ratios"].get(model, RATIOS))
 
 def reference_limit(model):
-    return 16 if model in KR25 else SYNC[model]["references"] if model in SYNC else AISTARS[model]["references"] if model in AISTARS else {"kr":16,"hc":15,"gemini":14}[family(model)]
+    return 15 if model in HC_NATIVE else 16 if model in KR25 else SYNC[model]["references"] if model in SYNC else AISTARS[model]["references"] if model in AISTARS else {"kr":16,"hc":15,"gemini":14}[family(model)]
 
 
 def family(model):
     if model not in MODELS:
         raise ValueError("Unsupported model; consult protocol evidence before extending registry")
-    return "kr25" if model in KR25 else "sync" if model in SYNC else "aistars" if model in AISTARS else "gemini" if model.startswith("T香蕉") else "hc" if model.startswith("s-") else "kr"
+    return "hc_native" if model in HC_NATIVE else "kr25" if model in KR25 else "sync" if model in SYNC else "aistars" if model in AISTARS else "gemini" if model.startswith("T香蕉") else "hc" if model.startswith("s-") else "kr"
 
 
 def query_path(model, task_id):
@@ -33,25 +34,26 @@ def query_path(model, task_id):
         raise ValueError("同步图片接口没有任务查询入口")
     if family(model) == "aistars":
         return "/aistars/v1/tasks/" + quote(task_id, safe="")
+    if model in HC_NATIVE:return HC_NATIVE[model]["path"]+"/v1/images/tasks/"+quote(task_id,safe="")
     prefix = {"kr25": "/kr/gpt", "gemini": "/kr/gemini", "hc": "/hc", "kr": "/kr"}[family(model)]
     return prefix + "/v1/images/tasks/" + quote(task_id, safe="")
 
 
-def public_reference(url, https_only=True):
+def public_reference(url, https_only=True, max_length=2048):
     u = urlsplit(url)
     host = u.hostname or ""
     if (u.scheme not in (("https",) if https_only else ("http","https")) or u.username or u.password or u.port not in (None, 443, *(() if https_only else (80,)))
             or "." not in host or host.endswith((".local", ".localhost"))
-            or re.fullmatch(r"[\d.]+", host) or ":" in host or len(url) > 2048):
+            or re.fullmatch(r"[\d.]+", host) or ":" in host or len(url) > max_length):
         raise ValueError("Reference URLs must be public domain URLs using the supported HTTP(S) scheme")
     return url
 
 
-def build_request(model, prompt, size="", quality="", image_size="", files=(), urls=(), defer_upload=False):
+def build_request(model, prompt, size="", quality="", image_size="", files=(), urls=(), defer_upload=False, background="", output_format=""):
     f = family(model)
     prompt = prompt.strip()
     # JavaScript contract limits UTF-16 units, not Python Unicode code points.
-    if not prompt or (f not in ("sync","kr25") and len(prompt.encode("utf-16-le")) // 2 > (4000 if f == "kr" else 5000 if f == "aistars" else 8000)):
+    if not prompt or (f not in ("sync","kr25","hc_native") and len(prompt.encode("utf-16-le")) // 2 > (4000 if f == "kr" else 5000 if f == "aistars" else 8000)):
         raise ValueError("Prompt empty or exceeds model text limit")
     if f == "kr25" and len(prompt)>32000:
         raise ValueError("KR GPT 2.5/2.6 prompt exceeds 32000 characters")
@@ -60,7 +62,25 @@ def build_request(model, prompt, size="", quality="", image_size="", files=(), u
     limit = reference_limit(model)
     if max(len(files), len(urls)) > limit:
         raise ValueError("Too many reference images for model")
-    urls = [public_reference(url, https_only=f != "aistars") for url in urls]
+    if f!="hc_native" and (background or output_format):raise ValueError("该模型不支持background/output_format覆盖")
+    urls = [public_reference(url, https_only=f != "aistars",max_length=8192 if f=="hc_native" else 2048) for url in urls]
+    if f=="hc_native":
+        spec=HC_NATIVE[model]
+        if image_size:raise ValueError("HC新型号使用像素宽高，不使用清晰度档")
+        if size and (not re.fullmatch(r"[1-9][0-9]*x[1-9][0-9]*",size) or int(size.split('x')[0])*int(size.split('x')[1])>=8294400):raise ValueError("HC新型号总像素必须严格小于8294400")
+        if quality and quality not in spec['qualities']:raise ValueError("该HC型号不支持此quality")
+        if background and background not in ('auto','transparent','opaque'):raise ValueError("不支持此background")
+        if output_format and output_format not in spec['formats']:raise ValueError("该HC型号不支持此output_format")
+        if background=='transparent' and output_format not in ('png','webp'):raise ValueError("透明背景必须显式选择png或webp")
+        if any(urlsplit(url).fragment for url in urls):raise ValueError("HC参考图URL不能含片段")
+        body={'model':model,'prompt':prompt,'n':1}
+        body.update({k:value for k,value in (('size',size),('quality',quality),('background',background),('output_format',output_format)) if value})
+        if files:
+            if not defer_upload:raise ValueError("HC新型号仅支持公网参考图URL")
+            if any(not b or len(b)>32*1024**2 for b in files):raise ValueError("ImgBB参考图每张不得超过32MiB")
+            return spec['path']+'/v1/images/edits',body,{'imgbb_files':list(files),'image_field':'image'}
+        if urls:body['image']=urls[0] if len(urls)==1 else urls
+        return spec['path']+'/v1/images/'+('edits' if urls else 'generations'),body,None
     if f == "aistars":
         spec = AISTARS[model]
         if files and defer_upload:

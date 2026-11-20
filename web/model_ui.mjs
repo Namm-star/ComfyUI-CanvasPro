@@ -2,7 +2,8 @@ import { IMAGE_MODELS } from "./image_models.mjs";
 
 export function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
-    const hc = model.startsWith("s-");
+    const native=IMAGE_MODELS.hc_native[model];
+    const hc = model.startsWith("s-") || Boolean(native);
     const kr25 = IMAGE_MODELS.kr25[model];
     const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
@@ -12,16 +13,17 @@ export function modelPolicy(model, mode = "pixels") {
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
+            ...(native ? ["background","output_format"] : []),
             ...((sync?.auto || kr25 || (!sync && !aistars && !banana && !hc)) ? ["size_mode"] : []),
             ...(!aistars && (hc || ((sync || kr25) && mode !== "auto") || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
             ...(aistars || banana || (!kr25 && !sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
             ...(aistars ? ["reference_urls"] : sync ? ["quality"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
-        qualities: kr25 ? ["",...kr25.qualities] : sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
+        qualities: native ? ["",...native.qualities] : kr25 ? ["",...kr25.qualities] : sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
 }
 
-const parameters = ["size_mode", "pixel_size", "width", "height", "aspect_ratio", "quality", "image_size", "reference_urls"];
+const parameters = ["size_mode", "pixel_size", "width", "height", "aspect_ratio", "quality", "image_size", "reference_urls","background","output_format"];
 const widget = (node, name) => node.widgets?.find(w => w.name === name);
 
 export function syncModelUI(node, notify = () => {}, restoring = false) {

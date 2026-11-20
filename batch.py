@@ -67,7 +67,7 @@ def submit_tasks(store, client, job_key, items, concurrency=3, interrupt=lambda:
     if not 1 <= concurrency <= 8:
         raise ValueError("Concurrency must be 1-8")
     requests = [build_request(item["model"], item["prompt"], item["size"], item["quality"],
-        item["image_size"], item["files"], item["urls"], defer_upload=True) for item in items]
+        item["image_size"], item["files"], item["urls"], defer_upload=True,background=item.get("background",""),output_format=item.get("output_format","")) for item in items]
     models = [item["model"] for item in items]
     model = models[0] if len(set(models)) == 1 else "mixed"
     fingerprint = hashlib.sha256(json.dumps({"items": [
@@ -116,7 +116,7 @@ def submit_requests(store, client, job_key, model, requests, fingerprint, concur
                                 raise
                         else:note.update(status="reused_in_batch",attempts=0)
                         refs.append(host_cache[digest])
-                payload={**payload,"images":refs};uploads=None
+                payload={**payload,uploads.get("image_field","images"):refs};uploads=None
                 if cancel.is_set():raise UploadError("reference_upload_cancelled")
             receipt.update(post_attempted=True,attempted_at=datetime.now(timezone.utc).isoformat())
             store.update(batch,index,submit_receipt=receipt)

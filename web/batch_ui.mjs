@@ -40,15 +40,18 @@ export function syncTaskAdvanced(node) {
     const externalModel = linked("model_input");
     visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels" || (IMAGE_MODELS.sync[model] && !IMAGE_MODELS.sync[model].auto)));
+    const pixels = Boolean(IMAGE_MODELS.hc_native[model]) || externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels" || (IMAGE_MODELS.sync[model] && !IMAGE_MODELS.sync[model].auto)));
     visibility(node,["width"],pixels && !linked("width_input"));
     visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {
         const w=find(node,name);
-        if (w) { w.options.min=externalModel || model.startsWith("s-")?1:16; w.options.max=externalModel || model.startsWith("s-")?32768:3840; w.options.step=externalModel || model.startsWith("s-")?10:160; }
+        if (w) { w.options.min=(externalModel || model.startsWith("s-") || IMAGE_MODELS.hc_native[model])?1:16; w.options.max=(externalModel || model.startsWith("s-") || IMAGE_MODELS.hc_native[model])?32768:3840; w.options.step=(externalModel || model.startsWith("s-") || IMAGE_MODELS.hc_native[model])?10:160; }
     }
     visibility(node,["quality"],advanced && (externalModel || (!aistars && !model.startsWith("T香蕉"))));
     visibility(node,["reference_urls"],aistars || (advanced && (externalModel || (!IMAGE_MODELS.sync[model] && !model.startsWith("T香蕉")))));
+    const native=IMAGE_MODELS.hc_native[model];
+    visibility(node,['background','output_format'],Boolean(native));
+    if(native){const format=find(node,'output_format');if(format){format.options.values=['',...native.formats];if(!format.options.values.includes(format.value))format.value='';}}
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }
@@ -56,7 +59,7 @@ export function syncTaskAdvanced(node) {
 export function autoImageCount(node) {
     const model = find(node,"model")?.value || "";
     const externalModel=node.inputs?.some(i => i.name === "model_input" && i.link != null);
-    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? IMAGE_MODELS.aistars[model].references : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
+    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? IMAGE_MODELS.aistars[model].references : model.startsWith("T香蕉") ? 14 : (model.startsWith("s-") || IMAGE_MODELS.hc_native[model]) ? 15 : 16;
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
     find(node,"reference_count").value = Math.max(1,Math.min(max,highest+1));
 }

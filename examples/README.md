@@ -94,3 +94,9 @@ submission_receipt.reference_uploads按参考图记录attempts、history、http_
 异步提交节点会明确提示“参考图上传失败（未提交生图）”。修复图床连接后更换seed重新提交；fixed复用旧失败记录不会自动补交。也可以断开IMAGE输入，在reference_urls填写上游可直接访问的公网图片URL，绕过ImgBB。不要同时连接本地图片和填写URL；query不能补交从未提交的任务。
 
 依据：[ImgBB官方上传接口](https://api.imgbb.com/)（二进制上传、32MB限制、expiration按秒指定）。
+
+
+## 图片模型合同更新（0.16.0，2026-11-20）
+依据[已打开的本站文档](https://api.canvasproai.com/docs)，版本20261120-suanli-v1。图片型号从45款更新为55款：新增8款HC Token普通/SVIP型号和2款HC 2.6扩展。精确型号、质量和格式列于image_models.json的hc_native；Token系列使用/hc-token/v1/images，s-gpt 2.6扩展使用/hc-gpt/v1/images，均为异步，使用原任务号查询和本站Key下载。
+新增background和output_format，仅相应型号显示。15张参考图，编辑字段是image，不是images；仅公网HTTPS URL，可达8192字符，不接受片段。插件本地参考图仍自动临时上传ImgBB，再按image提交；本次未切换至新版可选素材上传API。宽高正整数且总像素严格小于8294400；2.6不开放xhigh/max，2.5按精确型号开放；透明背景要求显式png/webp，下载保留Alpha。不同接口不互换参数。
+新增双语示例HC新模型透明生图-HC-Native-Transparent.json和hc-native-api.json。count仍保持多个独立请求的含义，每请求n=1；本版未开放文档单请求n=2–4。Token系列按实际Token分项结算，预留额度不等于最终费用，不在插件硬编码固定张价或自动重提失败生成。已有香蕉比例、即梦21款、KR与W/SR/FULL合同核对后保留。

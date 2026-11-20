@@ -554,5 +554,169 @@
       ],
       "references": 16
     }
+  },
+  "hc_native": {
+    "s-gpt-image-2.6-flare-HC": {
+      "path": "/hc-gpt",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high；本款不开放xhigh／max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "s-gpt-image-2.6-sunburst-HC": {
+      "path": "/hc-gpt",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high；本款不开放xhigh／max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "gpt-image-2-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.5-flare-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.5-sunburst-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.6-flare-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.6-sunburst-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "svip-gpt-image-2-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "svip-gpt-image-2.5-flare-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "svip-gpt-image-2.5-sunburst-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    }
   }
 }

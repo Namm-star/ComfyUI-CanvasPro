@@ -123,3 +123,12 @@ test("new KR and W offer pixels or auto, Seedream 5.5 only 2K",()=>{
  }
  change(n,'model','即梦-65-seedream-5.5');assert.deepEqual(widget(n,'image_size').options.values,['2K']);
 });
+
+
+test('HC native policy follows exact quality, reference and pixel contracts',async()=>{
+ const {modelPolicy}=await import('../web/model_ui.mjs');
+ for(const model of ['gpt-image-2-HC','svip-gpt-image-2.5-flare-HC','s-gpt-image-2.6-sunburst-HC']){
+  const p=modelPolicy(model);assert.equal(p.max,15);assert.ok(p.visible.has('width'));assert.ok(p.visible.has('background'));assert.ok(!p.visible.has('image_size'));
+  assert.equal(p.qualities.includes('max'),model.includes('2.5'));
+ }
+});

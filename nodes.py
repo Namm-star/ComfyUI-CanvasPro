@@ -167,11 +167,13 @@ class PromptTask(ModelSubmit):
         schema["optional"]["model_input"] = ("STRING", {"forceInput": True, "tooltip": "连接上游 STRING 模型名称，优先于 model 下拉；支持本插件已有模型。"})
         schema["optional"]["width_input"] = ("INT", {"forceInput": True, "tooltip": "连接上游 INT 宽度，优先于手填 width；像素模式生效。"})
         schema["optional"]["height_input"] = ("INT", {"forceInput": True, "tooltip": "连接上游 INT 高度，优先于手填 height；像素模式生效。"})
+        schema['optional']['background']=(["","auto","transparent","opaque"],)
+        schema['optional']['output_format']=(["","png","webp","jpeg","gif"],)
         return schema
 
     def execute(self, model, prompt, reference_count=2, size_mode="pixels", pixel_size="1024x1024",
                 aspect_ratio="1:1", quality="", image_size="1K", reference_urls="", advanced=False, width=None, height=None,
-                model_input=None, width_input=None, height_input=None, **images):
+                model_input=None, width_input=None, height_input=None, background="",output_format="", **images):
         if model_input is not None:
             if not isinstance(model_input, str) or not model_input.strip():
                 raise ValueError("model_input 必须是非空模型名称字符串")
@@ -210,7 +212,7 @@ class PromptTask(ModelSubmit):
             size, quality = aspect_ratio, ""
         elif f in ("kr25","sync") and size_mode == "auto":
             size,image_size="auto",""
-        elif f in ("hc", "sync","kr25") or size_mode == "pixels":
+        elif f in ("hc", "hc_native", "sync","kr25") or size_mode == "pixels":
             size, image_size = pixel_size, ""
         elif size_mode == "ratio":
             size = aspect_ratio
@@ -220,8 +222,9 @@ class PromptTask(ModelSubmit):
             raise ValueError("Invalid size mode")
         item = dict(model=model, prompt=prompt, size=size, quality=quality, image_size=image_size,
                     files=files, urls=[s.strip() for s in reference_urls.splitlines() if s.strip()])
+        if f=='hc_native':item.update(background=background,output_format=output_format)
         from .protocol import build_request
-        build_request(model, prompt, size, quality, image_size, files, item["urls"], defer_upload=True)
+        build_request(model, prompt, size, quality, image_size, files, item["urls"], defer_upload=True,background=item.get('background',''),output_format=item.get('output_format',''))
         return ([item],)
 
 
@@ -330,7 +333,7 @@ class Fetch:
                     if cancel.is_set():
                         raise ClientError("download_cancelled")
                     with Image.open(io.BytesIO(blob)) as im:
-                        im = ImageOps.exif_transpose(im).convert("RGB")
+                        im = ImageOps.exif_transpose(im).convert("RGBA" if "A" in im.getbands() or "transparency" in im.info else "RGB")
                         tensor = torch.from_numpy(np.array(im).astype(np.float32) / 255.0).unsqueeze(0)
                     if task.get("image") is None:
                         store.update(batch,index,image=blob)

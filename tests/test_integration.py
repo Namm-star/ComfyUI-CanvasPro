@@ -347,6 +347,50 @@ class Integration(unittest.TestCase):
         notes=[x['submission_receipt']['reference_uploads'][0] for x in info['query']['items']]
         self.assertEqual(sorted(n['attempts'] for n in notes),[0,0,3]);self.assertNotIn('host-secret',result['result'][1])
 
+    def test_all_new_hc_models_route_generate_edit_query_and_recover(self):
+        from canvaspro.protocol import HC_NATIVE,query_path
+        self.assertEqual(len(HC_NATIVE),10)
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.upload',return_value='https://i.ibb.co/mock.png'),patch('canvaspro.batch.host_key',return_value='host-test'):
+            for i,(model,spec) in enumerate(HC_NATIVE.items()):
+                opts=dict(reference_urls='https://example.com/a.png') if i%2 else dict(image_1=torch.zeros(1,4,4,3))
+                task=nodes.PromptTask().execute(model,'native HC',width=1280,height=720,background='transparent',output_format='png',quality=spec['qualities'][-1],**opts)[0]
+                result=nodes.BatchExecute().execute(task,'hc-native-'+str(i),wait_seconds=5)['result']
+                self.assertTrue(torch.is_tensor(result[0][0]),result[1])
+                body=self.service.posts[-1][1];self.assertEqual(self.service.posts[-1][0],spec['path']+'/v1/images/edits')
+                self.assertEqual(body['n'],1);self.assertIn('image',body);self.assertNotIn('images',body);self.assertNotIn('response_format',body)
+                self.assertEqual(body['background'],'transparent');self.assertEqual(body['output_format'],'png')
+                self.assertTrue(any(path.startswith(spec['path']+'/v1/images/tasks/') for path in self.service.gets))
+                with patch('canvaspro.client.requests.post',side_effect=AssertionError('do not regenerate')):
+                    self.assertTrue(torch.is_tensor(nodes.RecoverResults().execute(result[2],wait_seconds=0)['result'][0][0]))
+        self.assertEqual(len(self.service.posts),10)
+
+    def test_hc_native_parameter_rejections_precede_network(self):
+        model='gpt-image-2.6-flare-HC'
+        for opts in [dict(quality='max'),dict(background='transparent'),dict(background='transparent',output_format='gif'),dict(width=3840,height=2160),dict(reference_urls='https://example.com/a.png#x')]:
+            with self.assertRaises(ValueError):nodes.PromptTask().execute(model,'native',**opts)
+        self.assertEqual(self.service.posts,[])
+        task=nodes.PromptTask().execute(model,'x'*9000,width=1234,height=789,output_format='gif')[0][0]
+        path,body,_=build_request(model,task['prompt'],task['size'],output_format='gif')
+        self.assertEqual(path,'/hc-token/v1/images/generations');self.assertEqual(body['size'],'1234x789')
+
+    def test_hc_native_long_urls_and_family_quality_contracts(self):
+        from canvaspro.protocol import HC_NATIVE
+        url='https://example.com/'+('x'*3000)+'.png'
+        for model,spec in HC_NATIVE.items():
+            _,body,_=build_request(model,'prompt','1024x1024',urls=[url],quality=spec['qualities'][-1])
+            self.assertEqual(body['image'],url)
+            if 'gif' not in spec['formats']:
+                with self.assertRaises(ValueError):build_request(model,'prompt','1024x1024',output_format='gif')
+        with self.assertRaises(ValueError):build_request('gpt-image-2','prompt',background='transparent',output_format='png')
+
+    def test_transparent_native_result_keeps_alpha(self):
+        b=io.BytesIO();Image.new('RGBA',(8,8),(10,20,30,0)).save(b,format='PNG')
+        batch,_=self.store.create('alpha','alpha',self.client.base,'gpt-image-2-HC',1)
+        self.store.update(batch,0,status='succeeded',image=b.getvalue())
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
+            image=nodes.Fetch().execute(self.store.handle(batch),1,30)['result'][0][0]
+        self.assertEqual(image.shape[-1],4);self.assertEqual(float(image[...,3].sum()),0)
+
     def test_submit_report_distinguishes_new_acknowledgement_from_fixed_restore(self):
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             new=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
@@ -624,7 +668,7 @@ class Integration(unittest.TestCase):
 
     def test_sync_all_models_file_edit_resume_and_mixed(self):
         from canvaspro.protocol import SYNC
-        self.assertEqual(len(MODELS),45)
+        self.assertEqual(len(MODELS),55)
         items=[]
         for model in SYNC:
             items.extend(nodes.PromptTask().execute(model,"sync b64",quality="high",width=1280,height=720)[0])

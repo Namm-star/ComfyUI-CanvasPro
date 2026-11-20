@@ -558,12 +558,177 @@ const IMAGE_MODELS = {
       ],
       "references": 16
     }
+  },
+  "hc_native": {
+    "s-gpt-image-2.6-flare-HC": {
+      "path": "/hc-gpt",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high；本款不开放xhigh／max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "s-gpt-image-2.6-sunburst-HC": {
+      "path": "/hc-gpt",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high；本款不开放xhigh／max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "gpt-image-2-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.5-flare-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.5-sunburst-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.6-flare-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "gpt-image-2.6-sunburst-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg",
+        "gif"
+      ],
+      "references": 15
+    },
+    "svip-gpt-image-2-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "svip-gpt-image-2.5-flare-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    },
+    "svip-gpt-image-2.5-sunburst-HC": {
+      "path": "/hc-token",
+      "qualities": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "formats": [
+        "png",
+        "webp",
+        "jpeg"
+      ],
+      "references": 15
+    }
   }
 };
 
 function modelPolicy(model, mode = "pixels") {
     const banana = model.startsWith("T香蕉");
-    const hc = model.startsWith("s-");
+    const native=IMAGE_MODELS.hc_native[model];
+    const hc = model.startsWith("s-") || Boolean(native);
     const kr25 = IMAGE_MODELS.kr25[model];
     const sync = IMAGE_MODELS.sync[model];
     const aistars = IMAGE_MODELS.aistars[model];
@@ -573,16 +738,17 @@ function modelPolicy(model, mode = "pixels") {
         resolutions: aistars?.resolutions || ["1K","2K","4K"],
         visible: new Set([
             "reference_count",
+            ...(native ? ["background","output_format"] : []),
             ...((sync?.auto || kr25 || (!sync && !aistars && !banana && !hc)) ? ["size_mode"] : []),
             ...(!aistars && (hc || ((sync || kr25) && mode !== "auto") || (!banana && mode === "pixels")) ? ["pixel_size", "width", "height"] : []),
             ...(aistars || banana || (!kr25 && !sync && !hc && mode === "ratio") ? ["aspect_ratio", "image_size"] : []),
             ...(aistars ? ["reference_urls"] : sync ? ["quality"] : !banana ? ["quality", "reference_urls"] : []),
         ]),
-        qualities: kr25 ? ["",...kr25.qualities] : sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
+        qualities: native ? ["",...native.qualities] : kr25 ? ["",...kr25.qualities] : sync ? ["", ...sync.qualities] : ["", "auto", "low", "medium", "high", ...(hc && model !== "s-gpt-image-2" ? ["xhigh", "max"] : [])],
     };
 }
 
-const parameters = ["size_mode", "pixel_size", "width", "height", "aspect_ratio", "quality", "image_size", "reference_urls"];
+const parameters = ["size_mode", "pixel_size", "width", "height", "aspect_ratio", "quality", "image_size", "reference_urls","background","output_format"];
 const widget = (node, name) => node.widgets?.find(w => w.name === name);
 
 function syncModelUI(node, notify = () => {}, restoring = false) {
@@ -717,15 +883,18 @@ function syncTaskAdvanced(node) {
     const externalModel = linked("model_input");
     visibility(node,["model"],!externalModel);
     visibility(node,["reference_count", "pixel_size"],false);
-    const pixels = externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels" || (IMAGE_MODELS.sync[model] && !IMAGE_MODELS.sync[model].auto)));
+    const pixels = Boolean(IMAGE_MODELS.hc_native[model]) || externalModel || (!aistars && !model.startsWith("T香蕉") && (model.startsWith("s-") || find(node,"size_mode")?.value === "pixels" || (IMAGE_MODELS.sync[model] && !IMAGE_MODELS.sync[model].auto)));
     visibility(node,["width"],pixels && !linked("width_input"));
     visibility(node,["height"],pixels && !linked("height_input"));
     for (const name of ["width","height"]) {
         const w=find(node,name);
-        if (w) { w.options.min=externalModel || model.startsWith("s-")?1:16; w.options.max=externalModel || model.startsWith("s-")?32768:3840; w.options.step=externalModel || model.startsWith("s-")?10:160; }
+        if (w) { w.options.min=(externalModel || model.startsWith("s-") || IMAGE_MODELS.hc_native[model])?1:16; w.options.max=(externalModel || model.startsWith("s-") || IMAGE_MODELS.hc_native[model])?32768:3840; w.options.step=(externalModel || model.startsWith("s-") || IMAGE_MODELS.hc_native[model])?10:160; }
     }
     visibility(node,["quality"],advanced && (externalModel || (!aistars && !model.startsWith("T香蕉"))));
     visibility(node,["reference_urls"],aistars || (advanced && (externalModel || (!IMAGE_MODELS.sync[model] && !model.startsWith("T香蕉")))));
+    const native=IMAGE_MODELS.hc_native[model];
+    visibility(node,['background','output_format'],Boolean(native));
+    if(native){const format=find(node,'output_format');if(format){format.options.values=['',...native.formats];if(!format.options.values.includes(format.value))format.value='';}}
     node.setSize([node.size[0],node.computeSize()[1]]);
     node.setDirtyCanvas(true,true);
 }
@@ -733,7 +902,7 @@ function syncTaskAdvanced(node) {
 function autoImageCount(node) {
     const model = find(node,"model")?.value || "";
     const externalModel=node.inputs?.some(i => i.name === "model_input" && i.link != null);
-    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? IMAGE_MODELS.aistars[model].references : model.startsWith("T香蕉") ? 14 : model.startsWith("s-") ? 15 : 16;
+    const max = externalModel ? 16 : IMAGE_MODELS.aistars[model] ? IMAGE_MODELS.aistars[model].references : model.startsWith("T香蕉") ? 14 : (model.startsWith("s-") || IMAGE_MODELS.hc_native[model]) ? 15 : 16;
     const highest = Math.max(1,...(node.inputs || []).filter(i => /^image_\d+$/.test(i.name) && i.link != null).map(i => Number(i.name.slice(6))));
     find(node,"reference_count").value = Math.max(1,Math.min(max,highest+1));
 }
