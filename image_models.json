@@ -310,6 +310,66 @@
         "2K"
       ],
       "references": 6
+    },
+    "即梦-66-gpt-image-2.6-flare-Xhigh": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 9
+    },
+    "即梦-66-gpt-image-2.6-sunburst-Xhigh": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 9
+    },
+    "即梦-67-gpt-image-2.6-flare-Max": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 9
+    },
+    "即梦-67-gpt-image-2.6-sunburst-Max": {
+      "ratios": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "resolutions": [
+        "1K",
+        "2K",
+        "4K"
+      ],
+      "references": 9
     }
   },
   "banana_ratios": {

@@ -657,6 +657,8 @@ class AsyncQuery(RecoverResults):
                 info["guidance"]+=" 默认跳过已输出的图片，下载失败会保留；失败/无任务号仅首次展示详情，历史状态见queue_summary。需要旧图片或完整旧日志时开启include_history，或使用再次获取结果节点。图片输出不等于下游保存成功。"
             text=json.dumps(info,ensure_ascii=False)
             status={"counts":counts}
+            known=[item['progress'] for query in queries for item in query['items'] if 'progress' in item]
+            if len(known)==1:status['progress']=known[0]
             if "new_output_count" in info:status.update(output_count=info["new_output_count"],skipped=info["skipped_task_count"])
             return {"ui":{"text":[text],"canvaspro_query":[status]},"result":(images,text,handle)}
         if not tasks_json.strip() and isinstance(prompt,dict):

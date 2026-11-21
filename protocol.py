@@ -1,4 +1,4 @@
-"""CanvasPro native image contracts updated 2026-11-20; see docs evidence."""
+"""CanvasPro native image contracts updated 2026-11-21; see docs evidence."""
 import base64
 import re
 import json

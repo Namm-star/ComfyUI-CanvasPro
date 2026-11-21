@@ -22,6 +22,16 @@ class Client:
         self.timeout = max(1, min(120, request_timeout))
         self.sync_timeout = max(1, min(3600, sync_timeout))
 
+    def task_failure_reason(self,body):
+        error=body.get('error')
+        message=error.get('message') if isinstance(error,dict) else error
+        if not isinstance(message,str):return ''
+        message=message[:4000].replace(self.key,'[redacted]')
+        message=re.sub(r"https?://[^\s<>\"']+",'[url removed]',message,flags=re.I)
+        message=re.sub(r'(?i)Bearer\s+\S+|sk-[A-Za-z0-9_-]+','[redacted]',message)
+        message=re.sub(r'(?i)(api[_ -]?key|authorization|token|secret|signature)\s*[:=]\s*\S+','[redacted]',message)
+        return ''.join(c for c in message if c.isprintable() or c in '\n\t')[:500]
+
     def submit(self, path, payload, uploads, receipt=None):
         receipt = receipt if receipt is not None else {}
         receipt["post_attempted"]=True

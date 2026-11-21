@@ -31,6 +31,8 @@ class Store(CacheStore):
 
             if "submit_receipt" not in columns:
                 db.execute("ALTER TABLE tasks ADD COLUMN submit_receipt TEXT DEFAULT '{}'")
+            if 'progress' not in columns:db.execute("ALTER TABLE tasks ADD COLUMN progress INTEGER")
+            if 'failure_reason' not in columns:db.execute("ALTER TABLE tasks ADD COLUMN failure_reason TEXT DEFAULT ''")
             if "image" not in columns:
                 db.execute("ALTER TABLE tasks ADD COLUMN image BLOB")
             tracking = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='queue_progress'").fetchone()
@@ -74,7 +76,7 @@ class Store(CacheStore):
             return cur.rowcount == 1
 
     def update(self, batch, index, **fields):
-        if not fields or not set(fields) <= {"status", "task_id", "detail", "urls", "image", "submit_receipt"}:
+        if not fields or not set(fields) <= {"status", "task_id", "detail", "urls", "image", "submit_receipt", "progress", "failure_reason"}:
             raise ValueError("Invalid task update")
         if "submit_receipt" in fields:fields["submit_receipt"]=json.dumps(fields["submit_receipt"],ensure_ascii=False)
         if "urls" in fields:
@@ -89,7 +91,7 @@ class Store(CacheStore):
             meta = db.execute("SELECT * FROM batches WHERE id=?", (batch,)).fetchone()
             if not meta:
                 raise ValueError("Unknown batch: restore local database or import existing IDs")
-            columns="*" if include_images else "batch,position,status,task_id,detail,urls,model,submit_receipt,CASE WHEN image IS NOT NULL THEN 1 ELSE NULL END AS image"
+            columns="*" if include_images else "batch,position,status,task_id,detail,urls,model,submit_receipt,progress,failure_reason,CASE WHEN image IS NOT NULL THEN 1 ELSE NULL END AS image"
             params=[batch]
             where=""
             if positions is not None:
@@ -169,6 +171,8 @@ class Store(CacheStore):
             result.append({"index":t["position"],"model":t["model"],"task_id":t["task_id"],
                 "submission_receipt":t.get("submit_receipt",{}),"resource_urls":urls,"cached_image":t.get("image") is not None,
                 "resources":[{"url":url,"requires_api_key":not t["model"].endswith("-W") and urlsplit(url).netloc==base.netloc and urlsplit(url).scheme==base.scheme} for url in urls]})
+            if type(t.get('progress')) is int and 0<=t['progress']<=100:result[-1]['progress']=t['progress']
+            if t.get('failure_reason'):result[-1]['error_message']=t['failure_reason']
         return result
 
     def handle(self, batch, positions=None):

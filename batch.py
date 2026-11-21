@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from .client import ClientError
 from .image_host import host_key, upload, UploadError
-from .protocol import build_request, query_path
+from .protocol import build_request, query_path, family
 
 
 def run_parallel(items, worker, concurrency, interrupt=lambda: None, progress=lambda n, total: None):
@@ -176,7 +176,10 @@ def query_batch(store, client, batch, wait_seconds, poll_interval, concurrency, 
                     urls = [x["url"] for x in data]
                     if any(client.key in u for u in urls):
                         raise ClientError("query_result_contains_key")
-                store.update(batch, task["position"], status=status, urls=urls,
+                pct=body.get('progress') if family(task['model']) in ('hc','hc_native') else None
+                pct=(100 if status in ('succeeded','failed') else pct) if type(pct) is int and 0<=pct<=100 else None
+                store.update(batch, task["position"], status=status, urls=urls,progress=pct,
+                             failure_reason=client.task_failure_reason(body) if status=='failed' else '',
                              detail="server_task_failed" if status == "failed" else "")
                 if query_once or status in ("succeeded", "failed"):
                     return

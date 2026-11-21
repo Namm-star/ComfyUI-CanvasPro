@@ -132,3 +132,11 @@ test('HC native policy follows exact quality, reference and pixel contracts',asy
   assert.equal(p.qualities.includes('max'),model.includes('2.5'));
  }
 });
+
+
+test('new Xhigh and Max models expose nine references with ratio and resolution only',async()=>{
+ const {modelPolicy}=await import('../web/model_ui.mjs');
+ for(const model of ['即梦-66-gpt-image-2.6-flare-Xhigh','即梦-66-gpt-image-2.6-sunburst-Xhigh','即梦-67-gpt-image-2.6-flare-Max','即梦-67-gpt-image-2.6-sunburst-Max']){
+  const p=modelPolicy(model);assert.equal(p.max,9);assert.deepEqual(p.resolutions,['1K','2K','4K']);assert.ok(p.visible.has('aspect_ratio'));assert.ok(!p.visible.has('quality'));
+ }
+});

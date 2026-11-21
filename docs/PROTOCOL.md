@@ -195,3 +195,10 @@ submission_receipt.reference_uploads按参考图记录attempts、history、http_
 依据[已打开的本站文档](https://api.canvasproai.com/docs)，版本20261120-suanli-v1。图片型号从45款更新为55款：新增8款HC Token普通/SVIP型号和2款HC 2.6扩展。精确型号、质量和格式列于image_models.json的hc_native；Token系列使用/hc-token/v1/images，s-gpt 2.6扩展使用/hc-gpt/v1/images，均为异步，使用原任务号查询和本站Key下载。
 新增background和output_format，仅相应型号显示。15张参考图，编辑字段是image，不是images；仅公网HTTPS URL，可达8192字符，不接受片段。插件本地参考图仍自动临时上传ImgBB，再按image提交；本次未切换至新版可选素材上传API。宽高正整数且总像素严格小于8294400；2.6不开放xhigh/max，2.5按精确型号开放；透明背景要求显式png/webp，下载保留Alpha。不同接口不互换参数。
 新增双语示例HC新模型透明生图-HC-Native-Transparent.json和hc-native-api.json。count仍保持多个独立请求的含义，每请求n=1；本版未开放文档单请求n=2–4。Token系列按实际Token分项结算，预留额度不等于最终费用，不在插件硬编码固定张价或自动重提失败生成。已有香蕉比例、即梦21款、KR与W/SR/FULL合同核对后保留。
+
+
+## 2026-11-21 图片合同更新（0.16.1）
+依据https://api.canvasproai.com/docs，版本20261121-suanli-v1。图片59款，即梦图片25款。新增即梦-66-gpt-image-2.6-flare-Xhigh、即梦-66-gpt-image-2.6-sunburst-Xhigh、即梦-67-gpt-image-2.6-flare-Max、即梦-67-gpt-image-2.6-sunburst-Max。均最多9张参考图，1K/2K/4K，16:9、9:16、1:1、4:3、3:4。保留大小写后缀；质量档由型号锁定，不发quality。文生/编辑/查询沿用aistars专用接口。原21款参数逐项核对一致。
+新增双语示例：即梦2.6高档生图-Jimeng-2.6-Tiers.json，已连接图片保存和report/tasks_json。使用自己的Key，参考图可选，接口受理不等于生成成功。
+HC原3款、HC扩展2款、Token/SVIP8款的查询可返回progress整数0–100：0保留，字符串、浮点、布尔、越界或缺失时省略，不推测进度。终态合法进度归一为100，仍以status判断成功/失败；失败100也不能作为成功或退款判断。report与tasks_json包含progress及脱敏error_message；单个有进度任务在查询标题显示上游百分比，多任务不计算虚假平均进度。仅提取失败消息，不输出原始正文，过滤密钥、Bearer凭据和网址。旧记录无进度时保持缺省，不补造历史数据。
+原异步单轮查询、增量输出、缓存清理和不自动重提收费请求的行为保留。模型价格由平台计算，本插件不硬编码新固定价格。所有验证使用本地模拟服务，不执行付费生成。

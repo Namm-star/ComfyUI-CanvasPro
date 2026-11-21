@@ -107,6 +107,7 @@ export function applyExecutionStatus(node,message){
  else if(query){
   const c=query.counts || {};
   node.title=query.query_skipped?'CanvasPro · 提交阶段，未查询':`CanvasPro · 当前状态 | 排队 ${c.queued || 0} · 处理中 ${c.processing || 0} · 完成 ${c.succeeded || 0} · 失败 ${c.failed || 0} · 待确认 ${(c.submit_unknown || 0)+(c.unknown || 0)+(c.prepared || 0)+(c.sending || 0)}`;
+  if(!query.query_skipped && Number.isInteger(query.progress) && query.progress>=0 && query.progress<=100)node.title+=` · 上游进度 ${query.progress}%`;
   if(!query.query_skipped && query.output_count!=null)node.title+=` · 本次出图 ${query.output_count} · 跳过历史 ${query.skipped || 0}`;
  }else return;
  node.setDirtyCanvas?.(true,true);

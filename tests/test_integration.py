@@ -391,6 +391,50 @@ class Integration(unittest.TestCase):
             image=nodes.Fetch().execute(self.store.handle(batch),1,30)['result'][0][0]
         self.assertEqual(image.shape[-1],4);self.assertEqual(float(image[...,3].sum()),0)
 
+    def test_new_aistars_xhigh_max_models_generate_edit_nine_refs_and_recover(self):
+        from canvaspro.protocol import AISTARS,reference_limit
+        models=[m for m in AISTARS if m.endswith(('-Xhigh','-Max'))]
+        self.assertEqual(len(models),4)
+        refs={f'image_{i}':torch.zeros(1,4,4,3) for i in range(1,10)}
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch('canvaspro.batch.upload',return_value='https://i.ibb.co/mock.png'):
+            for i,model in enumerate(models):
+                self.assertEqual(reference_limit(model),9)
+                for images in ({},refs):
+                    handle=nodes.AsyncSubmit().execute(model,'new tier',reference_count=9,seed=i,image_size='4K',aspect_ratio='3:4',**images)['result'][0]
+                    path,body=self.service.posts[-1]
+                    self.assertEqual(path,'/aistars/v1/images/'+('edits' if images else 'generations'))
+                    self.assertEqual(body['resolution'],'4K');self.assertNotIn('quality',body)
+                    if images:self.assertEqual(len(body['images']),9)
+                    with patch('canvaspro.client.requests.post',side_effect=AssertionError('recovery never submits')):
+                        result=nodes.RecoverResults().execute(handle,wait_seconds=0)['result'];self.assertTrue(torch.is_tensor(result[0][0]))
+                with self.assertRaises(ValueError):nodes.PromptTask().execute(model,'too many',reference_count=10)
+        self.assertEqual(len(self.service.posts),8)
+
+    def test_hc_progress_preserves_zero_omits_invalid_and_is_not_success(self):
+        from canvaspro.protocol import HC_NATIVE
+        for i,model in enumerate(['s-gpt-image-2','s-gpt-image-2.5-flare','s-gpt-image-2.5-sunburst',*HC_NATIVE]):
+            batch,_=self.store.create('pct-'+str(i),'pct',self.client.base,model,1)
+            self.store.update(batch,0,status='queued',task_id='pct')
+            for pct in (0,42,'42',42.5,True,None,-1,101):
+                with patch.object(self.client,'query',return_value={'task_id':'pct','status':'processing','progress':pct}):query_batch(self.store,self.client,batch,0,.2,1)
+                item=self.store.resources(batch)[0]
+                if type(pct) is int and 0<=pct<=100:self.assertEqual(item['progress'],pct)
+                else:self.assertNotIn('progress',item)
+            with patch.object(self.client,'query',return_value={'task_id':'pct','status':'failed','progress':42,'error':{'message':'素材未通过安全审核 fake-secret https://private.example/x?signature=abc Bearer token_secret'}}):
+                query_batch(self.store,self.client,batch,0,.2,1)
+            item=self.store.resources(batch)[0];self.assertEqual(item['progress'],100);self.assertIn('安全审核',item['error_message'])
+            text=self.store.handle(batch);self.assertNotIn('fake-secret',text);self.assertNotIn('private.example',text);self.assertNotIn('token_secret',text)
+            self.assertEqual(self.store.read(batch,False)[1][0]['status'],'failed')
+        self.assertEqual(self.service.posts,[])
+
+    def test_single_hc_snapshot_exposes_real_progress_to_ui_without_polling(self):
+        batch,_=self.store.create('ui-pct','ui-pct',self.client.base,'gpt-image-2-HC',1)
+        self.store.add_queue('pct',batch);self.store.update(batch,0,status='queued',task_id='pct')
+        with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None),patch.object(self.client,'query',return_value={'task_id':'pct','status':'processing','progress':0}) as query:
+            result=nodes.AsyncQuery().execute(queue_key='pct');query.assert_called_once()
+        self.assertEqual(result['ui']['canvaspro_query'][0]['progress'],0)
+        self.assertEqual(json.loads(result['result'][1])['counts'],{'processing':1})
+
     def test_submit_report_distinguishes_new_acknowledgement_from_fixed_restore(self):
         with patch.object(nodes,'runtime',return_value=(self.store,self.client)),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             new=nodes.AsyncSubmit().execute('gpt-image-2','ack',seed=1)['result']
@@ -668,7 +712,7 @@ class Integration(unittest.TestCase):
 
     def test_sync_all_models_file_edit_resume_and_mixed(self):
         from canvaspro.protocol import SYNC
-        self.assertEqual(len(MODELS),55)
+        self.assertEqual(len(MODELS),59)
         items=[]
         for model in SYNC:
             items.extend(nodes.PromptTask().execute(model,"sync b64",quality="high",width=1280,height=720)[0])
@@ -1037,7 +1081,7 @@ print(batch)
         with patch.dict(os.environ,env),patch.object(nodes,'interrupt'),patch.object(nodes,'progress',return_value=lambda n,t:None):
             first=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
             again=nodes.BatchExecute().execute(tasks,'new-models',concurrency=8,wait_seconds=10)['result']
-        self.assertEqual(len(first[0]),42);self.assertEqual(len(self.service.posts),42)
+        self.assertEqual(len(first[0]),len(tasks));self.assertEqual(len(self.service.posts),len(tasks))
         self.assertEqual(first[2],again[2])
         for path,body in self.service.posts:
             self.assertEqual(path,'/aistars/v1/images/'+('edits' if body['prompt']=='edit' else 'generations'))
